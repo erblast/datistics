@@ -15,13 +15,15 @@
 baseURL = "https://example.org/"
 languageCode = "en-us"
 defaultContentLanguage = "en-us"
-title = "Hugo tranquilpeak theme"
+title = "datistics"
 theme = "hugo-tranquilpeak-theme"
-disqusShortname = "hugo-tranquilpeak-theme"
+disqusShortname = "datistics"
 # googleAnalytics = "UA-123-45"
 paginate = 7
 canonifyurls = true
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+keywords = ["data science", "R", "python", "machine learning", "data visualisation"]
+
 
 [permalinks]
   post = "/:year/:month/:slug/"
@@ -32,19 +34,11 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   archive = "archives"
 
 [author]
-  name = "Björn Koneswarakantha"
+  name = "Dr. Björn Koneswarakantha"
   bio = ""
   job = "Data Scientist"
   location = "Switzerland"
-  # Your Gravatar email. Overwrite `author.picture` everywhere in the blog
-  gravatarEmail = "thibaud.lepretre@gmail.com"
-  # Your profile picture
-  # Overwritten by your gravatar image if `author.gravatarEmail` is filled
-  picture = "https://github.com/erblast/datistics/blob/master/images/logo.png"
-  # Your Twitter username without the @. E.g : thibaudlepretre
-  # twitter = "thibaudlepretre"
-  # Your google plus profile id. E.g : +ThibaudLepretre or 114625208755123718311
-  # googlePlus = "+ThibaudLepretre"
+  picture = "./logo.png"
 
 # Menu Configuration
 [[menu.main]]
@@ -83,13 +77,21 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   identifier = "github"
   name = "GitHub"
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-github\"></i>"
-  url = "https://github.com/kakawait"
+  url = "https://github.com/erblast/"
+
 [[menu.links]]
   weight = 2
-  identifier = "stackoverflow"
-  name = "Stack Overflow"
-  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-stack-overflow\"></i>"
-  url = "https://stackoverflow.com/users/636472/kakawait"
+  identifier = "researchgate"
+  name = "researchgate"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-researchgate\"></i>"
+  url = "https://www.researchgate.net/profile/Bjoern_Oettinghaus/contributions"
+  
+[[menu.links]]
+  weight = 3
+  identifier = "linkedin"
+  name = "linkedIn"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-linkedin\"></i>"
+  url = "https://www.linkedin.com/in/bj%C3%B6rn-oettinghaus-96149398/"
 
 [[menu.misc]]
   weight = 1
@@ -204,7 +206,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
   [params.header.rightLink]
     class = ""
-    icon = ""
+    icon = "<i class=\"fab fa-researchgate\"></i>"
     url = "/#about"
 
   # Customize link of author avatar in sidebar

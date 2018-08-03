@@ -19,7 +19,7 @@ p = df %>%
     geom_density_ridges_gradient( color = 'white'
                                  , size = 0.5
                                  , scale = 3) +
-    theme( panel.background = element_rect(fill = 'black')
+    theme( panel.background = element_rect(fill = 'white')
            , panel.grid = element_blank()
            , aspect.ratio = 1
            , axis.title = element_blank()
@@ -27,8 +27,8 @@ p = df %>%
            , axis.ticks = element_blank()
            , legend.position = 'none') +
    xlim(-1,5) +
-   scale_fill_viridis_c(option = "inferno") +
-   scale_y_discrete( expand = c(0,5) )
+   scale_fill_viridis_c(option = "inferno") 
 
+p
 
-ggsave(filename = './images/logo.png', dpi = 600)
+ggsave(filename = './static/logo.png', dpi = 600, width = 1, height = 1)

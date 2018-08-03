@@ -1,0 +1,136 @@
+---
+title: Joyplot Logo
+author: Björn Koneswarakantha
+date: '2018-08-03'
+slug: joyplot-logo
+categories:
+  - visualisation
+  - R
+tags:
+  - visualisation
+  - R
+  - joyplot
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: console
+thumbnailImagePosition: left
+thumbnailImage: ./post/2018-08-03-first-post_files/figure-html/joyplot2-1.png
+summary: Short Blogpost describing how to create the logo.
+---
+
+Welcome to my data science blog `datistics` where I will gradually post all the vignettes and programming POC's that I have written over the past two years. Most of them can be already found in my [github repository](https://github.com/erblast/). 
+
+<p></p>
+<p></p>
+<p></p>
+
+
+I am using [blogdown](https://github.com/rstudio/blogdown) to create this blog and using `R` and `RStudio`. However I have recently taken up `python` programming for work again, so my first challenge will be to also add posts in the form of jupyter notebooks.
+
+As for my first post I will add the code that I use to generate my page logo in `R`.
+
+# Tweedie distributions
+
+We often encounter distributions that are not normal, I often encounter poisson and gamma distributions as well as distributions with an inflated zero value all of which belong to the family of tweedie distributions. When changing the parameter $p$ which can take values between 0 and 2 ( p == 0 gaussian, p == 1 poisson, p == 2 gamma) we can sample the different tweedie distributions.
+
+```{r short1, echo = FALSE}
+blogdown::shortcode("alert", "warning"
+                    , .content = "the `tweedie` package only supports values for 1 <= p <= 2")
+```
+
+
+```{r libraries}
+suppressWarnings({
+  suppressPackageStartupMessages({
+    require(tidyverse)
+    require(tweedie)
+    require(ggridges)
+  })
+})
+```
+
+```{r tweedie}
+
+df = tibble( p = seq(1,2,0.1) ) %>%
+  mutate( data = map(p, function(p) rtweedie(n = 500
+                                             , mu = 1
+                                             , phi = 1
+                                             , power = p )  ) ) %>%
+  unnest(data)
+
+df %>%
+  ggplot( aes(x = data) )+
+    geom_histogram(bins = 100, fill = '#77773c') +
+    facet_wrap(~p, scales = 'free_y')
+
+```
+
+# Joyplot
+
+We will now transform these distributions into a joyplot in the style of the Joy Divisions album Unknown Pleasurs cover art.
+
+<p></p>
+<p></p>
+<p></p>
+
+<div style="width:100px; height:130px"; align="center">
+![](https://www.officialmerchandise.com/assets/products/57683/large/joy-division-unknown-pleasures-poster-p8(1).jpg)
+</div>
+
+<p></p>
+<p></p>
+<p></p>
+
+We will use `ggridges` formerly known as `ggjoy`.
+
+```{r joyplot1 }
+
+joyplot = function(df){
+
+  p = df %>%
+    ggplot(aes(x = data, y = as.factor(p), fill = ..x.. ) ) +
+      geom_density_ridges_gradient( color = 'white'
+                                   , size = 0.5
+                                   , scale = 3) +
+      theme( panel.background = element_rect(fill = 'white')
+             , panel.grid = element_blank()
+             , aspect.ratio = 1
+             , axis.title = element_blank()
+             , axis.text = element_blank()
+             , axis.ticks = element_blank()
+             , legend.position = 'none') +
+     xlim(-1,5) +
+     scale_fill_viridis_c(option = "inferno") 
+  
+  return(p)
+
+}
+
+joyplot(df)
+
+```
+
+
+I order to distribute them a bit better over the x-axis we will transform them using a sine wave pattern.
+
+```{r joyplot2}
+
+df = tibble( p = seq(1,2,0.05)
+             , rwn = row_number(p)
+             , sin = sin(rwn) ) %>%
+  mutate( data = map(p, function(p) rtweedie(500
+                                             , mu = 1
+                                             , phi = 1
+                                             , power = p)  ) ) %>%
+  unnest(data) %>%
+  filter( data <= 4) %>%
+  mutate( data = ( 4 * abs( sin(rwn) ) ) - data )
+
+
+joyplot(df)
+
+```
+
