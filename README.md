@@ -1,2 +1,0 @@
-# datistics
-data science blog
