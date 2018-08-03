@@ -12,7 +12,7 @@ df = tibble( p = seq(1,2,0.05)
                                              , power = p)  ) ) %>%
   unnest(data) 
 
-df %>%
+p = df %>%
   filter( data <= 4) %>%
   mutate( data = ( 4 * abs( sin(rwn) ) ) - data ) %>%
   ggplot(aes(x = data, y = as.factor(p), fill = ..x.. ) ) +
@@ -31,4 +31,4 @@ df %>%
    scale_y_discrete( expand = c(0,5) )
 
 
-
+ggsave(filename = './images/logo.png', dpi = 600)
