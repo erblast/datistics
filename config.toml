@@ -1,4 +1,4 @@
-﻿# Tranquilpeak
+# Tranquilpeak
 # Version : 0.4.3-BETA
 # Author : Thibaud Leprêtre
 
@@ -99,6 +99,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   name = "RSS"
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-rss\"></i>"
   url = "/index.xml"
+  
 
 [params]
   # Customize date format use to render blog post date, categories and other
@@ -154,7 +155,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   # Display thumbnail image at the right of title in index pages (`right`, `left` or `bottom`)
   # Set this value to `right` if you have old posts to keep the old style on them
   # and define `thumbnailImagePosition` on a post to overwrite this setting
-  thumbnailImagePosition = "bottom"
+  thumbnailImagePosition = "left"
   # Automatically select the cover image or the first photo from the gallery of a post if there is no thumbnail image as the thumbnail image
   # Set this value to `true` if you have old posts that use the cover image or the first photo as the thumbnail image
   # and set `autoThumbnailImage` to `false` on a post to overwrite this setting
@@ -163,13 +164,6 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   # Your favicon path, default is "/favicon.png"
   # favicon = "/favicon.png"
 
-  # Header configuration
-  # The link at the right of the header is customizable
-  # You can add a link (as an icon) at the right of the header instead of the author's gravatar image or author's picture.
-  # By default, author's gravatar or author's picture is displayed.
-  #     url: /#search
-  #     icon: search
-  #     class: st-search-show-outputs
 
   # Custom CSS. Put here your custom CSS files. They are loaded after the theme CSS;
   # they have to be referred from static root. Example
@@ -205,9 +199,9 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
     url = "https://plus.google.com/share?url=%s"
 
   [params.header.rightLink]
-    class = ""
-    icon = ""
-    url = "/#about"
+     class = ""
+     icon = ""
+     url = "/#about"
 
   # Customize link of author avatar in sidebar
   # [params.sidebar.profile]
