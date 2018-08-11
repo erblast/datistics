@@ -1,4 +1,4 @@
-# Tranquilpeak
+﻿# Tranquilpeak
 # Version : 0.4.3-BETA
 # Author : Thibaud Leprêtre
 
@@ -206,7 +206,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
 
   [params.header.rightLink]
     class = ""
-    icon = "<i class=\"fab fa-researchgate\"></i>"
+    icon = ""
     url = "/#about"
 
   # Customize link of author avatar in sidebar
