@@ -126,10 +126,10 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/adding_posts_with_juypter.ipynb'
                           , date = '2018-08-11'
                           , slug = 'post_with_jupyter'
-                          , title = 'Adding posts as jupyter notebooks'
+                          , title = 'Use jupyter notebooks to add posts to hugo blog'
                           , author = 'Bjoern Koneswarakantha'
                           , categories = ['R vs. python','blogging']
-                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo', 'hugo_jupyer']
+                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo', 'hugo_jupyer', 'jupyter']
                           , summary = 'Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to\
                            R and blogdown'
                           , thumbnailImagePosition = 'left'
