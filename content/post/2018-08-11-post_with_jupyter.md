@@ -1,12 +1,6 @@
 ---
-thumbnailImage : https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar
-summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown
-thumbnailImagePosition : left
-date : 2018-08-11
+slug : post_with_jupyter
 author : Bjoern Koneswarakantha
-categories: 
-  - R vs. python
-  - blogging
 tags: 
   - R vs. python
   - hugo
@@ -14,23 +8,35 @@ tags:
   - R
   - hugo
   - hugo_jupyer
-slug : post_with_jupyter
+date : 2018-08-11
+categories: 
+  - R vs. python
+  - blogging
+thumbnailImagePosition : left
 title : Adding posts as jupyter notebooks
+summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown
+thumbnailImage : https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar
 ---
+
+{{< image classes="center" src="https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar" thumbnail="https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar" thumbnail-width="180px" thumbnail-height="180px">}}
 
 
 <!-- toc -->
 
 
 {{< alert warning >}}
-The paths mentioned in this post only apply when the following configuration is set in your `.toml` file:
-<br></br>
+The file paths mentioned in this post only apply when the following configuration is set in your '.toml' file:
+```
+
 [permalinks]
-<br></br>  post = "/:year/:month/:slug/"
+    post = "/:year/:month/:slug/"
+```
 
 {{< /alert >}}
 
+
 # hugo_jupyter
+
 
 Starting this blog with `blogdown` and `RStudio` was pretty straight forward. I did not need to learn much about `hugo` which is the static website generator that I used and the project is well-documented. However I would also like to add posts from `juypter notebooks` which seems to be possible but let's say less accessible. The tool I tried is [`hugo_jupyter`](https://github.com/knowsuchagency/hugo_jupyter) which is supposed to work similar to `blogdown`. It runs a local server of the website which automatically rerenders the site if changes are made in relevant folders. The same can also be achieved if executing this simple hugo command inside the parent folder of your site (You have to open your browser and copy paste the displayed local host address though).
 
@@ -76,7 +82,7 @@ path = r'./notebooks/adding_posts_with_juypter.ipynb'
 # here I customize some functions of the fabfile.py of the hugo_jupyter package
 
 class CustomPreprocessor(Preprocessor):
-    """Remove blank code cells and unnecessary whitespace."""
+    """Remove blank code cells and unnecessary whitespace."""2
 
     def preprocess(self, nb, resources):
         """

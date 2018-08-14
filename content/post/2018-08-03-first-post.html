@@ -23,6 +23,7 @@ summary: Short Blogpost describing how to create the logo.
 
 
 
+{{% image classes="center" src="../../../logo.png" thumbnail="../../../logo.png" thumbnail-width="180px" thumbnail-height="180px" %}}
 <p>Welcome to my data science blog <code>datistics</code> where I will gradually post all the vignettes and programming POC’s that I have written over the past two years. Most of them can be already found in my <a href="https://github.com/erblast/">github repository</a>.</p>
 <p>
 </p>
@@ -102,7 +103,7 @@ df %&gt;%
 }
 
 joyplot(df)</code></pre>
-<pre><code>## Picking joint bandwidth of 0.24</code></pre>
+<pre><code>## Picking joint bandwidth of 0.234</code></pre>
 <p><img src="/post/2018-08-03-first-post_files/figure-html/joyplot1-1.png" width="672" /></p>
 <p>I order to distribute them a bit better over the x-axis we will transform them using a sine wave pattern.</p>
 <pre class="r"><code>df = tibble( p = seq(1,2,0.05)
@@ -118,6 +119,6 @@ joyplot(df)</code></pre>
 
 
 joyplot(df)</code></pre>
-<pre><code>## Picking joint bandwidth of 0.206</code></pre>
+<pre><code>## Picking joint bandwidth of 0.204</code></pre>
 <p><img src="/post/2018-08-03-first-post_files/figure-html/joyplot2-1.png" width="672" /></p>
 </div>

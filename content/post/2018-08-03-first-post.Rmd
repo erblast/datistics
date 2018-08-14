@@ -21,12 +21,22 @@ thumbnailImage: ./post/2018-08-03-first-post_files/figure-html/joyplot2-1.png
 summary: Short Blogpost describing how to create the logo.
 ---
 
+```{r short_logo, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = '../../../logo.png'
+                    , thumbnail = '../../../logo.png'
+                    , `thumbnail-width` = '180px'
+                    , `thumbnail-height` = '180px'
+                    )
+
+```
+
 Welcome to my data science blog `datistics` where I will gradually post all the vignettes and programming POC's that I have written over the past two years. Most of them can be already found in my [github repository](https://github.com/erblast/). 
 
 <p></p>
 <p></p>
 <p></p>
-
 
 I am using [blogdown](https://github.com/rstudio/blogdown) to create this blog and using `R` and `RStudio`. However I have recently taken up `python` programming for work again, so my first challenge will be to also add posts in the form of jupyter notebooks.
 
