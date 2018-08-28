@@ -135,3 +135,40 @@ if __name__ == "__main__":
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = 'https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar'
                          )
+
+
+    notebook_to_markdown( path = r'../notebooks/01_r2py_ide.ipynb'
+                          , date = '2018-08-21'
+                          , slug = 'r2py_ide'
+                          , title = 'Moving from R to python - 1/8 - IDE'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','IDE']
+                          , tags = ['R vs. python','IDE', 'python', 'R', 'jupyter', 'pycharm', 'RStudio']
+                          , summary = 'Some reflections on the choice of the python IDE. We end up comparing RStudio to pycharm.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
+
+    notebook_to_markdown( path = r'../notebooks/02_r2py_pandas.ipynb'
+                          , date = '2018-08-22'
+                          , slug = 'r2py_pandas'
+                          , title = 'Moving from R to python - 2/8 - pandas'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','pandas']
+                          , tags = ['R vs. python','pandas', 'python', 'R', 'dplyr']
+                          , summary = 'We look at pandas and compare it to dplyr.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
+
+    notebook_to_markdown( path = r'../notebooks/03_R2Py_matplotlib_seaborn.ipynb'
+                          , date = '2018-08-23'
+                          , slug = 'r2py_matplotlib_seaborn'
+                          , title = 'Moving from R to python - 3/8 - matplotlib and seaborn'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','matplotlib', 'seaborn', 'ggplot2']
+                          , tags = ['R vs. python','matplotlib', 'seaborn', 'R', 'ggplot2']
+                          , summary = 'We look at the visualisations options in python with matplotlib and seaborn.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
