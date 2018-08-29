@@ -172,3 +172,15 @@ if __name__ == "__main__":
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
                          )
+
+    notebook_to_markdown( path = r'../notebooks/04_R2Py_plotly.ipynb'
+                          , date = '2018-08-24'
+                          , slug = 'r2py_plotly'
+                          , title = 'Moving from R to python - 4/8 - plotly'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','matplotlib', 'plotly']
+                          , tags = ['R vs. python','plotly', 'R', 'python', 'plotly']
+                          , summary = 'We look at the plotly API for R and python'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
