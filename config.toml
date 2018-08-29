@@ -162,7 +162,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   autoThumbnailImage = true
 
   # Your favicon path, default is "/favicon.png"
-  # favicon = "/favicon.png"
+  favicon = "/images/favicon.ico"
 
 
   # Custom CSS. Put here your custom CSS files. They are loaded after the theme CSS;
