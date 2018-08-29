@@ -83,9 +83,9 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   weight = 2
   identifier = "researchgate"
   name = "researchgate"
-  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-researchgate\"></i>"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-flask\"></i>"
   url = "https://www.researchgate.net/profile/Bjoern_Oettinghaus/contributions"
-  
+
 [[menu.links]]
   weight = 3
   identifier = "linkedin"
@@ -94,18 +94,24 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   url = "https://www.linkedin.com/in/bj%C3%B6rn-oettinghaus-96149398/"
 
 [[menu.misc]]
-  weight = 1
+  weight = 10
   identifier = "rss"
   name = "RSS"
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-rss\"></i>"
   url = "/index.xml"
-  
+
+[[menu.misc]]
+  weight = 1
+  identifier = "git_doc"
+  name = "git"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
+  url = "/page/gitdoc"
 
 [params]
   # Customize date format use to render blog post date, categories and other
   # You must use date format used by Go Time package https://golang.org/pkg/time/
   # Months (not work with short month like "jan", "feb", etc) are translated if translation exists on i18n folders
-  # Default format is: January 2, 2006 
+  # Default format is: January 2, 2006
   # dateFormat = "2 January 2006"
 
   # Global keywords configuration. Following keywords will be add to every pages
@@ -118,7 +124,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   # Hide sidebar on all article page to let article take full width to improve reading, and enjoy wide images and cover images. (true: enable, false: disable)
   clearReading = true
 
-  # Define categories will create hierarchy between parents: `categories = ["foo", "bar"]` will consider "bar" a sub-category of "foo". 
+  # Define categories will create hierarchy between parents: `categories = ["foo", "bar"]` will consider "bar" a sub-category of "foo".
   # If false it will flat categories.
   hierarchicalCategories = true
 
