@@ -1,11 +1,11 @@
 ---
+date : 2018-08-11
+slug : post_with_jupyter
+title : Use jupyter notebooks to add posts to hugo blog
 author : Bjoern Koneswarakantha
 categories: 
   - R vs. python
   - blogging
-summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown
-thumbnailImage : https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar
-title : Use jupyter notebooks to add posts to hugo blog
 tags: 
   - R vs. python
   - hugo
@@ -14,9 +14,9 @@ tags:
   - hugo
   - hugo_jupyer
   - jupyter
+summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown
 thumbnailImagePosition : left
-date : 2018-08-11
-slug : post_with_jupyter
+thumbnailImage : https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar
 ---
 
 {{< image classes="center" src="https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar" thumbnail="https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar" thumbnail-width="180px" thumbnail-height="180px">}}

@@ -46,6 +46,17 @@ def doctor(string: str) -> str:
 
     return inter_output_filtered
 
+def remove_java_script(x):
+    """strip java script from md file"""
+
+    div_regex = re.compile('<div[\s\S]*>[\s\S]*</div>')
+    script_regex = re.compile('<script[\s\S]*>[\s\S]*</script>')
+
+    x = re.sub(div_regex, '', x)
+    x = re.sub(script_regex, '', x)
+
+    return x
+
 def make_yaml_header(**kwargs):
 
     header = '---\n'
@@ -96,6 +107,7 @@ def notebook_to_markdown( path, date, slug, **kwargs ):
 
     markdown, resources = markdown_exporter.from_notebook_node(notebook)
     md = doctor(markdown)
+    md = remove_java_script(md)
 
     yaml = make_yaml_header(  date = date
                              , slug = slug

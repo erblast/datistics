@@ -1,22 +1,22 @@
 ---
+date : 2018-08-23
+slug : r2py_matplotlib_seaborn
+title : Moving from R to python - 3/8 - matplotlib and seaborn
 author : Bjoern Koneswarakantha
 categories: 
   - R vs. python
   - matplotlib
   - seaborn
   - ggplot2
-summary : We look at the visualisations options in python with matplotlib and seaborn.
-thumbnailImage : r2py.png
-title : Moving from R to python - 3/8 - matplotlib and seaborn
 tags: 
   - R vs. python
   - matplotlib
   - seaborn
   - R
   - ggplot2
+summary : We look at the visualisations options in python with matplotlib and seaborn.
 thumbnailImagePosition : left
-date : 2018-08-23
-slug : r2py_matplotlib_seaborn
+thumbnailImage : r2py.png
 ---
 
 {{< image classes="center" src="../../../r2py.png" thumbnail="../../../r2py.png" thumbnail-width="180px" thumbnail-height="180px">}}
