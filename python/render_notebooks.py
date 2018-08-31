@@ -49,11 +49,11 @@ def doctor(string: str) -> str:
 def remove_java_script(x):
     """strip java script from md file"""
 
-    div_regex = re.compile('<div[\s\S]*>[\s\S]*</div>')
-    script_regex = re.compile('<script[\s\S]*>[\s\S]*</script>')
+    script_regex1 = re.compile("<script type='text/javascript'>[\s\S]*?\{window\.Plotly = Plotly;\}\);\}</script>")
+    script_regex2 = re.compile("<div id=[\s\S]*?plot.ly\"}\)}\);</script>")
 
-    x = re.sub(div_regex, '', x)
-    x = re.sub(script_regex, '', x)
+    x = re.sub(script_regex1, '', x)
+    x = re.sub(script_regex2, "", x)
 
     return x
 
@@ -190,8 +190,8 @@ if __name__ == "__main__":
                           , slug = 'r2py_plotly'
                           , title = 'Moving from R to python - 4/8 - plotly'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','matplotlib', 'plotly']
-                          , tags = ['R vs. python','plotly', 'R', 'python', 'plotly']
+                          , categories = ['R vs. python','matplotlib', 'plotly', 'seaborn']
+                          , tags = ['R vs. python','plotly', 'R', 'python', 'plotly', 'seaborn']
                           , summary = 'We look at the plotly API for R and python'
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
