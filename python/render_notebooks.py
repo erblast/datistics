@@ -46,6 +46,17 @@ def doctor(string: str) -> str:
 
     return inter_output_filtered
 
+def remove_java_script(x):
+    """strip java script from md file"""
+
+    script_regex1 = re.compile("<script type='text/javascript'>[\s\S]*?\{window\.Plotly = Plotly;\}\);\}</script>")
+    script_regex2 = re.compile("<div id=[\s\S]*?plot.ly\"}\)}\);</script>")
+
+    x = re.sub(script_regex1, '', x)
+    x = re.sub(script_regex2, "", x)
+
+    return x
+
 def make_yaml_header(**kwargs):
 
     header = '---\n'
@@ -96,6 +107,7 @@ def notebook_to_markdown( path, date, slug, **kwargs ):
 
     markdown, resources = markdown_exporter.from_notebook_node(notebook)
     md = doctor(markdown)
+    md = remove_java_script(md)
 
     yaml = make_yaml_header(  date = date
                              , slug = slug
@@ -169,6 +181,18 @@ if __name__ == "__main__":
                           , categories = ['R vs. python','matplotlib', 'seaborn', 'ggplot2']
                           , tags = ['R vs. python','matplotlib', 'seaborn', 'R', 'ggplot2']
                           , summary = 'We look at the visualisations options in python with matplotlib and seaborn.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
+
+    notebook_to_markdown( path = r'../notebooks/04_R2Py_plotly.ipynb'
+                          , date = '2018-08-24'
+                          , slug = 'r2py_plotly'
+                          , title = 'Moving from R to python - 4/8 - plotly'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','matplotlib', 'plotly', 'seaborn']
+                          , tags = ['R vs. python','plotly', 'R', 'python', 'plotly', 'seaborn']
+                          , summary = 'We look at the plotly API for R and python'
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
                          )

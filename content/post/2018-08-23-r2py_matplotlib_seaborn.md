@@ -1,22 +1,22 @@
 ---
+date : 2018-08-23
+slug : r2py_matplotlib_seaborn
+title : Moving from R to python - 3/8 - matplotlib and seaborn
 author : Bjoern Koneswarakantha
-thumbnailImage : r2py.png
 categories: 
   - R vs. python
   - matplotlib
   - seaborn
   - ggplot2
-thumbnailImagePosition : left
-date : 2018-08-23
-title : Moving from R to python - 3/8 - matplotlib and seaborn
-summary : We look at the visualisations options in python with matplotlib and seaborn.
 tags: 
   - R vs. python
   - matplotlib
   - seaborn
   - R
   - ggplot2
-slug : r2py_matplotlib_seaborn
+summary : We look at the visualisations options in python with matplotlib and seaborn.
+thumbnailImagePosition : left
+thumbnailImage : r2py.png
 ---
 
 {{< image classes="center" src="../../../r2py.png" thumbnail="../../../r2py.png" thumbnail-width="180px" thumbnail-height="180px">}}
@@ -25,6 +25,7 @@ slug : r2py_matplotlib_seaborn
 - [1 of 8: IDE]( {{< relref "2018-08-21-r2py_ide.md" >}}  )
 - [2 of 8: pandas]( {{< relref "2018-08-22-r2py_pandas.md" >}}  )
 - [3 of 8: matplotlib and seaborn]( {{< relref "2018-08-23-r2py_matplotlib_seaborn.md" >}}  )
+- [4 of 8: plotly]( {{< relref "2018-08-24-r2py_plotly.md" >}}  )
 
 <!-- toc -->
 
