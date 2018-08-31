@@ -3,11 +3,18 @@
   <component name="ChangeListManager">
     <list default="true" id="80ca72db-ef7e-4c14-ad9b-cdbe7ec720bb" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/post/2018-08-11-post_with_jupyter.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/post/2018-08-11-post_with_jupyter.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/post/04_R2Py_plotly.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/content/post/2018-08-21-r2py_ide.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/post/2018-08-21-r2py_ide.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/post/2018-08-22-r2py_pandas.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/post/2018-08-22-r2py_pandas.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/post/2018-08-23-r2py_matplotlib_seaborn.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/post/2018-08-23-r2py_matplotlib_seaborn.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/post/2018-08-24-r2py_plotly.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/post/2018-08-24-r2py_plotly.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/01_R2Py_IDE-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/01_R2Py_IDE-checkpoint.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/02_R2Py_pandas-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/02_R2Py_pandas-checkpoint.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/03_R2Py_matplotlib_seaborn-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/03_R2Py_matplotlib_seaborn-checkpoint.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/04_R2Py_plotly-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/04_R2Py_plotly-checkpoint.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/01_R2Py_IDE.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/01_R2Py_IDE.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/02_R2Py_pandas.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/02_R2Py_pandas.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/03_R2Py_matplotlib_seaborn.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/03_R2Py_matplotlib_seaborn.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/04_R2Py_plotly.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/04_R2Py_plotly.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/python/render_notebooks.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/render_notebooks.py" afterDir="false" />
     </list>
@@ -23,8 +30,8 @@
       <file leaf-file-name="render_notebooks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/python/render_notebooks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="82">
-              <caret line="49" column="37" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
+            <state relative-caret-position="72">
+              <caret line="175" column="56" selection-start-line="175" selection-start-column="56" selection-end-line="175" selection-end-column="56" />
               <folding>
                 <element signature="e#2#40#0" expanded="true" />
               </folding>
@@ -45,7 +52,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="953" />
+    <option name="x" value="-7" />
     <option name="width" value="974" />
     <option name="height" value="1047" />
   </component>
@@ -129,10 +136,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="953" y="0" width="974" height="1047" extended-state="0" />
+    <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17943107" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18271334" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="R Packages" order="3" />
       <window_info anchor="right" id="R Graphics" order="3" />
@@ -164,6 +171,16 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/python/render_notebooks.py">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="833">
+          <caret line="49" column="37" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
+          <folding>
+            <element signature="e#2#40#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/python/render_notebooks.py">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2669">
           <caret line="157" column="82" selection-start-line="157" selection-start-column="82" selection-end-line="157" selection-end-column="82" />
           <folding>
@@ -174,8 +191,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/python/render_notebooks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="82">
-          <caret line="49" column="37" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
+        <state relative-caret-position="72">
+          <caret line="175" column="56" selection-start-line="175" selection-start-column="56" selection-end-line="175" selection-end-column="56" />
           <folding>
             <element signature="e#2#40#0" expanded="true" />
           </folding>
