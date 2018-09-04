@@ -196,3 +196,16 @@ if __name__ == "__main__":
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
                          )
+
+    notebook_to_markdown( path = r'../notebooks/05_R2Py_scikitlearn.ipynb'
+                          , date = '2018-08-25'
+                          , slug = 'r2py_scikitlearn'
+                          , title = 'Moving from R to python - 5/8 - scikitlearn'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','scikitlearn', 'randomized parameter search']
+                          , tags = ['R vs. python','scikitlearn', 'randomized parameter search'
+                                    , 'Categorical Encoding', 'matplotlib color maps']
+                          , summary = 'We take scikitlearn for a spin, and try out the whole modelling workflow.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
