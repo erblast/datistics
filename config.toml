@@ -107,6 +107,15 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
   url = "/page/gitdoc"
 
+[[menu.misc]]
+  weight = 3
+  identifier = "theme_doc"
+  name = "hugo theme doc"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
+  url = "https://github.com/kakawait/hugo-tranquilpeak-theme/blob/master/docs/user.md"
+
+
+
 [params]
   # Customize date format use to render blog post date, categories and other
   # You must use date format used by Go Time package https://golang.org/pkg/time/

@@ -27,6 +27,9 @@ thumbnailImage : r2py.png
 - [3 of 8: matplotlib and seaborn]( {{< relref "2018-08-23-r2py_matplotlib_seaborn.md" >}}  )
 - [4 of 8: plotly]( {{< relref "2018-08-24-r2py_plotly.md" >}}  )
 - [5 of 8: scikitlearn]( {{< relref "2018-08-25-r2py_scikitlearn.md" >}}  )
+- [6 of 8: advanced scikitlearn]( {{< relref "2018-08-26-r2py_scikitlearn_advanced.md" >}}  )
+- [7 of 8: automated machine learning]( {{< relref "2018-08-27-r2py_automated_ML.md" >}}  )
+
 
 
 <!-- toc -->

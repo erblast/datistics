@@ -209,3 +209,30 @@ if __name__ == "__main__":
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
                          )
+
+    notebook_to_markdown( path = r'../notebooks/06_R2Py_scikitlearn_advanced.ipynb'
+                          , date = '2018-08-26'
+                          , slug = 'r2py_scikitlearn_advanced'
+                          , title = 'Moving from R to python - 6/8 - scikitlearn'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','scikitlearn', 'sklearn-pandas', 'pipes', 'sparse data']
+                          , tags = ['R vs. python','scikitlearn', 'randomized parameter search'
+                                    , 'sklearn-pandas', 'pipes', 'sparse data']
+                          , summary = 'We look into some techniques for scikitlearn that allow us to write more \
+                                       generalizable code that executes faster and helps us to avoid numpy arrays.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
+
+    notebook_to_markdown( path = r'../notebooks/07_R2Py_automated_ML.ipynb'
+                          , date = '2018-08-27'
+                          , slug = 'r2py_automated_ML'
+                          , title = 'Moving from R to python - 7/8 - automated machine learning'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','tpot', 'auto-sklearn', 'scikitlearn']
+                          , tags = ['R vs. python','tpot', 'auto-sklearn', 'scikitlearn']
+                          , summary = 'We look into some techniques for scikitlearn that allow us to write more \
+                                       generalizable code that executes faster and helps us to avoid numpy arrays.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
