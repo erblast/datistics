@@ -11,7 +11,6 @@ tags:
   - hugo
   - python
   - R
-  - hugo
   - hugo_jupyer
   - jupyter
 summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown

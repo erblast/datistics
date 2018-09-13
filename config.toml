@@ -108,6 +108,13 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   url = "/page/gitdoc"
 
 [[menu.misc]]
+  weight = 2
+  identifier = "conda_doc"
+  name = "conda"
+  pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
+  url = "2018/08/conda3/"
+
+[[menu.misc]]
   weight = 3
   identifier = "theme_doc"
   name = "hugo theme doc"

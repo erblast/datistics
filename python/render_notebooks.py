@@ -141,7 +141,7 @@ if __name__ == "__main__":
                           , title = 'Use jupyter notebooks to add posts to hugo blog'
                           , author = 'Bjoern Koneswarakantha'
                           , categories = ['R vs. python','blogging']
-                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo', 'hugo_jupyer', 'jupyter']
+                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo_jupyer', 'jupyter']
                           , summary = 'Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to\
                            R and blogdown'
                           , thumbnailImagePosition = 'left'
@@ -191,7 +191,7 @@ if __name__ == "__main__":
                           , title = 'Moving from R to python - 4/8 - plotly'
                           , author = 'Bjoern Koneswarakantha'
                           , categories = ['R vs. python','matplotlib', 'plotly', 'seaborn']
-                          , tags = ['R vs. python','plotly', 'R', 'python', 'plotly', 'seaborn']
+                          , tags = ['R vs. python','plotly', 'R', 'python', 'seaborn']
                           , summary = 'We look at the plotly API for R and python'
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
@@ -243,10 +243,10 @@ if __name__ == "__main__":
                           , slug = 'conda3'
                           , title = 'Polyglot conda environments - 3/3 - jupyter notebooks'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','conda', 'R', 'python', 'reproducibility']
-                          , tags = ['R vs. python','conda', 'R', 'python', 'reproducibility']
+                          , categories = ['conda', 'R', 'python', 'reproducibility', 'jupyter', 'rpy2', 'tabplot', 'htmlwidgets', 'DT', 'ggpubr', 'ggalluvial']
+                          , tags = ['conda', 'R', 'python', 'reproducibility', 'jupyter', 'rpy2', 'tabplot', 'htmlwidgets', 'DT', 'ggpubr', 'ggalluvial']
                           , summary = 'We demonstrate how we can use R from within a python jupyter notebook\
                                         including R html widgets'
                           , thumbnailImagePosition = 'left'
-                          , thumbnailImage = "r2py.png"
+                          , thumbnailImage = "conda_trinity.png"
                          )
