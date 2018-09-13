@@ -1,7 +1,7 @@
 ---
 date : 2018-08-26
 slug : r2py_scikitlearn_advanced
-title : Moving from R to python - 6/8 - scikitlearn
+title : Moving from R to python - 6/8 - advanced scikitlearn
 author : Bjoern Koneswarakantha
 categories: 
   - R vs. python

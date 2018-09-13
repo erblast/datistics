@@ -213,7 +213,7 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/06_R2Py_scikitlearn_advanced.ipynb'
                           , date = '2018-08-26'
                           , slug = 'r2py_scikitlearn_advanced'
-                          , title = 'Moving from R to python - 6/8 - scikitlearn'
+                          , title = 'Moving from R to python - 6/8 - advanced scikitlearn'
                           , author = 'Bjoern Koneswarakantha'
                           , categories = ['R vs. python','scikitlearn', 'sklearn-pandas', 'pipes', 'sparse data']
                           , tags = ['R vs. python','scikitlearn', 'randomized parameter search'
@@ -233,6 +233,20 @@ if __name__ == "__main__":
                           , tags = ['R vs. python','tpot', 'auto-sklearn', 'scikitlearn']
                           , summary = 'We look into some techniques for scikitlearn that allow us to write more \
                                        generalizable code that executes faster and helps us to avoid numpy arrays.'
+                          , thumbnailImagePosition = 'left'
+                          , thumbnailImage = "r2py.png"
+                         )
+
+
+    notebook_to_markdown( path = r'../notebooks/conda_03_jupyter.ipynb'
+                          , date = '2018-08-30'
+                          , slug = 'conda3'
+                          , title = 'Polyglot conda environments - 3/3 - jupyter notebooks'
+                          , author = 'Bjoern Koneswarakantha'
+                          , categories = ['R vs. python','conda', 'R', 'python', 'reproducibility']
+                          , tags = ['R vs. python','conda', 'R', 'python', 'reproducibility']
+                          , summary = 'We demonstrate how we can use R from within a python jupyter notebook\
+                                        including R html widgets'
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "r2py.png"
                          )
