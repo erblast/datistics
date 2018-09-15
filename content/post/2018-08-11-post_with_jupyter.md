@@ -4,8 +4,8 @@ slug : post_with_jupyter
 title : Use jupyter notebooks to add posts to hugo blog
 author : Bjoern Koneswarakantha
 categories: 
-  - R vs. python
-  - blogging
+  - hugo
+  - jupyter
 tags: 
   - R vs. python
   - hugo
@@ -13,6 +13,7 @@ tags:
   - R
   - hugo_jupyer
   - jupyter
+  - blogdown
 summary : Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to                           R and blogdown
 thumbnailImagePosition : left
 thumbnailImage : https://gitlab.eurecom.fr/zoe-apps/pytorch/avatar

@@ -1,13 +1,11 @@
 ---
 date : 2018-08-27
 slug : r2py_automated_ML
-title : Moving from R to python - 7/8 - automated machine learning
+title : Moving from R to python - 7/7 - automated machine learning
 author : Bjoern Koneswarakantha
 categories: 
+  - python
   - R vs. python
-  - tpot
-  - auto-sklearn
-  - scikitlearn
 tags: 
   - R vs. python
   - tpot
@@ -21,13 +19,14 @@ thumbnailImage : r2py.png
 {{< image classes="center" src="../../../r2py.png" thumbnail="../../../r2py.png" thumbnail-width="180px" thumbnail-height="180px">}}
 
 
-- [1 of 8: IDE]( {{< relref "2018-08-21-r2py_ide.md" >}}  )
-- [2 of 8: pandas]( {{< relref "2018-08-22-r2py_pandas.md" >}}  )
-- [3 of 8: matplotlib and seaborn]( {{< relref "2018-08-23-r2py_matplotlib_seaborn.md" >}}  )
-- [4 of 8: plotly]( {{< relref "2018-08-24-r2py_plotly.md" >}}  )
-- [5 of 8: scikitlearn]( {{< relref "2018-08-25-r2py_scikitlearn.md" >}}  )
-- [6 of 8: advanced scikitlearn]( {{< relref "2018-08-26-r2py_scikitlearn_advanced.md" >}}  )
-- [7 of 8: automated machine learning]( {{< relref "2018-08-27-r2py_automated_ML.md" >}}  )
+
+- [1 of 7: IDE]( {{< relref "2018-08-21-r2py_ide.md" >}}  )
+- [2 of 7: pandas]( {{< relref "2018-08-22-r2py_pandas.md" >}}  )
+- [3 of 7: matplotlib and seaborn]( {{< relref "2018-08-23-r2py_matplotlib_seaborn.md" >}}  )
+- [4 of 7: plotly]( {{< relref "2018-08-24-r2py_plotly.md" >}}  )
+- [5 of 7: scikitlearn]( {{< relref "2018-08-25-r2py_scikitlearn.md" >}}  )
+- [6 of 7: advanced scikitlearn]( {{< relref "2018-08-26-r2py_scikitlearn_advanced.md" >}}  )
+- [7 of 7: automated machine learning]( {{< relref "2018-08-27-r2py_automated_ML.md" >}}  )
 
 
 

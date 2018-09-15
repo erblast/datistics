@@ -5,10 +5,7 @@ date: '2018-08-28'
 slug: conda1
 categories:
   - conda
-  - R
-  - python
-  - conda
-  - reproducibility
+
 tags:
   - conda
   - python

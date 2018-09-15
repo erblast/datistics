@@ -5,10 +5,7 @@ date: '2018-08-29'
 slug: conda2
 categories:
   - conda
-  - command line
-  - R
-  - python
-  - reproducibility
+
 tags:
   - command line
   - conda

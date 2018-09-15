@@ -4,8 +4,8 @@ author: Björn Koneswarakantha
 date: '2018-08-03'
 slug: joyplot-logo
 categories:
-  - visualisation
   - R
+  - visualisation
 tags:
   - visualisation
   - R

@@ -140,8 +140,8 @@ if __name__ == "__main__":
                           , slug = 'post_with_jupyter'
                           , title = 'Use jupyter notebooks to add posts to hugo blog'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','blogging']
-                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo_jupyer', 'jupyter']
+                          , categories = [ 'hugo', 'jupyter']
+                          , tags = ['R vs. python','hugo', 'python', 'R', 'hugo_jupyer', 'jupyter', 'blogdown']
                           , summary = 'Blogging with jupyter notebooks, hugo_jupyter and some tweaking. Comparison to\
                            R and blogdown'
                           , thumbnailImagePosition = 'left'
@@ -152,9 +152,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/01_r2py_ide.ipynb'
                           , date = '2018-08-21'
                           , slug = 'r2py_ide'
-                          , title = 'Moving from R to python - 1/8 - IDE'
+                          , title = 'Moving from R to python - 1/7 - IDE'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','IDE']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','IDE', 'python', 'R', 'jupyter', 'pycharm', 'RStudio']
                           , summary = 'Some reflections on the choice of the python IDE. We end up comparing RStudio to pycharm.'
                           , thumbnailImagePosition = 'left'
@@ -164,9 +164,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/02_r2py_pandas.ipynb'
                           , date = '2018-08-22'
                           , slug = 'r2py_pandas'
-                          , title = 'Moving from R to python - 2/8 - pandas'
+                          , title = 'Moving from R to python - 2/7 - pandas'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','pandas']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','pandas', 'python', 'R', 'dplyr']
                           , summary = 'We look at pandas and compare it to dplyr.'
                           , thumbnailImagePosition = 'left'
@@ -176,9 +176,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/03_R2Py_matplotlib_seaborn.ipynb'
                           , date = '2018-08-23'
                           , slug = 'r2py_matplotlib_seaborn'
-                          , title = 'Moving from R to python - 3/8 - matplotlib and seaborn'
+                          , title = 'Moving from R to python - 3/7 - matplotlib and seaborn'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','matplotlib', 'seaborn', 'ggplot2']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','matplotlib', 'seaborn', 'R', 'ggplot2']
                           , summary = 'We look at the visualisations options in python with matplotlib and seaborn.'
                           , thumbnailImagePosition = 'left'
@@ -188,9 +188,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/04_R2Py_plotly.ipynb'
                           , date = '2018-08-24'
                           , slug = 'r2py_plotly'
-                          , title = 'Moving from R to python - 4/8 - plotly'
+                          , title = 'Moving from R to python - 4/7 - plotly'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','matplotlib', 'plotly', 'seaborn']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','plotly', 'R', 'python', 'seaborn']
                           , summary = 'We look at the plotly API for R and python'
                           , thumbnailImagePosition = 'left'
@@ -200,9 +200,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/05_R2Py_scikitlearn.ipynb'
                           , date = '2018-08-25'
                           , slug = 'r2py_scikitlearn'
-                          , title = 'Moving from R to python - 5/8 - scikitlearn'
+                          , title = 'Moving from R to python - 5/7 - scikitlearn'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','scikitlearn', 'randomized parameter search']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','scikitlearn', 'randomized parameter search'
                                     , 'Categorical Encoding', 'matplotlib color maps']
                           , summary = 'We take scikitlearn for a spin, and try out the whole modelling workflow.'
@@ -213,9 +213,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/06_R2Py_scikitlearn_advanced.ipynb'
                           , date = '2018-08-26'
                           , slug = 'r2py_scikitlearn_advanced'
-                          , title = 'Moving from R to python - 6/8 - advanced scikitlearn'
+                          , title = 'Moving from R to python - 6/7 - advanced scikitlearn'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','scikitlearn', 'sklearn-pandas', 'pipes', 'sparse data']
+                          , categories = [ 'python','R vs. python']
                           , tags = ['R vs. python','scikitlearn', 'randomized parameter search'
                                     , 'sklearn-pandas', 'pipes', 'sparse data']
                           , summary = 'We look into some techniques for scikitlearn that allow us to write more \
@@ -227,9 +227,9 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/07_R2Py_automated_ML.ipynb'
                           , date = '2018-08-27'
                           , slug = 'r2py_automated_ML'
-                          , title = 'Moving from R to python - 7/8 - automated machine learning'
+                          , title = 'Moving from R to python - 7/7 - automated machine learning'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['R vs. python','tpot', 'auto-sklearn', 'scikitlearn']
+                          , categories = ['python','R vs. python']
                           , tags = ['R vs. python','tpot', 'auto-sklearn', 'scikitlearn']
                           , summary = 'We look into some techniques for scikitlearn that allow us to write more \
                                        generalizable code that executes faster and helps us to avoid numpy arrays.'
@@ -241,11 +241,11 @@ if __name__ == "__main__":
     notebook_to_markdown( path = r'../notebooks/conda_03_jupyter.ipynb'
                           , date = '2018-08-30'
                           , slug = 'conda3'
-                          , title = 'Polyglot conda environments - 3/3 - jupyter notebooks'
+                          , title = 'Polyglot conda environments - 3/3 - jupyter and rpy2'
                           , author = 'Bjoern Koneswarakantha'
-                          , categories = ['conda', 'R', 'python', 'reproducibility', 'jupyter', 'rpy2', 'tabplot', 'htmlwidgets', 'DT', 'ggpubr', 'ggalluvial']
+                          , categories = ['conda']
                           , tags = ['conda', 'R', 'python', 'reproducibility', 'jupyter', 'rpy2', 'tabplot', 'htmlwidgets', 'DT', 'ggpubr', 'ggalluvial']
-                          , summary = 'We demonstrate how we can use R from within a python jupyter notebook\
+                          , summary = 'We demonstrate how we can use R from within a python jupyter notebook using rpy2 \
                                         including R html widgets'
                           , thumbnailImagePosition = 'left'
                           , thumbnailImage = "conda_trinity.png"
