@@ -76,7 +76,7 @@ conda deactivate
 ```
 ## Remove an environment
 ```
-conda remove -name myenv --all
+conda env remove --name myenv
 ```
 
 ## Install packages and apps
