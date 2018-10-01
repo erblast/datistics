@@ -283,8 +283,16 @@ This is an incredible hard thing to do. You will find lots of online ressources 
 
 You cannot remove files from the master branch like this. Either if you do not need the history start a new repo, or figure out the `filter-branch` command. This however needs some deeper knowledge on how `git` acutally works.
 
+## Submodules
+SUbmodules are great if you need to include code from another repository into your current repository that should be kept up to date.
 
-## Remove unvolentary Submodules
+```
+git submodule add repo_adress
+git submodule init
+git submodule update
+```
+
+### Remove Submodules
 If you dump another git repository into your currrent git repository because you might want to merge the two. Git will create a submodule that persits even if you delete all the git files from the repo that you want to fuze.
 
 ```
