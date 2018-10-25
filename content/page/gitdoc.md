@@ -91,16 +91,16 @@ open the directory you want to clone the repository in right click and select `g
 ```{}
 git clone https://github.com/erblast/oetteR.git
 ```
-## .gitignore
+# .gitignore
 
 The `.gitignore` file contains a list of filenames that will be ignored and not and not tracked by git. When you are starting a git project it easy to skip this important file. It is however crucial to set it up before you start coding away. Once you are already deep in the project your workflow will be seriously disturbed when you keep having to do commits for file changes that you cannot control (for example `thumbs.db`) or have to resolve merge conflicts in outputfiles of your code such as `*.pdf` and `*.html` files. You will find that adding filenames to `.gitignore` that are already tracked will not work. You have to tediously add them manually in your git bash shell.
 
-### setting up `.gitignore`
+## setting up `.gitignore`
 
 - Creating your git project with Rstudio will already add some R/Rstudio files to `.gitignore`.  
 - [Here](https://github.com/github/gitignore/blob/master/R.gitignore) you can find a useful list of files to be added for R projects.  
 
-### Creating `.gitignore` from scratch
+## Creating `.gitignore` from scratch
 windows will not let you create files with a file name starting with '.'
 use the windows command line tool
 
@@ -108,7 +108,7 @@ use the windows command line tool
 rename gitignore.txt .gitignore
 ```
 
-### Untracking files in hindsight
+## Untracking files in hindsight
 
 **untracking a single file**    
 ```{}
@@ -138,15 +138,6 @@ Carefull the status is not always up to date. It seems to not check if the branc
 ```{}
 git status
 ```
-# workflow
-This is the workflow that currently works best for me. My setup is two computers that I use two write on the same R package.
-
-**Principles:**
-- each computer gets its own fork, committing is restricted to only that branch
-- at the beginning of each session the whole repository including all branches is pulled
-- the working branch is rebased (the master branch is merged into the working branch)
-- at the end of each session the working branch is merged into master
-- push all branches
 
 ## Pull
 
@@ -263,11 +254,11 @@ git checkout branch123
 git stash apply
 ```
 
-## Versioning
+# Versioning
 
 Your `master` branch should always be the branch carrying the latest stable version. Branching off `master` you have a `release` branch  which carries the newest developments. From this you branch off the other branches working on different aspects of the next release. Once the `release` branch is stable it can be merged with `master`
 
-## Remove files from the history
+# Remove files from the history
 
 Sometimes you might need to remove files from prior commits, either you carelessly commited large binary files which are bloating up your history, or some of the history contains sensitive information like passwords.
 
@@ -283,8 +274,16 @@ This is an incredible hard thing to do. You will find lots of online ressources 
 
 You cannot remove files from the master branch like this. Either if you do not need the history start a new repo, or figure out the `filter-branch` command. This however needs some deeper knowledge on how `git` acutally works.
 
+# Submodules
+SUbmodules are great if you need to include code from another repository into your current repository that should be kept up to date.
 
-## Remove unvolentary Submodules
+```
+git submodule add repo_adress
+git submodule init
+git submodule update
+```
+
+## Remove Submodules
 If you dump another git repository into your currrent git repository because you might want to merge the two. Git will create a submodule that persits even if you delete all the git files from the repo that you want to fuze.
 
 ```
@@ -296,7 +295,7 @@ git add submodule_path         # will add files instead of commit reference
 git commit -m "remove submodule"
 ```
 
-## Release Tags
+# Release Tags
 It is good practice to add a release tag after bumping up the version of your repository. It is the easiest to to this via the github website interface. However if you made a mistake and want to remove your current release because you made a typo github will not remove your release tag entirely but simply mark it as deleted which prevents you from creating a new tag with the same name. Thus we can use the following console command to delete it completely ([source](https://gist.github.com/mobilemind/7883996)).
 
 ```
