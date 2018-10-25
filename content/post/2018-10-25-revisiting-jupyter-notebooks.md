@@ -19,10 +19,11 @@ There has been a lot of discussion about jupyter notebooks in the online channel
 Coming from R and beeing a heavy user of Rmarkdown files jupyter notebooks felt familiar right away but also a bit awkward. Datacamp made the effort of comparing the to feature by feature in a [blog post](https://www.datacamp.com/community/blog/jupyter-notebook-r) at the end of 2016. It is a bit out-dated but skimming through it most of it still holds to be true. With some exceptions. of course since there have been some developments on both sides. But more on that later 
 
 In the end what we want from both tools are four things:
+
 - [literate programming](https://en.wikipedia.org/wiki/Literate_programming), meaning we can have natural language code comments and code output right next to our actual code and have all three components well seperated.
 - create awesome code-enriched html content
 - polyglot coding, the division of code in small executable chunks also allows us to run each chunk in a different programming language
-- comofortable programming, being able to use IDE features, like code comnpletion, visual representation of all variables, data and variable exploration, git-based version control
+- comofortable programming, being able to use IDE features, like code completion, visual representation of all variables, data and variable exploration, git-based version control
 
 
 Both jupyter and Rmarkdown can be used for all these things, however there are some criticism on how jupyter performs in these categories. Most fameously summed up by Joel Grus at jupytercon this year in his [presentation](https://docs.google.com/presentation/d/1n2RlMdmv1p25Xy5thJUhkKGvjtV-dkAIsUXP-AL4ffI/edit#slide=id.g3b600ce1e2_0_0) and Owain Kenway in ths older [blogpost](https://owainkenwayucl.github.io/2017/10/03/WhyIDontLikeNotebooks.html).
@@ -38,7 +39,7 @@ However Brian Granger from project jupyter hase recently been on the [dataframed
 
 So this made me very curious because it sounds like finally there is a well implemented solution to ensuring execution of code chunks in order. So I stumbled across this [blog post](https://medium.com/netflix-techblog/notebook-innovation-591ee3221233) in which netflix was showing their jupyter system landscape. 
 
-![](https://medium.com/netflix-techblog/notebook-innovation-591ee3221233)
+![](https://cdn-images-1.medium.com/max/1000/1*WOEEJizYnO8ibtU2l9jWbA.jpeg)
 
 This is quite outstanding, especially the tool [`papermill`](https://github.com/nteract/papermill) caught my attention which allows you to pass parameters to notebooks. A feature I was dearly missing from Rmarkdown. The code output of a jupyter notebook run with a fixed set of parameters via papermill is sure to be reproducible. Also it makes jupyter notebooks production compatible so we do not have to copy paste all the notebook code into a .py file and rewrite the whole thing.
 
