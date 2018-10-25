@@ -9,20 +9,23 @@ It happens often that you want to create calculated fields that aggregate data b
 ## Fixed
 Use a fixed set of dimensions
 
-``` Total population per country
+Total population per country:
+``` 
 {FIXED continent, country, SUM(population) }
 ```
 
 ## Exclude
 Ignore a specific dimension in the vis
 
-``` Total population per country
+Total population per country:
+``` 
 {EXCLUDE city, SUM(population)}
 ```
 
 ## Include
 Add a specific dimension in the vis
 
-``` Total population per country
+Total population per country:
+```
 {INCLUDE country, SUM(population)}
 ```
