@@ -79,9 +79,16 @@ git remote add origin https://github.com/user/repo.git
 ```{}
 git remote -v
 ```
-### Connect the two master branches from local and remote
+
+### first pull
+to get README or .gitognore
+```
+pull --allow-unrelated-histories
+```
+
+### first push
 ```{}
-git push -u updateR master -f
+git push --set-upstream origin master
 ```
 
 ## starting with a remote repository
