@@ -221,6 +221,11 @@ conda env export -f myenv.yml
 conda env create -f environment.yml
 ```
 
+### Clone an existing environment
+```
+conda create --name myclone --clone myenv
+```
+
 ### Convert packages to other formats on linux
 
 This did only work for me when trying to convert from OS-64 to linux-64 for packages that did not need compilation.
