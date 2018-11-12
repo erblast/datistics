@@ -112,7 +112,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   identifier = "conda_doc"
   name = "conda"
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
-  url = "2018/08/conda3/"
+  url = "2018/08/conda2/"
 
 [[menu.misc]]
   weight = 3
