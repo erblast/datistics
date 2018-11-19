@@ -121,6 +121,12 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-book\"></i>"
   url = "https://github.com/kakawait/hugo-tranquilpeak-theme/blob/master/docs/user.md"
 
+[[menu.misc]]
+    weight = 4
+    identifier = "r_bloggers"
+    name = "R-bloggers"
+    pre = "<i class=\"sidebar-button-icon fa fa-lg fa-signal\"></i>"
+    url = "https://www.r-bloggers.com/"
 
 
 [params]
