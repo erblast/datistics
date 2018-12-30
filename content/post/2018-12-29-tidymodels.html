@@ -1,0 +1,100 @@
+---
+title: Tidymodels
+author: Björn Koneswarakantha
+date: '2018-12-29'
+slug: tidymodels
+categories:
+  - R
+  - modelling
+tags:
+  - R
+  - tidymodels
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+<p>RStudio is expanding the tidyverse principles to modelling with R and is building up another metapackage called <code>tidymodels</code>. There are a number of packages at different stages in their development. I am already familiar with <code>resample</code> and <code>recipes</code> and have tried to implement them in a tidy <code>caret</code>-based modelling workflow.</p>
+<ul>
+<li><a href="http://rpubs.com/erblast/370014">rsample</a></li>
+<li><a href="http://rpubs.com/erblast/recipes">recipes</a></li>
+<li><a href="http://rpubs.com/erblast/caret">caret</a></li>
+<li><a href="http://rpubs.com/erblast/rlm">01 robust linear regression, <code>rlm</code></a></li>
+<li><a href="http://rpubs.com/erblast/nnet">02 neuronal networks, <code>nnet</code></a></li>
+<li><a href="http://rpubs.com/erblast/mars">03 multiviariate adaptive regession splines (MARS), <code>earth</code></a></li>
+</ul>
+<p>The goal of this post is to build up a regression modelling workflow using all the appropriate <code>tidymodels</code> tools as soon as they become available at CRAN for I think that this indicates that the authors were confident enough that their package has reached an acceptable stage of maturity.</p>
+<p>CRAN availability of <code>tidymodels</code> packages:</p>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="12%" />
+<col width="73%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">package</th>
+<th align="center">CRAN</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/broom">broom</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/97cfe4eed016306ddef0c8c9f7b5117209864fa0/68747470733a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f62726f6f6d" /></td>
+<td>Convert statistical analysis objects from R into tidy format</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://github.com/tidymodels/rsample">rsample</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/40d243e534462d1bb0f57582d6166bde2217600a/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f7273616d706c65" /></td>
+<td>Classes and functions to create and summarize different types of resampling objects</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/dials">dials</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/043eff6bfe9f7e184992d7b1b98fb0a606cae637/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f6469616c73" /></td>
+<td>Tools for creating tuning parameter values</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://github.com/tidymodels/textrecipes">textrecipes</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/2b21e19013ec07e871c8e97a5e39f1e40b28380e/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f7465787472656369706573" /></td>
+<td>Extra recipes for Text Processing</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/yardstick">yardstick</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/a5709f4f9006e7ea171215992f2169bf2287b5ea/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f79617264737469636b" /></td>
+<td>Tidy methods for measuring model performance</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://github.com/tidymodels/parsnip">parsnip</a></td>
+<td align="center">NR</td>
+<td>A tidy unified interface to models</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/probably">probably</a></td>
+<td align="center">NR</td>
+<td>Tools for post-processing class probability estimates</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://github.com/tidymodels/recipes">recipes</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/a4a610c9ff09c39f8259e20babd337729f4e64f4/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f72656369706573" /></td>
+<td>A preprocessing engine to generate design matrices</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/embed">embed</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/f6f2e71cfecf8ef8ef5217c540242a6e00335c90/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f656d626564" /></td>
+<td>Extra recipes for categorical predictor embeddings</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://github.com/tidymodels/infer">infer</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/5b1585b43095a5e27649e6a8c3a8aedf87a63390/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f696e666572" /></td>
+<td>An R package for tidyverse-friendly statistical inference</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/tidymodels/tidyposterior">tidyposterior</a></td>
+<td align="center"><img src="https://camo.githubusercontent.com/a27ef7d0f07997d04e5f98d2f8bc048ac29e0b4b/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f74696479706f73746572696f72" /></td>
+<td>Bayesian comparisons of models using resampled statistics</td>
+</tr>
+</tbody>
+</table>
+<p>The most important package <code>parsnip</code> which will probably replace <code>caret</code> is yet to be released, however we can add <code>dials</code>, <code>tidyposterioir</code> and <code>dials</code> to our workflow.</p>
