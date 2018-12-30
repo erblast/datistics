@@ -1,0 +1,32 @@
+---
+title: Cross-Model Comparison of Residuals using Alluvial Plots
+author: Björn Koneswarakantha
+date: '2018-12-24'
+slug: residuals_easyalluvial
+categories:
+  - R
+  - visualisation
+tags:
+  - easyalluvial
+  - R
+  - visualisation
+  - modelling
+---
+
+
+
+<p>There is a strong focus on performance metrics when it comes to selecting the best model for a modelling challenge. However we do not learn anything about the model or the underlying data if we blindly select the model with the best predictions since it is usually the model with the worst interpretability such as ensembl models that will generate the best predictions.</p>
+<p>Visualisation of the data and the model can help to generate interpretaibilty where the best performing algorithm offers none.</p>
+<ul>
+<li>**** will get you an explanation for each prediction ((<code>lime</code>)[<a href="https://github.com/thomasp85/lime" class="uri">https://github.com/thomasp85/lime</a>])</li>
+<li><strong>Visualising the model in the data space</strong> to get a high level idea on how your model response to signal in the data ((<code>plotmo</code>)[<a href="https://cran.r-project.org/web/packages/plotmo/index.html" class="uri">https://cran.r-project.org/web/packages/plotmo/index.html</a>])</li>
+<li><strong>Visualise the data in the model space</strong> to trace observations that are predicted particularly bad or good by a specific model.</li>
+</ul>
+<pre class="r"><code>data(&#39;BostonHousing&#39;, package = &#39;mlbench&#39;)
+
+library(parallel)
+library(doParallel)</code></pre>
+<pre><code>## Loading required package: foreach</code></pre>
+<pre><code>## Loading required package: iterators</code></pre>
+<pre class="r"><code>cluster &lt;- makeCluster(detectCores() - 1) ## convention to leave 1 core for OS
+registerDoParallel(cluster)</code></pre>

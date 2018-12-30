@@ -1,0 +1,39 @@
+---
+title: Cross-Model Comparison of Residuals using Alluvial Plots
+author: Björn Koneswarakantha
+date: '2018-12-24'
+slug: residuals_easyalluvial
+categories:
+  - R
+  - visualisation
+tags:
+  - easyalluvial
+  - R
+  - visualisation
+  - modelling
+---
+
+There is a strong focus on performance metrics when it comes to selecting the best model for a modelling challenge. However we do not learn anything about the model or the underlying data if we blindly select the model with the best predictions since it is usually the model with the worst interpretability such as ensembl models that will generate the best predictions. 
+
+Visualisation of the data and the model can help to generate interpretaibilty where the best performing algorithm offers none.
+
+- **** will  get you an explanation for each prediction ((`lime`)[https://github.com/thomasp85/lime])
+- **Visualising the model in the data space** to get a high level idea on how your model response to signal in the data ((`plotmo`)[https://cran.r-project.org/web/packages/plotmo/index.html])
+- **Visualise the data in the model space** to trace observations that are predicted particularly bad or good by a specific model.
+
+
+
+```{r}
+data('BostonHousing', package = 'mlbench')
+
+library(parallel)
+library(doParallel)
+cluster <- makeCluster(detectCores() - 1) ## convention to leave 1 core for OS
+registerDoParallel(cluster)
+
+```
+
+
+
+
+
