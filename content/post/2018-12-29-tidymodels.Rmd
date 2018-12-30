@@ -14,7 +14,7 @@ editor_options:
 ---
 
 
-RStudio is expanding the tidyverse principles to modelling with R and is building up another metapackage called `tidymodels`. There are a number of packages at different stages in their development. I am already familiar with `resample` and `recipes` and have tried to implement them in a tidy `caret`-based modelling workflow.
+RStudio is expanding the `tidyverse` principles to modelling with R and is building up another metapackage called `tidymodels`. There are a number of packages at different stages in their development. I am already familiar with `resample` and `recipes` and have tried to implement them in a tidy `caret`-based modelling workflow.
 
 - [rsample](http://rpubs.com/erblast/370014)
 - [recipes](http://rpubs.com/erblast/recipes)
@@ -42,8 +42,11 @@ CRAN availability of `tidymodels` packages:
 | [tidyposterior]( https://github.com/tidymodels/tidyposterior ) | ![](https://camo.githubusercontent.com/a27ef7d0f07997d04e5f98d2f8bc048ac29e0b4b/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f74696479706f73746572696f72) | Bayesian comparisons of models using resampled statistics |
 
 
-The most important package `parsnip` which will probably replace `caret` is yet to be released, however we can add `dials`, `tidyposterioir` and `dials` to our workflow.
+**Unified Modelling Syntax**
+The declared goal of the `tidymodels` metapackage is to provide a unified modelling synthax similar to `scikit-learn` in the `python` domain or an improved version of `caret` but adhering to the `tidyverse` principles. `parsnip` is going to be the core package while `dials` will provide suitable objects and functions for parameter tuning. The amount of supported models is still a bit meager so we will not explore these packages any further for the moment.
 
-
+**Statistics and Model Selection**
+The regular statistical test supported by `R` have the same problem as the modelling implementations, they lack a uniform `tidyverse` compatible synthax. Further traditional statistical tests have lately gotten a bit out of fashion. The strategies for selecting the right statistical tests are a bit convoluted and a certain set of statistical requirements need to be full-filled for each of them. A work-around has been proposed by Allen Downey who proposes to simply simulate data that assumes that there is no connection between two hypothetical sets of data that we want to compare (the null hypothesis is true). ( [post1](http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html), [post2](https://feedly.com/i/entry/B+zx48A60dYhZn8V2dBcpwOiRYnIVsqskPVFCv6/PS4=_1552b4aba08:50249e5:db10177e) ). Similar to bootstrapping we use the simulated data to calculate a set of summary statistics. Then we compare the distribution of these statistics against the actual value. `infer` allows us to do just that and on-top offers a tidy synthax to the conventional `R` implementations of standard statistical tests.
+When using any k-fold cross-validation strategy for model training and validation we can use the set of performance
 
 
