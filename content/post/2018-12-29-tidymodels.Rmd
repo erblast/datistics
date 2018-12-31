@@ -9,12 +9,44 @@ categories:
 tags:
   - R
   - tidymodels
+  - modelling
+summary: A preview on the tidymodels meta package
+thumbnailImagePosition : left
+thumbnailImage: https://avatars0.githubusercontent.com/u/29100987?s=400&v=4
 editor_options: 
   chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+
 ---
 
+<br></br>
+<br></br>
 
-RStudio is expanding the `tidyverse` principles to modelling with R and is building up another metapackage called `tidymodels`. There are a number of packages at different stages in their development. I am already familiar with `resample` and `recipes` and have tried to implement them in a tidy `caret`-based modelling workflow.
+```{r short_logo, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://avatars0.githubusercontent.com/u/29100987?s=400&v=4'
+                    , thumbnail = 'https://avatars0.githubusercontent.com/u/29100987?s=400&v=4'
+                    , `thumbnail-width` = '360px'
+                    , `thumbnail-height` = '360px'
+                    , target = 'https://github.com/tidymodels/tidymodels'
+                    )
+
+```
+
+<br></br>
+<br></br>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+
+```
+
+# Introduction
+
+RStudio is expanding the `tidyverse` principles to modelling with R and is building up another metapackage called `tidymodels`. There are a number of packages at different stages in their development. I am already familiar with `rsample` and `recipes` and have tried to implement them in a tidy `caret`-based modelling workflow before.
 
 - [rsample](http://rpubs.com/erblast/370014)
 - [recipes](http://rpubs.com/erblast/recipes)
@@ -23,9 +55,11 @@ RStudio is expanding the `tidyverse` principles to modelling with R and is build
 - [02 neuronal networks, `nnet`](http://rpubs.com/erblast/nnet)
 - [03 multiviariate adaptive regession splines (MARS), `earth`](http://rpubs.com/erblast/mars)
 
-The goal of this post is to build up a regression modelling workflow using all the appropriate `tidymodels` tools as soon as they become available at CRAN for I think that this indicates that the authors were confident enough that their package has reached an acceptable stage of maturity. 
+The goal of this post is to check up on all the different packages and try build up a regression modelling workflow using all the appropriate `tidymodels` tools as soon as they become available at CRAN for I think that this indicates that the authors were confident enough that their package has reached an acceptable stage of maturity. 
 
-CRAN availability of `tidymodels` packages:
+# Packages
+
+## CRAN availability of tidymodels packages:
 
 | package | CRAN | description |
 |:-------------:|:------------:|-------------------------------------------------------------------------------------|
@@ -42,11 +76,430 @@ CRAN availability of `tidymodels` packages:
 | [tidyposterior]( https://github.com/tidymodels/tidyposterior ) | ![](https://camo.githubusercontent.com/a27ef7d0f07997d04e5f98d2f8bc048ac29e0b4b/687474703a2f2f7777772e722d706b672e6f72672f6261646765732f76657273696f6e2f74696479706f73746572696f72) | Bayesian comparisons of models using resampled statistics |
 
 
-**Unified Modelling Syntax**
+## Unified Modelling Syntax
 The declared goal of the `tidymodels` metapackage is to provide a unified modelling synthax similar to `scikit-learn` in the `python` domain or an improved version of `caret` but adhering to the `tidyverse` principles. `parsnip` is going to be the core package while `dials` will provide suitable objects and functions for parameter tuning. The amount of supported models is still a bit meager so we will not explore these packages any further for the moment.
 
-**Statistics and Model Selection**
-The regular statistical test supported by `R` have the same problem as the modelling implementations, they lack a uniform `tidyverse` compatible synthax. Further traditional statistical tests have lately gotten a bit out of fashion. The strategies for selecting the right statistical tests are a bit convoluted and a certain set of statistical requirements need to be full-filled for each of them. A work-around has been proposed by Allen Downey who proposes to simply simulate data that assumes that there is no connection between two hypothetical sets of data that we want to compare (the null hypothesis is true). ( [post1](http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html), [post2](https://feedly.com/i/entry/B+zx48A60dYhZn8V2dBcpwOiRYnIVsqskPVFCv6/PS4=_1552b4aba08:50249e5:db10177e) ). Similar to bootstrapping we use the simulated data to calculate a set of summary statistics. Then we compare the distribution of these statistics against the actual value. `infer` allows us to do just that and on-top offers a tidy synthax to the conventional `R` implementations of standard statistical tests.
-When using any k-fold cross-validation strategy for model training and validation we can use the set of performance
+## Statistical Tests and Model Selection
+The regular statistical test supported by `R` have the same problem as the modelling implementations, they lack a uniform `tidyverse` compatible synthax. Further traditional statistical tests have lately gotten a bit out of fashion. The following criticism keeps popping up:  
 
+- **Specific statistical requirements for each test.** The strategies for selecting the right statistical tests are a bit convoluted and a certain set of statistical requirements need to be full-filled for each of them.   
+
+- **Interpretation of P Values.** There is a pickiness when it comes to interpreting P Values, the perfect definition eludes me and is completly useless to a none-statistician. Allen Downey has a refreshing practical approach to P values in which he uses a bayesian approach to show that indeed *from small p values (<= 0.01) one can conlude that the observed effect has a low probability to be the result of chance* [(post)](http://allendowney.blogspot.com/2015/05/hypothesis-testing-is-only-mostly.html)  
+
+- **Disregard of Effect Size.** If we have a large sample even irrelevant effects will result in low P-Values and if we have a small sample only very large effects will result in low P-Values. If we detect a relevant effect with a low P Value we cannot be sure that the magnitude of the effect is reproducible. Typically the effect size will decrease the larger the sample. The Null hypothesis does not incorporate a minimum effect size. 
+
+As a remedy for the issue of the convoluted statisical requirements for each test a workaround has again been proposed  by Allen Downey. He proposes to simulate data that assumes that there is no connection between two hypothetical sets of data that we want to compare (the null hypothesis is true). ( [post1](http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html), [post2](https://feedly.com/i/entry/B+zx48A60dYhZn8V2dBcpwOiRYnIVsqskPVFCv6/PS4=_1552b4aba08:50249e5:db10177e) ). Similar to bootstrapping this method is none-parametric and we can use the simulated data to calculate a set of summary statistics. Then we can compare the distribution of these statistics against the actual value. `infer` allows us to do just that and on-top offers a tidy synthax to the conventional `R` implementations of standard statistical tests.
+
+However even the simulation technique does not really help us to judge the effect size properly. This is something that can be adressed using bayesian modelling techniques, which will provide you with a posterior distribution of your response variable which allows you to sufficiently judge the effect size. 
+
+When using any k-fold cross-validation strategy for model training and validation we can apply statistical tests on each set of k performance metrics to select the best performing model. In general we run into the same issues as discussed above. In order to adress them we can either use the simulation technique of the `infer`package or use `tidyposterior` which uses Bayesian modelling to compare performance metrics which allows us to define a relevant effect size to test against.
+
+In general I think `tidyposterior` is probably best practise, however to reduce complexity I am personally quite happy with the [**1 SE rule**](https://stats.stackexchange.com/questions/138569/why-is-lambda-within-one-standard-error-from-the-minimum-is-a-recommended-valu). Simply plotting the mean value with the SE and then picking the simplest model that is within 1SE of the model with the highest performance. Thus I will not include these packages in my modelling workflow for the moment.
+
+## Resampling, Feature Engineering and Performance Metrics
+
+`rsample`, `recipes` and `yardstick` are packages that give an overall complete impression and can be used with `caret`. `rsample` allows us to create cross validation pairs by indexing an existing dataframe and facilitates the use of modelling dataframes. If supports a variety of resampling methods such as not only limited to k-fold cross validation but also bootstrapping and nested cross validation. `recipes` allows straight forward feature engineering and preprocessing and `yardstick` allows us to easily calculate performance metrics from model predictions.
+
+
+# Modeling
+
+We will fit the following regression models to the Boston Housing Data Set
+
+- xgbTree
+- lm
+- randomForest
+- MARS
+- Cubist
+- CART tree
+
+For tuning we will use a randomized parameter search in a 5-fold cross validation
+
+We will use the following packages:
+-`recipes`
+-`resample`
+-`caret`
+-`yardstick`
+-`easyalluvial` (for colors)
+
+```{r}
+suppressPackageStartupMessages( library('mlbench') )
+suppressPackageStartupMessages( library('tidyverse') )
+suppressPackageStartupMessages( library('recipes') )
+suppressPackageStartupMessages( library('caret') )
+
+# ggplot default theme
+theme_set(theme_minimal())
+
+# Register mutiple cores for parallel processing
+suppressPackageStartupMessages( library(parallel) )
+suppressPackageStartupMessages( library(doParallel) )
+cluster <- makeCluster(detectCores() - 1) ## convention to leave 1 core for OS
+registerDoParallel(cluster)
+
+```
+
+```
+
+
+## Data
+
+```{r}
+data('BostonHousing')
+df = as_tibble( BostonHousing )
+summary(df)
+```
+
+### Response Variable lstat
+```{r}
+p_hist = ggplot(df) +
+  geom_histogram( aes(lstat) ) +
+  lims( x = c(0,40) )
+
+p_ecdf = ggplot(df) +
+  stat_ecdf(aes(lstat) ) +
+  lims( x = c(0,40) )
+
+gridExtra::grid.arrange( p_hist, p_ecdf )
+```
+
+### Correlations
+
+```{r}
+df_cor = df %>%
+  select_if( is.numeric ) %>%
+  gather( key = 'variable', value = 'value', - lstat) %>%
+  group_by(variable) %>%
+  nest() %>%
+  mutate( cor = map_dbl(data, function(x) cor(x$lstat, x$value) ) ) %>%
+  unnest() %>%
+  mutate( variable = fct_reorder(variable, cor)
+          , cor = round(cor,2) )
+
+df_label = df_cor %>%
+  group_by( variable, cor) %>%
+  summarise( pos = max(value) *.9 )
+
+ggplot( df_cor, aes(lstat, value) ) +
+  geom_point( alpha = 0.2 ) +
+  geom_smooth( method = 'lm') +
+  geom_label( aes( x = 5, y = pos, label = cor)
+             , df_label
+             , color = 'pink') +
+  facet_wrap(~variable, scales = 'free_y')
+```
+
+### lstat vs categorical variables
+
+```{r}
+
+
+df %>%
+  select_if( is.factor ) %>%
+  bind_cols( df['lstat'] ) %>%
+  gather( key = 'variable', value = 'value', - lstat) %>%
+  ggplot( aes( x = value, y = lstat) ) +
+  geom_violin() +
+  geom_boxplot( alpha = 0.5 ) +
+  ggpubr::stat_compare_means() +
+  facet_wrap( ~ variable )
+```
+
+## Preprocessing with recipe
+
+<br></br>
+<br></br>
+
+```{r logo_recipes, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://tidymodels.github.io/recipes/recipes_hex_thumb.png'
+                    , thumbnail = 'https://tidymodels.github.io/recipes/recipes_hex_thumb.png'
+                    , `thumbnail-width` = '240px'
+                    , `thumbnail-height` = '240px'
+                    , target = 'https://tidymodels.github.io/recipes/'
+                    )
+
+```
+
+<br></br>
+<br></br>
+
+
+**Note we are intentionally standardizing the response variable since the unit of lstat is irrelevant for this demo**
+
+We will 
+
+- Yeo Johnson Transform
+- Scale
+- Center
+- remove co-correlating variables (threshold 0.5)
+- dummy encode
+
+```{r}
+rec = recipe(df, lstat ~ . )
+
+summary(rec)
+```
+
+```{r}
+rec = rec %>%
+  step_scale( all_numeric() ) %>%
+  step_center( all_numeric() ) %>%
+  step_YeoJohnson( all_numeric() ) %>%
+  step_corr( all_numeric(), - all_outcomes(), threshold = 0.5 ) %>%
+  step_dummy( all_nominal() )
+  
+
+```
+
+### Summary Recipe
+
+```{r}
+prep_rec = prep(rec, df)
+prep_rec
+df_prep = bake(prep_rec, df )
+```
+
+## Resampling with rsample
+
+```{r logo_rsample, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://tidymodels.github.io/rsample/rsample_hex_thumb.png'
+                    , thumbnail = 'https://tidymodels.github.io/rsample/rsample_hex_thumb.png'
+                    , `thumbnail-width` = '240px'
+                    , `thumbnail-height` = '240px'
+                    , target = 'https://tidymodels.github.io/rsample/'
+                    )
+
+```
+
+
+```{r}
+rs = rsample::vfold_cv(df, v = 5)
+
+rsample::pretty.vfold_cv(rs)
+
+```
+
+Convert to `caret`-compatible object
+
+```{r}
+rs_caret = rsample::rsample2caret(rs)
+```
+
+## Modelling with caret
+
+
+
+### Wrapper
+
+We will be using randomized parameter search instead of grid search despite the [author's suggestions](https://topepo.github.io/caret/random-hyperparameter-search.html). It is purely for convenience since it will automatically pick parameters within a sensible range for each model. If we would not automate that we would have to look up the ranges in the documentation or determine them empirically. 
+
+```{r}
+
+car = function( method, recipe, rsample, data){
+  
+
+  car = caret::train( recipe
+                      , data
+                      , method = method
+                      , trControl = caret::trainControl(index = rsample$index
+                                                        , indexOut = rsample$indexOut
+                                                        , method = 'cv'
+                                                        , verboseIter = T
+                                                        , savePredictions = T
+                                                        , search = 'random')
+                      , metric = 'RMSE'
+                      , tuneLength = 100
+                       )
+  
+  return( car )
+}
+
+# c = car( 'lm', rec, rs_caret, df)
+
+```
+
+### Apply Wrapper
+
+```{r}
+df_m = tibble( methods = c('lm', 'rpart', 'cubist', 'parRF', 'earth', 'xgbTree') )
+```
+
+```{r eval = T, include = F}
+
+if( ! file.exists('df_m.Rdata') ){
+
+  df_m = df_m %>%
+    mutate( c = map(methods, car, rec, rs_caret, df ) )
+  
+  save(df_m, file = 'df_m.Rdata')
+
+}else{
+  load('df_m.Rdata')
+}
+```
+
+```{r eval = F}
+
+df_m = df_m %>%
+  mutate( c = map(methods, car, rec, rs_caret, df ) )
+
+```
+
+
+## Assess Performance with yardstick
+
+
+```{r logo_yard, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://github.com/tidymodels/yardstick/raw/master/man/figures/logo.png'
+                    , thumbnail = 'https://github.com/tidymodels/yardstick/raw/master/man/figures/logo.png'
+                    , `thumbnail-width` = '240px'
+                    , `thumbnail-height` = '240px'
+                    , target = 'https://tidymodels.github.io/yardstick/'
+                    )
+
+```
+
+
+```{r}
+
+df_pred = df_m %>%
+  mutate( pred = map(c, 'pred' )
+          , pred = map(pred, as_tibble )
+          , best_tune = map(c, 'bestTune') )
+  
+df_pred  
+```
+
+
+```{r}
+filter(df_pred, methods == 'cubist') %>%
+  .$pred 
+```
+
+### Parameters as string
+
+We need to horizontally concat all parameter columns into two columns that are the same for all models otherwise we will not be able to unnest the predictions. We need to convert strings to symbols in order to use them for dplyr functions [(see programming with `dplyr` )](https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html).
+
+```{r}
+params_as_str = function(df, params){
+  
+  symbols = map( names(params), as.name )
+  
+  df %>%
+    mutate( desc_values = pmap_chr( list( !!! symbols), paste )
+            , desc_params = paste( names(params), collapse = ' ' ) )
+}
+
+# params_as_str(df_pred$pred[[6]], df_pred$best_tune[[6]] )
+
+```
+
+##### Apply and unnest
+
+```{r}
+df_pred = df_pred %>%
+  mutate( pred = map2(pred, best_tune, params_as_str )
+          , pred = map(pred, select, Resample, desc_params, desc_values, rowIndex, obs, pred)
+          ) %>%
+  unnest(pred)
+
+df_pred
+```
+
+### Get best performing model for each method
+```{r}
+
+
+df_best_models = df_pred %>%
+  group_by( methods, desc_params, desc_values) %>%
+  yardstick::rmse(obs, pred) %>%
+  group_by( methods ) %>%
+  mutate( rnk = rank(.estimate, ties.method = 'first' ) ) %>%
+  filter( rnk == 1 ) %>%
+  select( - rnk ) %>%
+  arrange(.estimate) %>%
+  ungroup() %>%
+  mutate( methods = fct_reorder(methods, .estimate) )
+
+df_best_models
+```
+
+### Get cv-performance 
+
+```{r}
+
+performance = yardstick::metric_set( yardstick::rmse, yardstick::rsq, yardstick::mae, yardstick::mape )
+
+df_perf = df_best_models %>%
+  select(methods, desc_params, desc_values) %>%
+  left_join(df_pred) %>%
+  group_by( methods, Resample) %>%
+  performance(obs, pred) %>%
+  mutate( methods = as.factor(methods)
+          , methods = fct_relevel(methods, levels(df_best_models$methods) )) %>%
+  group_by(methods, .metric) %>%
+  mutate( me = mean(.estimate)
+             , std = sd(.estimate) )
+
+
+```
+
+### Get 1SE stats
+
+```{r}
+df_1se = df_perf %>%
+  group_by(methods, .metric, me, std) %>%
+  summarise() %>%
+  mutate(  ymin = me - std
+          , ymax = me + std ) %>%
+  group_by(.metric) %>%
+  mutate( rnk = rank(me, ties.method = 'first')
+          , rnk_desc = rank( desc(me), ties.method = 'first')
+          ) %>%
+  rename( best_method = methods ) %>%
+  filter( (rnk == 1 & .metric != 'rsq') | (.metric == 'rsq' & rnk_desc == 1) )
+
+df_1se
+```
+
+### Plot
+
+```{r fig.height = 8}
+
+len = levels(df_perf$methods) %>%
+  length()
+
+col_class = RColorBrewer::brewer.pal('Greys', n = 9) %>% rev()
+col_folds = RColorBrewer::brewer.pal('Dark2', n = 8) %>%
+  easyalluvial::palette_filter(greens = F, greys = F)
+
+pal = c( col_class[2], col_folds[1:5], col_class[4], col_class[6] )
+
+df_perf %>%
+  left_join( select(df_1se, .metric, ymin, ymax, best_method) ) %>%
+  mutate( classification = case_when( best_method == methods ~ 'best'
+                                      , me >= ymin & me <= ymax ~ 'in'
+                                      , T ~ 'out' )
+          ) %>%
+  ggplot( aes(methods, .estimate) ) +
+    geom_rect( aes(ymin = ymin, ymax = ymax )
+               , xmin = 0, xmax = len
+               , fill = col_class[7]
+               , alpha = 0.05 ) +
+    geom_line( aes( group = Resample, color = Resample)
+               , size = .5, alpha = 1 ) +
+    stat_summary( aes( color = classification)
+                  , size = 1
+                  , fun.data = function(x) mean_sdl( x, mult = 1) ) +
+    scale_color_manual( values = pal ) +
+    theme( legend.position = 'none') +
+    labs( y = '', x = '', caption = 'grey area: 1SE range of best model'
+        , title = 'CV Performance Metrics') +
+    facet_wrap(~.metric, scales = 'free_y', ncol = 1) 
+```
 
