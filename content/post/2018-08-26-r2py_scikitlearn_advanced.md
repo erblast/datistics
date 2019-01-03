@@ -123,7 +123,7 @@ mapped_df.head(10)
      [0. 0. 1. 0. 0. 1. 1. 0. 0. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0.]
      [0. 0. 1. 0. 0. 1. 0. 0. 1. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0.]
      [1. 0. 0. 0. 1. 0. 1. 0. 0. 0. 0. 0. 1. 0. 0. 0. 0. 1. 0.]]
-    
+
 
 
 
@@ -436,7 +436,7 @@ print('sparcity ratio tranformed data:', round( sparsity_ratio(mapped_np), 2) )
 
     sparcity ratio original data: 0.17
     sparcity ratio tranformed data: 0.56
-    
+
 
 The transformation have resulted in a matrix with a high sparcity thus we will test whether we might benefit from converting to a sparse matrix format
 
@@ -464,7 +464,7 @@ print('exec time dense :', round( time() - t0,3 ) )
 
     exec time sparse: 0.019
     exec time dense : 0.008
-    
+
 
 We can see that our decision tree classifiert does not benefit from  a sparse data format.
 
@@ -683,7 +683,7 @@ random_search.fit(X = X_proc, y =  df.survived )
 ```
 
     Fitting 15 folds for each of 500 candidates, totalling 7500 fits
-    
+
 
     [Parallel(n_jobs=4)]: Done  49 tasks      | elapsed:    5.8s
     [Parallel(n_jobs=4)]: Done 740 tasks      | elapsed:   34.9s
@@ -693,7 +693,7 @@ random_search.fit(X = X_proc, y =  df.survived )
     [Parallel(n_jobs=4)]: Done 7241 tasks      | elapsed:  5.9min
     [Parallel(n_jobs=4)]: Done 7493 out of 7500 | elapsed:  6.1min remaining:    0.2s
     [Parallel(n_jobs=4)]: Done 7500 out of 7500 | elapsed:  6.1min finished
-    
+
 
 
 

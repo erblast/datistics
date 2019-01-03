@@ -76,7 +76,7 @@ print(boston.feature_names)
      [4.7410e-02 0.0000e+00 1.1930e+01 ... 2.1000e+01 3.9690e+02 7.8800e+00]]
     ['CRIM' 'ZN' 'INDUS' 'CHAS' 'NOX' 'RM' 'AGE' 'DIS' 'RAD' 'TAX' 'PTRATIO'
      'B' 'LSTAT']
-    
+
 
 
 Usually our datasets will not come that neatly prepared and we wont have `numpy` arrays but `pandas` dataframes. So alternatively we will get our datasets from `seaborn`
@@ -348,7 +348,7 @@ summary(df)
     50%      0.000000    3.000000   28.000000    0.000000    0.000000   14.454200
     75%      1.000000    3.000000   38.000000    1.000000    0.000000   31.000000
     max      1.000000    3.000000   80.000000    8.000000    6.000000  512.329200
-    
+
 
 **Some variables do have missing values which we have to impute.**
 
@@ -466,7 +466,7 @@ assert df_imp_rec.shape == df.shape
 ```
 
     c:\anaconda\envs\py36r343\lib\site-packages\ipykernel\__main__.py:21: FutureWarning: Method .as_matrix will be removed in a future version. Use .values instead.
-    
+
 
 ## Transforming numerical variables
 
@@ -507,7 +507,7 @@ plot_hist_grid(df_imp_rec, 4, 2)
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
     c:\anaconda\envs\py36r343\lib\site-packages\matplotlib\axes\_axes.py:6462: UserWarning: The 'normed' kwarg is deprecated, and has been replaced by the 'density' kwarg.
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
-    
+
 
 
 ![png](output_19_1.png)
@@ -549,7 +549,7 @@ df_trans.describe()
     sibsp      -0.484927
     survived   -0.312346
     dtype: float64
-    
+
 
     c:\anaconda\envs\py36r343\lib\site-packages\matplotlib\axes\_axes.py:6462: UserWarning: The 'normed' kwarg is deprecated, and has been replaced by the 'density' kwarg.
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
@@ -563,7 +563,7 @@ df_trans.describe()
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
     c:\anaconda\envs\py36r343\lib\site-packages\matplotlib\axes\_axes.py:6462: UserWarning: The 'normed' kwarg is deprecated, and has been replaced by the 'density' kwarg.
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
-    
+
 
 
 
@@ -701,7 +701,7 @@ plot_hist_grid(df_trans, 4, 2)
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
     c:\anaconda\envs\py36r343\lib\site-packages\matplotlib\axes\_axes.py:6462: UserWarning: The 'normed' kwarg is deprecated, and has been replaced by the 'density' kwarg.
       warnings.warn("The 'normed' kwarg is deprecated, and has been "
-    
+
 
 
 ![png](output_23_1.png)
@@ -953,7 +953,7 @@ random_search.fit(x,y)
 ```
 
     Fitting 100 folds for each of 2500 candidates, totalling 250000 fits
-    
+
 
     [Parallel(n_jobs=4)]: Done 142 tasks      | elapsed:    4.4s
     [Parallel(n_jobs=4)]: Done 7538 tasks      | elapsed:   20.7s
@@ -966,7 +966,7 @@ random_search.fit(x,y)
     [Parallel(n_jobs=4)]: Done 200038 tasks      | elapsed:  6.7min
     [Parallel(n_jobs=4)]: Done 247538 tasks      | elapsed:  8.2min
     [Parallel(n_jobs=4)]: Done 250000 out of 250000 | elapsed:  8.3min finished
-    
+
 
 
 
@@ -1541,7 +1541,7 @@ results_df_reind.head(20)
     
     To retain the current behavior and silence the warning, pass 'sort=True'.
     
-    
+
 
 
 

@@ -69,7 +69,7 @@ X = df.drop('y', axis = 1)\
 ```
 
     C:\anaconda\envs\py36r343\lib\site-packages\ipykernel\__main__.py:6: FutureWarning: Method .as_matrix will be removed in a future version. Use .values instead.
-    
+
 
 ### Run 
 
@@ -107,7 +107,7 @@ pipeline_optimizer.fit(X,y)
     Generation 2 - Current best internal CV score: 0.8628532835333793
     
     Best pipeline: LogisticRegression(Normalizer(input_matrix, norm=l1), C=20.0, dual=False, penalty=l1)
-    
+
 
 
 
