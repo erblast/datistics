@@ -128,6 +128,12 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
     pre = "<i class=\"sidebar-button-icon fa fa-lg fa-signal\"></i>"
     url = "https://www.r-bloggers.com/"
 
+[[menu.misc]]
+    weight = 5
+    identifier = "r_jobs"
+    name = "Jobs for R-users"
+    pre = "<i class=\"sidebar-button-icon fa fa-lg fa-briefcase\"></i>"
+    url = "https://www.r-users.com/"
 
 [params]
   # Customize date format use to render blog post date, categories and other
