@@ -281,6 +281,8 @@ Your `master` branch should always be the branch carrying the latest stable vers
 
 Sometimes you might need to remove files from prior commits, either you carelessly commited large binary files which are bloating up your history, or some of the history contains sensitive information like passwords.
 
+If you did not push to remote try undoing the commit using `git reset --soft`
+
 This is an incredible hard thing to do. You will find lots of online ressources the most common being a command called `filter-branch`. However removing files from git like this is a bit like rying to uninstall a program by removing the `run.exe` from the installation folder. There will be a  lot of clutter and references which will not be removed. I recommend the following in this case.
 
 - remove the files you want to remove from your current branch
