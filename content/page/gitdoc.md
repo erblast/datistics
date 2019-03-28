@@ -186,7 +186,8 @@ you forgot to type `-m "text"`
 git reset --hard origin/workbranch
 ```
 
-`soft` and `hard` parameter determines whether to keep the changes or not~
+`soft` and `hard` parameter determines whether to keep the changes or not  
+
 `~1` determines how many commits to go back in time
 
 **Opt2: undo last commit keep all changes**  
@@ -199,7 +200,7 @@ git reset --soft HEAD~1
 git reset --hard HEAD~1
 ```
 
-**Opt4: go back to specific commit 
+**Opt4: go back to specific commit **
 ```
 git reset --hard 904jfd40f
 ```
