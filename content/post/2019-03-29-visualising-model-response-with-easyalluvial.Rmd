@@ -1,0 +1,28 @@
+---
+title: Visualising Model Response with easyalluvial
+author: Bjönr Koneswarakantha
+date: '2019-03-29'
+slug: visualising-model-response-with-easyalluvial
+categories:
+  - R
+  - visualisation
+tags:
+  - R
+  - visualisation
+  - partial dependency plots
+  - easyalluvial
+  - caret
+  - model response
+keywords:
+  - tech
+summary: Use easyalluvial for visualising model response in up to 4 dimensions.
+thumbnailImagePosition : left
+thumbnailImage: easyalluvial_logo.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+In this tutorial I want to show how you can use alluvial plots to visualise model response in up to 4 dimensions. `easyalluvial` generates artificial data space using fixed values for unplotted variables or uses the partial dependence plotting method. 
+<!--more-->
