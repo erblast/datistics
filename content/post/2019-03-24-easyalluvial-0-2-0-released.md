@@ -12,7 +12,7 @@ tags:
   - easyalluvial
 keywords:
   - tech
-summary: Mayor Release for easyalluvial. Visualise model response using 4 dimensional partial dependency plots and add marginal histograms to visualise distribution of binned numerical values.
+summary: Mayor Release for easyalluvial. Visualise model response using 4 dimensional partial dependence plots and add marginal histograms to visualise distribution of binned numerical values.
 thumbnailImagePosition : left
 thumbnailImage: easyalluvial_logo.png
 editor_options: 
@@ -21,7 +21,7 @@ output:
   blogdown::html_page
 ---
 
-`easyalluvial` allows you to build exploratory alluvial plots (sankey diagrams) with a single line of code while automatically binning numerical variables. In version `0.2.0` marginal histograms improve the visibility of the numerical variables. Further a method has been added that creates model agnostic 4 dimensional partial dependency plots to visualise model response.
+`easyalluvial` allows you to build exploratory alluvial plots (sankey diagrams) with a single line of code while automatically binning numerical variables. In version `0.2.0` marginal histograms improve the visibility of the numerical variables. Further a method has been added that creates model agnostic 4 dimensional partial dependence plots to visualise model response.
 
 # Introduction
 I am happy to announce the release of `easyalluvial 0.2.0` with some exciting new features and some mayor changes compared to version `0.1.8` Some improvements were made on the default plotting options which alter the default plot output thus classify as mayor changes (see below).
@@ -49,8 +49,8 @@ p_grid = add_marginal_histograms(p, mtcars2)
 
 
 
-# 4 Dimensional Partial Dependency Plots  
-Techniques for explaining the predictions of machine learning models have been discussed a lot lately. For an introduction into the topic I can recommend this excellent ebook [Interpretable Machine Learning by Christoph Molnar](https://christophm.github.io/interpretable-ml-book/). Inspired by packages like `plotmo` and `pdp` which can make partial dependency plots (PDP) of 2 feature variables against the response variable I tested whether alluvial plots, which can basically line up an unlimited amount of features on a 2 dimensional plane, can be used to make PDPs with more than 2 feature variables. And basically it turns out that you can use 4 features before things get to cluttered. And this is how it looks like:
+# 4 Dimensional Partial Dependence Plots  
+Techniques for explaining the predictions of machine learning models have been discussed a lot lately. For an introduction into the topic I can recommend this excellent ebook [Interpretable Machine Learning by Christoph Molnar](https://christophm.github.io/interpretable-ml-book/). Inspired by packages like `plotmo` and `pdp` which can make partial dependence plots (PDP) of 2 feature variables against the response variable I tested whether alluvial plots, which can basically line up an unlimited amount of features on a 2 dimensional plane, can be used to make PDPs with more than 2 feature variables. And basically it turns out that you can use 4 features before things get to cluttered. And this is how it looks like:
 
 ```{r eval = F}
 
