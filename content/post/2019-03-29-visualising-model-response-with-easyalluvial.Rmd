@@ -24,5 +24,13 @@ output:
   blogdown::html_page:
     toc: true
 ---
-In this tutorial I want to show how you can use alluvial plots to visualise model response in up to 4 dimensions. `easyalluvial` generates artificial data space using fixed values for unplotted variables or uses the partial dependence plotting method. 
+In this tutorial I want to show how you can use alluvial plots to visualise model response in up to 4 dimensions. `easyalluvial` generates artificial data space using fixed values for unplotted variables or uses the partial dependence plotting method. It is model agnostic but offers some convenient wrappers for `caret` models.
 <!--more-->
+
+
+# Introduction
+
+## Taking a peek
+
+When building machine learning model we are usually faced with a trade-off between accurracy and interpretability. However even if we tend to lean towards accuracy and pick a modelling method that results in nearly uninterpretable models we can still make use of a bunch of model agnostic techniques that have been summarized in this excellent ebook
+
