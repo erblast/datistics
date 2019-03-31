@@ -21,7 +21,7 @@ thumbnailImage: easyalluvial_logo.png
 editor_options: 
   chunk_output_type: console
 output:
-  output: md_document
+  output: html_document
 ---
 In this tutorial I want to show how you can use alluvial plots to visualise model response in up to 4 dimensions. `easyalluvial` generates artificial data space using fixed values for unplotted variables or uses the partial dependence plotting method. It is model agnostic but offers some convenient wrappers for `caret` models.
 <!--more-->
@@ -266,7 +266,7 @@ p = alluvial_model_response_caret(train, degree = 4, bins = 5, pred_train = pred
 
 p_grid = add_marginal_histograms(p, df, plot = F
                                  , pred_var = 'lstat'
-                                 , lstat = 50) %>%
+                                 , scale = 50) %>%
   add_imp_plot(p, df)
 
 ```
