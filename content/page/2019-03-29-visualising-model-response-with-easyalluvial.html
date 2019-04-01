@@ -3,9 +3,6 @@ title: Visualising Model Response with easyalluvial
 author: Bjönr Koneswarakantha
 date: '2019-03-29'
 slug: visualising-model-response-with-easyalluvial
-categories:
-  - R
-  - visualisation
 tags:
   - R
   - visualisation
@@ -63,55 +60,55 @@ knitr::kable(imp)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">medv</td>
-<td align="right">8331.8325</td>
+<td align="right">8675.4639</td>
 </tr>
 <tr class="even">
 <td align="left">rm</td>
-<td align="right">3554.7917</td>
+<td align="right">3543.4721</td>
 </tr>
 <tr class="odd">
 <td align="left">age</td>
-<td align="right">2697.7033</td>
+<td align="right">2687.4201</td>
 </tr>
 <tr class="even">
 <td align="left">indus</td>
-<td align="right">2649.3554</td>
+<td align="right">2219.5666</td>
 </tr>
 <tr class="odd">
 <td align="left">crim</td>
-<td align="right">2306.9112</td>
+<td align="right">2153.7628</td>
 </tr>
 <tr class="even">
 <td align="left">dis</td>
-<td align="right">1847.7221</td>
+<td align="right">1849.3648</td>
 </tr>
 <tr class="odd">
 <td align="left">nox</td>
-<td align="right">1547.4916</td>
+<td align="right">1627.0734</td>
 </tr>
 <tr class="even">
-<td align="left">b</td>
-<td align="right">742.3811</td>
+<td align="left">tax</td>
+<td align="right">846.8668</td>
 </tr>
 <tr class="odd">
-<td align="left">tax</td>
-<td align="right">632.3429</td>
+<td align="left">b</td>
+<td align="right">695.7960</td>
 </tr>
 <tr class="even">
 <td align="left">ptratio</td>
-<td align="right">308.5192</td>
+<td align="right">326.6815</td>
 </tr>
 <tr class="odd">
 <td align="left">rad</td>
-<td align="right">201.1113</td>
+<td align="right">182.9957</td>
 </tr>
 <tr class="even">
-<td align="left">zn</td>
-<td align="right">135.7454</td>
+<td align="left">chas</td>
+<td align="right">129.9969</td>
 </tr>
 <tr class="odd">
-<td align="left">chas</td>
-<td align="right">106.6607</td>
+<td align="left">zn</td>
+<td align="right">104.5770</td>
 </tr>
 </tbody>
 </table>
@@ -132,12 +129,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <th align="right">crim</th>
 <th align="right">dis</th>
 <th align="right">nox</th>
-<th align="right">b</th>
 <th align="right">tax</th>
+<th align="right">b</th>
 <th align="right">ptratio</th>
 <th align="right">rad</th>
-<th align="right">zn</th>
 <th align="left">chas</th>
+<th align="right">zn</th>
 </tr>
 </thead>
 <tbody>
@@ -149,12 +146,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
@@ -164,12 +161,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
@@ -179,12 +176,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
@@ -194,12 +191,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
@@ -209,12 +206,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
@@ -224,12 +221,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
@@ -239,12 +236,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
@@ -254,12 +251,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
@@ -269,12 +266,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
@@ -284,12 +281,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <td align="right">0.25651</td>
 <td align="right">3.20745</td>
 <td align="right">0.538</td>
-<td align="right">391.44</td>
 <td align="right">330</td>
+<td align="right">391.44</td>
 <td align="right">19.05</td>
 <td align="right">5</td>
-<td align="right">0</td>
 <td align="left">0</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
@@ -307,12 +304,12 @@ knitr::kable( head(dspace, 10) )</code></pre>
 <th align="right">crim</th>
 <th align="right">dis</th>
 <th align="right">nox</th>
-<th align="right">b</th>
 <th align="right">tax</th>
+<th align="right">b</th>
 <th align="right">ptratio</th>
 <th align="right">rad</th>
-<th align="right">zn</th>
 <th align="right">chas</th>
+<th align="right">zn</th>
 </tr>
 </thead>
 <tbody>

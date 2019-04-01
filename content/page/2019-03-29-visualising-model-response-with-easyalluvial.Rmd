@@ -3,9 +3,6 @@ title: Visualising Model Response with easyalluvial
 author: Bjönr Koneswarakantha
 date: '2019-03-29'
 slug: visualising-model-response-with-easyalluvial
-categories:
-  - R
-  - visualisation
 tags:
   - R
   - visualisation
