@@ -1,7 +1,7 @@
 ---
 title: Easyalluvial 0.2.0 released
 author: Björn Koneswarakantha
-date: '2019-03-24'
+date: '2019-04-01'
 slug: easyalluvial-0-2-0-released
 categories:
   - R
