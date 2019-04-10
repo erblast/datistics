@@ -10,6 +10,9 @@ tags:
   - easyalluvial
   - caret
   - model response
+categories:
+  - R
+  - visualisation
 keywords:
   - tech
 summary: Use easyalluvial for visualising model response in up to 4 dimensions.
