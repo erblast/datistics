@@ -179,7 +179,7 @@ This will be mostly required for `R` packages that cannot be found on `anaconda`
 create the account on [anaconda.org](https://anaconda.org)
 
 ```
-anaconda anaconda login
+anaconda login
 conda config --set anaconda_upload yes
 # anaconda logout
 ```
