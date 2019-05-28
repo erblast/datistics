@@ -199,9 +199,9 @@ conda skeleton cran https://github.com/erblast/ggplot2.git
 
 #### Build packages from skeleton
 
-we have to ad a `r-` prefix to the package name and put the package name in *lowercase*
+we have to ad a `r-` prefix to the package name and put the package name in *lowercase* the build are R-version specific so it is best to specify it in the command.
 ```
-conda build r-rlang
+conda build r-rlang --R 3.5.1
 ```
 
 ### Check package installations
