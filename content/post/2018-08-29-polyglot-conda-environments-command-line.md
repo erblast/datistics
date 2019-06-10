@@ -84,10 +84,11 @@ conda env remove --name myenv
 ### Install MacOS SDK
 `anaconda` not only contains packages but also apps and other programs. It also contains a set of compilers. For licensing reasons the MacOS SDK cannot be included and needs to be installed seperately as explained [here](https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html). MacOS SDK can be downloaded [here](https://github.com/phracker/MacOSX-SDKs) I suggest to download the version that matches the version number of your installed macOS.
 
-Add the following code to your `conda_build_config.yaml`
+Add the following code to your `conda_build_config.yaml` in your HOME directory (create new file if not present).
+
 ```
 CONDA_BUILD_SYSROOT:
-  - /opt/MacOSX10.9.sdk        # [osx]
+  - /opt/MacOSX10.13.sdk        # [osx]
 ```
 
 
