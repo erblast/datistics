@@ -178,21 +178,33 @@ you forgot to type `-m "text"`
 ```{}
 :wq
 ```
-### git started tracking changes that are meaningless and annoy me
-reset all changes
-```{}
-git reset HEAD --hard
-```
-### i screwed up and made some stupid commits that i want to remove
+
+### Undo commits, reset
+
 **Opt1: roll back to remote branch version**
 ```{}
 git reset --hard origin/workbranch
 ```
 
-**Opt2: undo last commit**  
+`soft` and `hard` parameter determines whether to keep the changes or not  
+
+`~1` determines how many commits to go back in time
+
+**Opt2: undo last commit keep all changes**  
 ```
-git reset HEAD~
+git reset --soft HEAD~1
 ```
+
+**Opt3: undo last commit discard all changes**  
+```
+git reset --hard HEAD~1
+```
+
+**Opt4: go back to specific commit **
+```
+git reset --hard 904jfd40f
+```
+
 ### Should I amend to previous commits?
 No, dont do it. This only work if you have not pushed after your previous commit. If you have pushed you possibly get a merge conflict between origin and the local repository because the two commits are different. You can however fix this by rebasing the remote branch.
 
@@ -268,6 +280,8 @@ Your `master` branch should always be the branch carrying the latest stable vers
 # Remove files from the history
 
 Sometimes you might need to remove files from prior commits, either you carelessly commited large binary files which are bloating up your history, or some of the history contains sensitive information like passwords.
+
+If you did not push to remote try undoing the commit using `git reset --soft`
 
 This is an incredible hard thing to do. You will find lots of online ressources the most common being a command called `filter-branch`. However removing files from git like this is a bit like rying to uninstall a program by removing the `run.exe` from the installation folder. There will be a  lot of clutter and references which will not be removed. I recommend the following in this case.
 
