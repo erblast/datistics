@@ -18,11 +18,13 @@ thumbnailImage : https://pbs.twimg.com/profile_images/1082571058832703488/1QVxP9
 
 # Europython 2019
 
-## Training Days
+I attended ![europython 2019](https://ep2019.europython.eu/) here are some of my takeaways and notes.
 
-### General
+## General Takeaways
 - Docker widely used to setup training environment (can take long to download)
-- VS Code popular IDE
+- VS Code popular IDE, very good demo at the MS booth. Will switch IDEs. 
+
+## Training Days
 
 ### REST API/Microservices
 - use `connexion` with `swagger` to build YAML configurable REST API's. `swagger` provides documentation and user interface based on yaml.
@@ -35,7 +37,7 @@ thumbnailImage : https://pbs.twimg.com/profile_images/1082571058832703488/1QVxP9
 
 - `hypothesis` can be used to generate random testing strings. If a fail is  detected it will give a minimal reproducible example.
 
-# Intel Tensorflow
+### Intel Tensorflow
 - intel published `tensorflow` configuration that is 2X -4x times faster than out-of-the-box `tensorflow`
 
 ## Talks
@@ -87,7 +89,7 @@ Do:
 [slides](https://github.com/judy2k/publishing_python_packages_talk)
 
 #### Dev Test workflow
-- use `pip install -e .` install package from from current wd, during package dev. updates all files loaded from repo, like devtools::load_all() in R. Does not install directly into py dist.
+- use `pip install -e .` install package from from curent wd, during package dev. updates all files loaded from repo, like devtools::load_all() in R. Does not install directly into py dist.
 
 put `.py` files into `src/` directory instead of packagename directory. Force your tests to run on `pip install -e .` version of your code.
 
@@ -100,7 +102,9 @@ sphinx pythonic solution for python doc. generates api reference from docstrings
 
 mkdocs language agnostic markdown documentation for projects libraries, `pydocmd` claims to do generate api reference from docstrings. sphinx might be more advanced, on this, best to check receommended docstring layout recommended for the tool.
 
-add readme.md to setuptools
+`pydoc` can also bve used to make documentation from docstrings. In standard library.
+
+add readme.md to setuptools so it propably shows up on python
 
 ```
 from setuptools import setup
@@ -118,4 +122,101 @@ setup(
 
 cookiecutter has python package templates
 
- 
+### Dirty Data
+
+#### Dirty categorical features
+  - manualy break up into two or more seperate features, for example first name, last name
+  - manualy group categories
+  - Similarity Endoding, similarity distance to category, new strings can be fitted on old categories
+  - Jaro-winkler, levenstain, 3-gram similarity scores
+  - `DirtCat` has similarity encoder `from dirty_cat import SimilarityEncoder`
+  - TargetEncoder, Encode Categorical Feature as Mean/Median of other value, example police officer ranking on Salary
+  - Latent Category Encoder, builds new categories based on substring similarities
+
+#### Missing Values
+  - classical data generation assumption, data generation is complete and radom entries are random.
+  - NA values are seldom random, and sometimes are the result of the data model, like age of spouse will be NA for people that are single
+  - mean imputation distorts the distribution, concerning for statisitcal models but not algorithmic models
+  - when imputing age of spouse, missingness indicator could be used to flagg single people
+
+
+### From Script to Open Source
+
+-`docopt` helps you build GNU compliant CLI-tools
+- code guides, only 2 parameters per function. 
+- `python setup.py develop` same as `pip install -e .`
+- setup.py let's you define entry points (for package plug-ins) and CLI callable name
+- requirements.txt file can augment setup.py dependencies, stating tested dependency versions
+- `black` reformats code to be pythonic
+- `pre-commit` runs formatters such as `black` before git commit
+- `flake8` to check you code
+- `tox.ini` configuration file for `black` code standard and `flake8`
+- use static type analysis, `MyPy` checks if function with wrong type has been called
+- `tox` manages all those tools including testing tools similar to Rcmdcheck I guess
+- `travisCI` pip installing `tox` is enough to run all test
+- requirements updater is a bot that will continuosly check versions of dependencies, `PyUP`
+- `pytest-cov` will check test coverage
+- automated code review `PR`
+- automated pull request merge `mergify`
+- `twine` to upload to pypi
+
+(blog)[http://michal.karzynski.pl]
+
+## State of Production ML in 2019
+
+(slides + example projects)[https://github.com/EthicalML/state-of-mlops-2019]
+
+### GITOPS STRATEGIES FOR ML
+CI/CD via github, using, docker, kubernetes
+(description)[https://dzone.com/articles/a-practical-guide-to-operating-kubernetes-the-gito]
+
+### Modelling Process
+- data assasement
+- model assessment (feature importance, shap-values, pdp-plots, interpretability)
+- production monitoring (see that asassments remain intact during production)
+- explainer, model that adds explanations to predictions,
+  * `alibi`, delivers pertinent negative and pertinate positive (minimum changes for positive and negative prediction)
+- `seldon` can be used to manage kubernetes
+
+### Reproducibility
+- Container Versioning
+
+# Modern Continuous Delivery
+[slides](tinyurl.com/moderncd)
+- deploy to production from commit #1
+- take over release schedule from IT to Business
+- CDEV is concept, CI and CDEP are techniques
+- Modern
+  * immutable infrastructure
+  * container orchestration
+  * version control and automation
+  * cloud native apps
+
+tools? choice or lock-in?, lock-in choices should be avoided
+
+- cookiecutter seems to be what devtools/usethis is for python, can be used to setup CDEV for projects.
+
+- generate + seal your secrets, otherwise you cant continuously deliver
+- dont overload your yaml
+- test-driven, pair programming
+- the only way to go fast is to go well, robert c. martin
+
+
+# Partical Clean Architecture
+
+## Typing for data interfaces
+- typing, use type annotations when writing functions
+- typing package has objects that allow you type specifications for dictionaries
+- python 3.7 offers data classes that make this easier
+- dataclasses can be frozen, immutability can be added
+- use abstractions to interact with databases, `ABC` packages
+- we can use `injector` to build interfaces, will inject stuff into data classes
+- the interfaces can be documented with swagger
+- make an in RAM db for testing
+
+These interfaces are easily testable
+
+## Architecture
+- lifetime 10 years
+- make an application centric infrastructure
+- do not put your db the center of your architecture
