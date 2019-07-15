@@ -11,18 +11,27 @@ tags:
   - Europython
   - Pydata
   - Data Science
-summary : 
+summary : Europython 2019 Conference Notes
 thumbnailImagePosition : left
 thumbnailImage : https://pbs.twimg.com/profile_images/1082571058832703488/1QVxP99r.jpg
 ---
 
+
+<!-- toc -->
+
 # Europython 2019
 
-I attended ![europython 2019](https://ep2019.europython.eu/) here are some of my takeaways and notes.
+I attended [europython 2019](https://ep2019.europython.eu/) here are some of my takeaways and notes.
 
 ## General Takeaways
-- Docker widely used to setup training environment (can take long to download)
-- VS Code popular IDE, very good demo at the MS booth. Will switch IDEs. 
+- `docker` is widely used for reproducible environments especially for training sessions and for deploying models.
+- mostly `docker` images would be deployed as `flask` apps, with an REST API.
+- REST APIs can be managed using `swagger`
+- `docker` images would be managed using `kubernetes`
+- `continuous delivery` was advertised a lot
+- `VS Code` seems to be the most popular IDE, very good demo at the MS booth. Beats `atom` and `pycharm` in my opinion.
+- `scikitlearn 0.21` release great new features ColumnTransformer replaces `sklearn-pandas`, histogram gradient boosting, faster and more light weight then regular gradient boosting.
+- `dirty_cat` has great encoders for dirty data. SimilarityEncoder and
 
 ## Training Days
 
@@ -71,7 +80,7 @@ creates virtual columns from column calculations
 - `pyinstaller` can be used to reduce dependencies, but does not detect all dependencies and then they need to be added manually.
 
 Do:
-- dont run as root¨
+- dont run as root
 - use image hash instead of image name and tag (hash sign version of image similar like git commit hashes)
 - build your own distroless images
 - sign docker images
@@ -120,7 +129,7 @@ setup(
 
 #### Templates
 
-cookiecutter has python package templates
+`cookiecutter` has python package templates
 
 ### Dirty Data
 
@@ -129,12 +138,12 @@ cookiecutter has python package templates
   - manualy group categories
   - Similarity Endoding, similarity distance to category, new strings can be fitted on old categories
   - Jaro-winkler, levenstain, 3-gram similarity scores
-  - `DirtCat` has similarity encoder `from dirty_cat import SimilarityEncoder`
+  - `dirty_cat` has similarity encoder `from dirty_cat import SimilarityEncoder`
   - TargetEncoder, Encode Categorical Feature as Mean/Median of other value, example police officer ranking on Salary
   - Latent Category Encoder, builds new categories based on substring similarities
 
 #### Missing Values
-  - classical data generation assumption, data generation is complete and radom entries are random.
+  - classical data generation assumption, data generation is complete and random entries are random.
   - NA values are seldom random, and sometimes are the result of the data model, like age of spouse will be NA for people that are single
   - mean imputation distorts the distribution, concerning for statisitcal models but not algorithmic models
   - when imputing age of spouse, missingness indicator could be used to flagg single people
@@ -160,51 +169,50 @@ cookiecutter has python package templates
 - automated pull request merge `mergify`
 - `twine` to upload to pypi
 
-(blog)[http://michal.karzynski.pl]
+[blog](http://michal.karzynski.pl)
 
-## State of Production ML in 2019
+### State of Production ML in 2019
 
-(slides + example projects)[https://github.com/EthicalML/state-of-mlops-2019]
+[slides + example projects](https://github.com/EthicalML/state-of-mlops-2019)
 
-### GITOPS STRATEGIES FOR ML
+#### GITOPS STRATEGIES FOR ML
 CI/CD via github, using, docker, kubernetes
-(description)[https://dzone.com/articles/a-practical-guide-to-operating-kubernetes-the-gito]
+[description](https://dzone.com/articles/a-practical-guide-to-operating-kubernetes-the-gito)
 
-### Modelling Process
-- data assasement
+#### Modelling Process
+- data assessment
 - model assessment (feature importance, shap-values, pdp-plots, interpretability)
 - production monitoring (see that asassments remain intact during production)
 - explainer, model that adds explanations to predictions,
   * `alibi`, delivers pertinent negative and pertinate positive (minimum changes for positive and negative prediction)
 - `seldon` can be used to manage kubernetes
 
-### Reproducibility
+#### Reproducibility
 - Container Versioning
 
-# Modern Continuous Delivery
-[slides](tinyurl.com/moderncd)
-- deploy to production from commit #1
-- take over release schedule from IT to Business
-- CDEV is concept, CI and CDEP are techniques
-- Modern
-  * immutable infrastructure
-  * container orchestration
-  * version control and automation
-  * cloud native apps
+### Modern Continuous Delivery
+[slides](tinyurl.com/moderncd)  
+- deploy to production from commit #1  
+- take over release schedule from IT to Business  
+- CDEV is concept, CI and CDEP are techniques  
+- Modern  
+  * immutable infrastructure  
+  * container orchestration  
+  * version control and automation  
+  * cloud native apps  
 
 tools? choice or lock-in?, lock-in choices should be avoided
 
-- cookiecutter seems to be what devtools/usethis is for python, can be used to setup CDEV for projects.
-
+- `cookiecutter` seems to be what devtools/usethis is for python, can be used to setup CDEV for projects.
 - generate + seal your secrets, otherwise you cant continuously deliver
 - dont overload your yaml
 - test-driven, pair programming
 - the only way to go fast is to go well, robert c. martin
 
 
-# Partical Clean Architecture
+### Practical Clean Architecture
 
-## Typing for data interfaces
+#### Typing for data interfaces
 - typing, use type annotations when writing functions
 - typing package has objects that allow you type specifications for dictionaries
 - python 3.7 offers data classes that make this easier
@@ -216,7 +224,7 @@ tools? choice or lock-in?, lock-in choices should be avoided
 
 These interfaces are easily testable
 
-## Architecture
+#### Architecture
 - lifetime 10 years
 - make an application centric infrastructure
 - do not put your db the center of your architecture
