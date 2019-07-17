@@ -33,6 +33,11 @@ I attended [europython 2019](https://ep2019.europython.eu/) here are some of my 
 - `scikitlearn 0.21` release great new features ColumnTransformer replaces `sklearn-pandas`, histogram gradient boosting, faster and more light weight then regular gradient boosting.
 - `dirty_cat` has great encoders for dirty data. SimilarityEncoder and
 
+{{< alert warning >}}
+the new sci-kot column transformer, has very a very simple API, that makes it easy to transform your pandas df into a numpy matrix. Howver the method `get_feature_names()`. Is not working for most transformers [github issue](https://github.com/scikit-learn/scikit-learn/issues/6425). So it is not really possible to inspect the transformations inside the matrix in a systematic way. `sklearn-pandas` does not have that problem, however its API is a bit more complicated.
+{{< /alert >}}
+
+
 ## Training Days
 
 ### REST API/Microservices
