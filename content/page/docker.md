@@ -51,3 +51,20 @@ docker tag <image> username/repository:tag  # Tag <image> for upload to registry
 docker push username/repository:tag            # Upload tagged image to registry
 docker run username/repository:tag                   # Run image from a registry
 ```
+
+# Deploy Services
+
+specifications such as remote image location, ressource allocation and number of instances
+can be specified in `docker-compose.yml`
+
+```
+docker swarm init         # needs to be executed in order to deploy the services
+docker stack ls                                            # List stacks or apps
+docker stack deploy -c <composefile> <appname>  # Run the specified Compose file
+docker service ls                 # List running services associated with an app
+docker service ps <service>                  # List tasks associated with an app
+docker inspect <task or container>                   # Inspect task or container
+docker container ls -q                                      # List container IDs
+docker stack rm <appname>                             # Tear down an application
+docker swarm leave --force      # Take down a single node swarm from the manager
+```
