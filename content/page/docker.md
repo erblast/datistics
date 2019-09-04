@@ -1,6 +1,9 @@
-Cheat Sheet
+# Cheat Sheet
 
+The official tutorial is very dev-ops heavy most of it is not so important for datascience
 extracts from [official tutorial](https://docs.docker.com/get-started/)
+
+This [R docker tutorial](https://ropenscilabs.github.io/r-docker-tutorial/) is much better
 
 ## List Docker CLI commands
 ```
