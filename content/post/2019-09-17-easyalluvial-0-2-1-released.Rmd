@@ -1,0 +1,66 @@
+---
+title: Easyalluvial 0.2.1 released
+author: Björn Koneswarakantha
+date: '2019-09-17'
+slug: easyalluvial-0-2-1-released
+categories:
+  - R
+  - visualisation
+tags:
+  - R
+  - visualisation
+  - easyalluvial
+keywords:
+  - tech
+summary: Minor Release, maintains compatibility with `tidyr 1.0.0` and a few bug fixes.
+thumbnailImagePosition : left
+thumbnailImage: easyalluvial_logo.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page
+---
+
+`easyalluvial` allows you to build exploratory alluvial plots (sankey diagrams) with a single line of code while automatically binning numerical variables. This releas `0.2.1` ensures `tidyr 1.0.0` compatibility and fixes a bug around categorical variables for model response plots
+
+# Model Response Plots with Categorical Variables
+
+This feature had som glitches before as edvardoss reported in this [issue](https://github.com/erblast/easyalluvial/issues/13). If anybody else encounters some glitches or inconcistencies please report them as well.
+
+We create a grid of all possible feature combinations and use an alluvial plot to visualise the model response.
+
+Learn more about this feature in this [previous blog post](https://www.datisticsblog.com/2019/04/visualising-model-response-with-easyalluvial/)
+
+```{r }
+
+suppressPackageStartupMessages( require(tidyverse) )
+suppressPackageStartupMessages( require(easyalluvial) )
+
+```
+
+```{r fig.height = 9, fig.width=12, cache=T}
+
+df = titanic %>%
+  select_if(is.factor)
+
+set.seed(0)
+m = randomForest::randomForest( Survived ~ ., df)
+imp = m$importance
+dspace = get_data_space(df, imp, degree = 3)
+pred = predict(m, newdata = dspace,type = 'response')
+
+
+p = alluvial_model_response(pred, dspace, imp, degree = 3)
+
+grid = add_marginal_histograms(p, plot = F, data_input = df) 
+grid = add_imp_plot(grid = grid, p = p, data_input = df, plot = T)
+
+```
+
+
+
+
+
+# More changes
+
+... [NEWS.md](https://github.com/erblast/easyalluvial/blob/master/NEWS.md)
