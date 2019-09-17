@@ -84,10 +84,11 @@ conda env remove --name myenv
 ### Install MacOS SDK
 `anaconda` not only contains packages but also apps and other programs. It also contains a set of compilers. For licensing reasons the MacOS SDK cannot be included and needs to be installed seperately as explained [here](https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html). MacOS SDK can be downloaded [here](https://github.com/phracker/MacOSX-SDKs) I suggest to download the version that matches the version number of your installed macOS.
 
-Add the following code to your `conda_build_config.yaml`
+Add the following code to your `conda_build_config.yaml` in your HOME directory (create new file if not present).
+
 ```
 CONDA_BUILD_SYSROOT:
-  - /opt/MacOSX10.9.sdk        # [osx]
+  - /opt/MacOSX10.13.sdk        # [osx]
 ```
 
 
@@ -179,7 +180,7 @@ This will be mostly required for `R` packages that cannot be found on `anaconda`
 create the account on [anaconda.org](https://anaconda.org)
 
 ```
-anaconda anaconda login
+anaconda login
 conda config --set anaconda_upload yes
 # anaconda logout
 ```
@@ -199,9 +200,9 @@ conda skeleton cran https://github.com/erblast/ggplot2.git
 
 #### Build packages from skeleton
 
-we have to ad a `r-` prefix to the package name and put the package name in *lowercase*
+we have to ad a `r-` prefix to the package name and put the package name in *lowercase* the build are R-version specific so it is best to specify it in the command.
 ```
-conda build r-rlang
+conda build r-rlang --R 3.5.1
 ```
 
 ### Check package installations
