@@ -57,6 +57,35 @@ docker push username/repository:tag            # Upload tagged image to registry
 docker run username/repository:tag                   # Run image from a registry
 ```
 
+# Dockerfile
+
+## Install linux modules
+- `&&` chains two commands
+- `\` continue command on next line
+- `-y` passes yes to user input
+```
+RUN apt-get update && \
+    apt-get -y install build-essential && \
+    apt-get -y install openssh-client
+```
+
+## Install into conda environment
+```
+RUN conda create --name my_env python=3.6
+RUN conda install -n my_env pyarrow=0.11.1
+ENV PATH /opt/conda/envs/my_env/bin:$PATH
+RUN /bin/bash -c "source activate idwimpala"
+RUN pip install hdfs==2.1.0
+```
+## RUN, CMD, ENTRYPOINT
+
+- `RUN` executes line, execution can be stored in image
+- `ENTRYPOINT` executes when container starts up
+- `CMD` default command when container starts up, can be overwritten
+
+[blogpost](https://goinbigdata.com/docker-run-vs-cmd-vs-entrypoint/)
+
+
 # Deploy Services
 
 specifications such as remote image location, ressource allocation and number of instances
