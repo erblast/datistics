@@ -1,43 +1,45 @@
 # Cheat Sheet
 
+## docker CLI
+
 The official tutorial is very dev-ops heavy most of it is not so important for datascience
 extracts from [official tutorial](https://docs.docker.com/get-started/)
 
 This [R docker tutorial](https://ropenscilabs.github.io/r-docker-tutorial/) is much better
 
-## List Docker CLI commands
+### List Docker CLI commands
 ```
 docker
 docker container --help
 ```
 
-## Display Docker version and info
+### Display Docker version and info
 ```
 docker --version
 docker version
 docker info
 ```
 
-## Execute Docker image
+### Execute Docker image
 ```
 docker run hello-world
 docker run --rm -it sample_image /bin/bash # run in interactive mode and quit container when exiting attach shell
 docker run --rm -it -v local_path:container_path sample_image /bin/bash  # attach volume
 ```
 
-## List Docker images
+### List Docker images
 ```
 docker image ls
 ```
 
-## List Docker containers (running, all, all in quiet mode)
+### List Docker containers (running, all, all in quiet mode)
 ```
 docker container ls
 docker container ls --all
 docker container ls -aq
 ```
 
-## Managin Images and running containers
+### Managing Images and running containers
 ```
 docker build -t friendlyhello .  # Create image using this directory's Dockerfile
 docker run -p 4000:80 friendlyhello  # Run "friendlyhello" mapping port 4000 to 80
@@ -57,9 +59,9 @@ docker push username/repository:tag            # Upload tagged image to registry
 docker run username/repository:tag                   # Run image from a registry
 ```
 
-# Dockerfile
+## Dockerfile
 
-## Install linux modules
+### Install linux modules
 - `&&` chains two commands
 - `\` continue command on next line
 - `-y` passes yes to user input
@@ -69,7 +71,7 @@ RUN apt-get update && \
     apt-get -y install openssh-client
 ```
 
-## Install into conda environment
+### Install into conda environment
 ```
 RUN conda create --name my_env python=3.6
 RUN conda install -n my_env pyarrow=0.11.1
@@ -77,7 +79,7 @@ ENV PATH /opt/conda/envs/my_env/bin:$PATH
 RUN /bin/bash -c "source activate idwimpala"
 RUN pip install hdfs==2.1.0
 ```
-## RUN, CMD, ENTRYPOINT
+### RUN, CMD, ENTRYPOINT
 
 - `RUN` executes line, execution can be stored in image
 - `ENTRYPOINT` executes when container starts up
@@ -95,7 +97,10 @@ RUN pip install hdfs==2.1.0
 docker run --rm -it -p 8787:8787 -v local_path:/home/rstudio/container_path -e PASSWORD='123' -d rocker/verse /init
 ```
 
-# Deploy Services
+## Run jupyter notebook
+
+
+## Deploy Services
 
 specifications such as remote image location, ressource allocation and number of instances
 can be specified in `docker-compose.yml`
