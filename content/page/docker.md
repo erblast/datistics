@@ -85,6 +85,15 @@ RUN pip install hdfs==2.1.0
 
 [blogpost](https://goinbigdata.com/docker-run-vs-cmd-vs-entrypoint/)
 
+## Run RStudio
+
+- `-p 8787:8787` defines port
+- `-e PASSWORD='123'` sets environmen variable PASSWORD before running container
+- `-d` detached mode, runs in background
+- `/init` initiates RStudio
+```
+docker run --rm -it -p 8787:8787 -v local_path:/home/rstudio/container_path -e PASSWORD='123' -d rocker/verse /init
+```
 
 # Deploy Services
 
