@@ -21,6 +21,8 @@ docker info
 ## Execute Docker image
 ```
 docker run hello-world
+docker run --rm -it sample_image /bin/bash # run in interactive mode and quit container when exiting attach shell
+docker run --rm -it -v local_path:container_path sample_image /bin/bash  # attach volume
 ```
 
 ## List Docker images
