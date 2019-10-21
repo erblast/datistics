@@ -73,6 +73,16 @@ RUN apt-get update && \
 
 ### Install into conda environment
 ```
+FROM continuumio/miniconda3:latest #conda/miniconda3 does not work
+
+# install ssh and compilers
+RUN apt-get update && \
+    apt-get -y install build-essential && \
+    apt-get -y install openssh-client
+
+RUN conda update -n base -c defaults conda
+RUN conda install git
+
 RUN conda create --name my_env python=3.6
 RUN conda install -n my_env pyarrow=0.11.1
 ENV PATH /opt/conda/envs/my_env/bin:$PATH
