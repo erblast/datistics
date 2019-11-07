@@ -39,3 +39,7 @@ Enhancing the Quality and Transperancy of healtth research
  http://ctm.r-forge.r-project.org/
  
  These models do not give a mean estimate as a prediction but a likelihood distribution
+
+## Webpage with Conference Content Including Slide decks
+
+https://baselbiometrics.github.io/20191101_ML/bbs1stNov2019.html
