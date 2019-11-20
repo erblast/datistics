@@ -6,6 +6,39 @@ Nevertheless the final test set was small and we were risking that this split in
 
 
 Handelma GS, Kok HK, Chandra RV, Razavi AH, Huang S, Brooks M, et al. Peering Into the Black Box of Artificial Intelligence: Evaluation Metrics of Machine Learning Methods. AJR Am J Roentgenol. 2018; 17:1–6
+
 Varma S., Simon R. Bias in error estimation when using cross-validation for model selection, BMC Bioinformatics 2006, 7:91
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1397873/
+
 [Breiman, Friedman, Stone, and Olshen's Classification and Regression Trees (1984). section 3.4.3.
+
+
+### Purpose
+- estimate performance
+- model tuning/selection
+
+#### Hazards/Risks 
+- training bias (overfitting to training data)
+- optimization bias (optimizing parameters to training data)
+- selection bias (selection bias in training data)
+- data leakage between splits
+- Chance / Bad Luck
+- not enough data
+
+##### Split into Train, Valid
+- eliminates training bias
+
+##### Split into Train, Valid, Test
+- eliminates optimization bias
+
+#####  SME knowledge, Data Curation
+- can reduce the risk of selection bias
+
+#####  Stratified Sampling, careful feature selection
+- ensures that there is no data leakage
+
+#####  Multiple Data Splits (k-fold cv)
+- reduces the risk of over/under estimating error by chance
+
+#####  Learning Curve
+- test whether model improves when getting more data
