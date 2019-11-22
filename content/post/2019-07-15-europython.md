@@ -64,21 +64,22 @@ the new sci-kit column transformer, has very a very simple API, that makes it ea
 - kbinsdicretizer preprocessor to compute nonelinear decision boundaries in order to generate new features which improves performance of linear models.
 
 ### Vaex
-lazy loads large data from disk to RAM
-creates virtual columns from column calculations
-- has great histogram plotting features
-- supports hdfs and appache arrow
-- user defined functions, can be translated to C using numbajit
-- window functions like aggregate in pandas
-- comes with a lot of wrappers for python ml libraries, supports scikitlearn but does not support all scalers
-- pca on data points on a map with x-y coordinates can be used to shift coordinate points representing a density grid tilted grid into a horizontally alligned grid 
-- save all operations done in one df, can be saved as json and applied to a new dataframe. Replacement for pipelines
+lazy loads large data from disk to RAM  
+creates virtual columns from column calculations  
+
+- has great histogram plotting features  
+- supports hdfs and appache arrow  
+- user defined functions, can be translated to C using numbajit  
+- window functions like aggregate in pandas  
+- comes with a lot of wrappers for python ml libraries, supports scikitlearn but does not support all scalers  
+- pca on data points on a map with x-y coordinates can be used to shift coordinate points representing a density grid tilted   grid into a horizontally alligned grid   
+- save all operations done in one df, can be saved as json and applied to a new dataframe. Replacement for pipelines  
 
 
 ### Make Docker Images Safe
 
-- Large docker images have many exposed vulnarbilities
-- securety tools like `claire` can be used to scan them
+- Large docker images have many exposed vulnarbilities  
+- securety tools like `claire` can be used to scan them  
 - shells can be attached to the docker image
 - use distroless image (reduced images)
 - distroless get rid of everything that is not needed, for example the `ls` command from the shell.
