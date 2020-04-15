@@ -11,7 +11,7 @@ Use a fixed set of dimensions
 
 Total population per country:
 ``` 
-{FIXED continent, country, SUM(population) }
+{FIXED continent, country : SUM(population) }
 ```
 
 ## Exclude
@@ -19,7 +19,7 @@ Ignore a specific dimension in the vis
 
 Total population per country:
 ``` 
-{EXCLUDE city, SUM(population)}
+{EXCLUDE city : SUM(population)}
 ```
 
 ## Include
@@ -27,7 +27,7 @@ Add a specific dimension in the vis
 
 Total population per country:
 ```
-{INCLUDE country, SUM(population)}
+{INCLUDE country : SUM(population)}
 ```
 
 # Min(1) trick
