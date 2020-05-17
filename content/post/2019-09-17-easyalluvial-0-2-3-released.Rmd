@@ -1,0 +1,134 @@
+---
+title: "easyalluvial 0.2.3 released"
+author: Björn Koneswarakantha
+date: '2020-05-18'
+slug: easyalluvial-0-2-3-released
+categories:
+  - R
+  - visualisation
+tags:
+  - R
+  - visualisation
+  - easyalluvial
+keywords:
+  - tech
+summary: Minor Release, maintains compatibility with `dplyr 1.0.0` and now has a slick `pkgdown` documentation website and makes better use of `Travis CI` using multiple builds to ensure compatibilty with package dependencies.
+thumbnailImagePosition : left
+thumbnailImage: easyalluvial_logo.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page
+---
+
+`easyalluvial` allows you to build exploratory and interactive alluvial plots (sankey diagrams) with a single line of code while automatically binning numerical variables. This release `0.2.3` ensures `dplyr 1.0.0` compatibilitiy and now builds a slick pkgdown documentation website and makes better use of `Travis CI` using multiple builds to test compatibility with development versions of selected package dependencies.
+
+# New 'pkgdown' Documentaion 
+
+If I knew how easy it was to create a `pkgdown` documentation website I would have done it long time ago. The `easyalluvial` documentation used to consist of only the `README.md` file with links to blogposts that would contain more detailed tutorials. Now everything can be found in one place. 
+
+[https://erblast.github.io/easyalluvial/](https://erblast.github.io/easyalluvial/)
+
+```{r short_screenshot, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = '../../../screenshot_pkgdown.png'
+                    , thumbnail = '../../../screenshot_pkgdown.png'
+                    # , `thumbnail-width` = '360px'
+                    # , `thumbnail-height` = '360px'
+                    , target = 'https://erblast.github.io/easyalluvial/'
+                    )
+
+```
+
+
+# New 'Travis CI' Configuration
+
+```{r short_travis, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://annakrystalli.me/talks/assets/travis.png'
+                    , thumbnail = 'https://annakrystalli.me/talks/assets/travis.png'
+                    , `thumbnail-width` = '120px'
+                    , `thumbnail-height` = '120px'
+                    , target = 'https://travis-ci.org/'
+                    )
+
+```
+
+
+The real change however, is that I am now making better use of `Travis CI`. I made it a habit to develop in a designated branch and use pull requests to merge with the master branch. `Travis CI` now controls the merge of the pull request only allowing it if all checks in all builds have passed. In addition to simply running package checks `Travis CI` now uses multiple parallel builds. One build each for `R-release` and `R-devel` and a couple of more for checking compatibility with development versions of selected tidyverse dependencies. Another build checks the reverse dependency `parcats`.
+
+Even cooler `Travis CI` is setup to build the `pkgdown` website and publishes it immediately to a separate github pages branch. So me forgetting to build the website before commiting to github will not effect the documentation. There is a great [blogpost](https://www.r-bloggers.com/continuous-deployment-of-package-documentation-with-pkgdown-and-travis-ci/) with instruction on how to set-up `Travis CI` to deploy github pages.
+
+Since I set up many parallel builds in different environments I only want one of them to render the documentation. Therefore I created an environment variable `PKGDOWN` which is set to `yes` in only one of the builds and set to `no` in the others. The deploy section will only run if `PKGDOWN=yes` on the master branch.
+
+For R-packages the script section of each build is pre-configured. In order to integrate the building of the `pkgdown` website into the script part of the `r-release` build I had to overwrite it. Which required me to also add commands for installing package dependencies and running package checks.
+
+This is the content of the final `.travis.yml`
+```
+language: R
+R:
+  - release
+sudo: false
+cache: packages
+
+r_packages:
+  - covr
+
+matrix:
+  include:
+  - r: devel
+    after_success:
+    - export PKGDOWN=no
+  - r: release
+    before_script: 
+      - Rscript -e 'install.packages(c("earth", "tidyverse", "mlbench", "pkgdown"))'
+      - Rscript -e "devtools::install_deps('.', dependencies = 'suggests')"
+    script:
+      - Rscript -e "devtools::check('.', error_on = 'note')"
+      - Rscript -e 'pkgdown::build_site(run_dont_run = TRUE)'
+    after_success:
+      - Rscript -e 'covr::codecov()'
+      - export PKGDOWN=yes
+  - r: release
+    name: tidyr-devel
+    before_script: Rscript -e "remotes::install_github('tidyverse/tidyr')"
+    after_success:
+    - export PKGDOWN=no
+  - r: release
+    name: dplyr-devel
+    before_script: Rscript -e "remotes::install_github('tidyverse/dplyr')"
+    after_success:
+    - export PKGDOWN=no
+  - r: release
+    name: parcats-devel
+    script:
+      - git clone https://github.com/erblast/parcats.git
+      - git clone https://github.com/erblast/easyalluvial.git
+      - Rscript -e "install.packages('spelling')"
+      - Rscript -e "devtools::install_deps('easyalluvial/', dependencies = 'suggests')"
+      - Rscript -e "devtools::install_deps('parcats/', dependencies = 'suggests')"
+      - Rscript -e "devtools::install('easyalluvial/')"
+      - Rscript -e "devtools::check('easyalluvial/', error_on = 'note')"
+      - Rscript -e "devtools::check('parcats/', error_on = 'note')"
+    after_success:
+    - export PKGDOWN=no
+    
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  local-dir: docs
+  on:
+    branch: master
+    condition: $PKGDOWN = yes
+```
+
+
+
+
+# More changes
+
+... [NEWS.md](https://github.com/erblast/easyalluvial/blob/master/NEWS.md)

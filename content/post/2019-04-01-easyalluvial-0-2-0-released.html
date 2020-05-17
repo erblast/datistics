@@ -52,9 +52,16 @@ train = caret::train( disp ~ .
                       , importance = TRUE )
 
 
-p = alluvial_model_response_caret(train, degree = 4, method = &#39;pdp&#39;)
-
-p_grid = add_marginal_histograms(p, df, plot = F) %&gt;%
+p = alluvial_model_response_caret(train, degree = 4, method = &#39;pdp&#39;)</code></pre>
+<pre><code>## [======================================================&gt;----------------] 78%
+## [=========================================================&gt;-------------] 81%
+## [===========================================================&gt;-----------] 84%
+## [=============================================================&gt;---------] 88%
+## [===============================================================&gt;-------] 91%
+## [==================================================================&gt;----] 94%
+## [====================================================================&gt;--] 97%
+## [=======================================================================] 100%</code></pre>
+<pre class="r"><code>p_grid = add_marginal_histograms(p, df, plot = F) %&gt;%
   add_imp_plot(p, df)</code></pre>
 <p><img src="/post/2019-04-01-easyalluvial-0-2-0-released_files/figure-html/unnamed-chunk-3-1.png" width="1152" /></p>
 <p>We see that the top 4 important features of the model have been selected and that 5 values have been picked over the range of the numerical variables which together with the levels of the categorical variable have been used to construct a data grid of all possible combinations.</p>

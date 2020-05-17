@@ -25,7 +25,7 @@ output:
 
 [`parcats`](https://erblast.github.io/parcats/) was released on CRAN. It is an htmlwidget providing bindings to the `plotly.js` parcats trace, which is not supported by the `plotly` R package. Also adds marginal histograms for numerical variables.
 
-![demogif](https://erblast.github.io/parcats/demo1.gif)
+![demogif](https://raw.githubusercontent.com/erblast/parcats/master/man/figures/demo1.gif)
 
 - [github](https://github.com/erblast/parcats)
 - [documentation](https://erblast.github.io/parcats/)

@@ -48,9 +48,11 @@ output:
 </ul>
 </div>
 
-<p><br></br> <br></br></p>
+<p><br></br>
+<br></br></p>
 {{% image classes="center" src="../../../easyalluvial_logo_square.png" thumbnail="../../../easyalluvial_logo_square.png" thumbnail-width="360px" thumbnail-height="360px" target="https://github.com/erblast/easyalluvial" %}}
-<p><br></br> <br></br></p>
+<p><br></br>
+<br></br></p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>Alluvial plots are a form of <a href="https://en.wikipedia.org/wiki/Sankey_diagram">sankey diagrams</a> that are a great tool for exploring categorical data. They group categorical data into flows that can easily be traced in the diagram. Other than sankey diagrams they are constrained to x-y dimensions, however their graphical grammar is a bit mor complex then that of a regular x-y plot. The <a href="http://corybrunson.github.io/ggalluvial/"><code>ggalluvial</code></a> package made a great job of translating that grammar into ggplot2 synthax and gives you many option to tweak the appearance of a plot, nevertheless there still remains a multilayered complexity that makes it difficult to use <code>ggalluvial</code> for explorative data analysis. <code>easyalluvial</code> provides a simple interface to this package that allows you to put out a decent alluvial from any dataframe where data is stored in either long or wide format while automatically binning continuous data. It is meant to allow a quick visualisation of entire dataframes similar to the visualisations created by the <a href="https://github.com/mtennekes/tabplot"><code>tabplot</code></a> package providing different colouring options which give it the flexibility needed for data exploration.</p>
@@ -85,9 +87,12 @@ numericals = c(&#39;mpg&#39;, &#39;cyl&#39;, &#39;disp&#39;, &#39;hp&#39;, &#39;
 
 data_wide = data_wide %&gt;%
   mutate_at( vars(categoricals), as.factor ) %&gt;%
-  mutate( car_id = row_number() )
-
-knitr::kable( head(data_wide) )</code></pre>
+  mutate( car_id = row_number() )</code></pre>
+<pre><code>## Note: Using an external vector in selections is ambiguous.
+## ℹ Use `all_of(categoricals)` instead of `categoricals` to silence this message.
+## ℹ See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This message is displayed once per session.</code></pre>
+<pre class="r"><code>knitr::kable( head(data_wide) )</code></pre>
 <table>
 <thead>
 <tr class="header">

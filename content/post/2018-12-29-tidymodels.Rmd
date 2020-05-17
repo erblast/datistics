@@ -86,7 +86,7 @@ The regular statistical test supported by `R` have the same problem as the model
 
 - **Interpretation of P Values.** There is a pickiness when it comes to interpreting P Values, the perfect definition eludes me and is completly useless to a none-statistician. Allen Downey has a refreshing practical approach to P values in which he uses a bayesian approach to show that indeed *from small p values (<= 0.01) one can conlude that the observed effect has a low probability to be the result of chance* [(post)](http://allendowney.blogspot.com/2015/05/hypothesis-testing-is-only-mostly.html)  
 
-- **Disregard of Effect Size.** If we have a large sample even irrelevant effects will result in low P-Values and if we have a small sample only very large effects will result in low P-Values. If we detect a relevant effect with a low P Value we cannot be sure that the magnitude of the effect is reproducible. Typically the effect size will decrease the larger the sample. The Null hypothesis does not incorporate a minimum effect size. 
+- **Disregard of Effect Size.** If we have a large sample even irrelevant effects will result in low p-values and if we have a small sample only very large effects will result in low p-values. If we detect a relevant effect with a low p-value we cannot be sure that the magnitude of the effect is reproducible. Typically the effect size will decrease the larger the sample. The Null hypothesis does not incorporate a minimum effect size. 
 
 As a remedy for the issue of the convoluted statisical requirements for each test a workaround has again been proposed  by Allen Downey. He proposes to simulate data that assumes that there is no connection between two hypothetical sets of data that we want to compare (the null hypothesis is true). ( [post1](http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html), [post2](https://feedly.com/i/entry/B+zx48A60dYhZn8V2dBcpwOiRYnIVsqskPVFCv6/PS4=_1552b4aba08:50249e5:db10177e) ). Similar to bootstrapping this method is none-parametric and we can use the simulated data to calculate a set of summary statistics. Then we can compare the distribution of these statistics against the actual value. `infer` allows us to do just that and on-top offers a tidy synthax to the conventional `R` implementations of standard statistical tests.
 
@@ -119,13 +119,16 @@ We will use the following packages:
 -`resample`
 -`caret`
 -`yardstick`
--`easyalluvial` (for colors)
+-`easyalluvial` (for color palette)
 
 ```{r}
 suppressPackageStartupMessages( library('mlbench') )
 suppressPackageStartupMessages( library('tidyverse') )
 suppressPackageStartupMessages( library('recipes') )
 suppressPackageStartupMessages( library('caret') )
+suppressPackageStartupMessages( library('Hmisc') )
+suppressPackageStartupMessages( library('xgboost') )
+
 
 # ggplot default theme
 theme_set(theme_minimal())
@@ -171,7 +174,8 @@ df_cor = df %>%
   group_by(variable) %>%
   nest() %>%
   mutate( cor = map_dbl(data, function(x) cor(x$lstat, x$value) ) ) %>%
-  unnest() %>%
+  unnest(cols = c(data)) %>%
+  ungroup() %>%
   mutate( variable = fct_reorder(variable, cor)
           , cor = round(cor,2) )
 
@@ -212,8 +216,8 @@ df %>%
 ```{r logo_recipes, echo = FALSE}
 blogdown::shortcode("image"
                     , classes = 'center'
-                    , src = 'https://tidymodels.github.io/recipes/recipes_hex_thumb.png'
-                    , thumbnail = 'https://tidymodels.github.io/recipes/recipes_hex_thumb.png'
+                    , src = 'https://raw.githubusercontent.com/tidymodels/recipes/master/man/figures/logo.png'
+                    , thumbnail = 'https://raw.githubusercontent.com/tidymodels/recipes/master/man/figures/logo.png'
                     , `thumbnail-width` = '240px'
                     , `thumbnail-height` = '240px'
                     , target = 'https://tidymodels.github.io/recipes/'
@@ -265,8 +269,8 @@ df_prep = bake(prep_rec, df )
 ```{r logo_rsample, echo = FALSE}
 blogdown::shortcode("image"
                     , classes = 'center'
-                    , src = 'https://tidymodels.github.io/rsample/rsample_hex_thumb.png'
-                    , thumbnail = 'https://tidymodels.github.io/rsample/rsample_hex_thumb.png'
+                    , src = 'https://raw.githubusercontent.com/tidymodels/rsample/master/man/figures/logo.png'
+                    , thumbnail = 'https://raw.githubusercontent.com/tidymodels/rsample/master/man/figures/logo.png'
                     , `thumbnail-width` = '240px'
                     , `thumbnail-height` = '240px'
                     , target = 'https://tidymodels.github.io/rsample/'
@@ -444,7 +448,7 @@ df_perf = df_best_models %>%
           , methods = fct_relevel(methods, levels(df_best_models$methods) )) %>%
   group_by(methods, .metric) %>%
   mutate( me = mean(.estimate)
-             , std = sd(.estimate) )
+             , se = sd(.estimate)/sqrt(n()) )
 
 
 ```
@@ -453,10 +457,10 @@ df_perf = df_best_models %>%
 
 ```{r}
 df_1se = df_perf %>%
-  group_by(methods, .metric, me, std) %>%
+  group_by(methods, .metric, me, se) %>%
   summarise() %>%
-  mutate(  ymin = me - std
-          , ymax = me + std ) %>%
+  mutate(  ymin = me - se
+          , ymax = me + se ) %>%
   group_by(.metric) %>%
   mutate( rnk = rank(me, ties.method = 'first')
           , rnk_desc = rank( desc(me), ties.method = 'first')
@@ -495,11 +499,11 @@ df_perf %>%
                , size = .5, alpha = 1 ) +
     stat_summary( aes( color = classification)
                   , size = 1
-                  , fun.data = function(x) mean_sdl( x, mult = 1) ) +
+                  , fun.data = function(x) mean_se( x, mult = 1) ) +
     scale_color_manual( values = pal ) +
     theme( legend.position = 'none') +
     labs( y = '', x = '', caption = 'grey area: 1SE range of best model'
-        , title = 'CV Performance Metrics') +
+        , title = 'CV Performance Metrics + SE') +
     facet_wrap(~.metric, scales = 'free_y', ncol = 1) 
 ```
 
