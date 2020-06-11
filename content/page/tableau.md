@@ -39,3 +39,7 @@ https://kb.tableau.com/articles/howto/creating-a-parameter-control-to-sort-by-di
 # Send parameters from workbook to workbook via URL
 
 https://community.tableau.com/thread/202493
+
+# Workaround for Nested Containers
+
+https://community.tableau.com/thread/178426
