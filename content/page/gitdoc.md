@@ -302,6 +302,8 @@ SUbmodules are great if you need to include code from another repository into yo
 git submodule add repo_adress
 git submodule init
 git submodule update
+cd submodule
+git checkout v1.0
 ```
 
 ## Remove Submodules
