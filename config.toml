@@ -35,7 +35,7 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
 
 [author]
   name = "Dr. Björn Koneswarakantha"
-  bio = ""
+  bio = "I work for Roche. All opinions expressed are my own and do not necessarily represent the position of my employer."
   job = "Data Scientist"
   location = "Switzerland"
   picture = "./logo.png"
@@ -127,13 +127,22 @@ keywords = ["data science", "R", "python", "machine learning", "data visualisati
     name = "R-bloggers"
     pre = "<i class=\"sidebar-button-icon fa fa-lg fa-signal\"></i>"
     url = "https://www.r-bloggers.com/"
-
+    
 [[menu.misc]]
     weight = 5
+    identifier = "r_weekly"
+    name = "R Weekly"
+    pre = "<i class=\"sidebar-button-icon fa fa-lg fa-calendar-o\"></i>"
+    url = "https://www.r-users.com/"
+
+[[menu.misc]]
+    weight = 6
     identifier = "r_jobs"
     name = "Jobs for R-users"
     pre = "<i class=\"sidebar-button-icon fa fa-lg fa-briefcase\"></i>"
     url = "https://www.r-users.com/"
+    
+    
 
 [params]
   # Customize date format use to render blog post date, categories and other
