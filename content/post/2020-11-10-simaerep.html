@@ -1,0 +1,79 @@
+---
+title: simaerep
+author: Björn Koneswarakantha
+date: '2020-11-10'
+slug: simaerep
+categories:
+  - R
+tags:
+  - R
+  - bootstrap
+  - clinical studies
+summary: Detect Under-Reporting of Adverse Events in Clinical Trials
+thumbnailImagePosition : left
+thumbnailImage: simaerep_logo_square.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p><br></br>
+<br></br></p>
+{{% image classes="center" src="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail-width="360px" thumbnail-height="360px" target="https://openpharma.github.io/simaerep/" %}}
+<p><br></br>
+<br></br></p>
+<div id="adverse-events" class="section level1">
+<h1>Adverse Events</h1>
+<p>An adverse event (AE) is any untoward medical occurrence in a patient or participating in a clincial trial. These events are not necessarily drug related. It could anything from a headache to a sporting accident to a life-threatening pneunomia. It is important though for the safety of the patients that these events are being reported in a timely manner from the clinical trial site to the sponsor of the trial so that the safety profile of the drug can be updated if necessary and appropriate actions can be taken.</p>
+</div>
+<div id="simaerep" class="section level1">
+<h1>{simaerep}</h1>
+<p><code>simaerep</code> can be used to flag sites that are statistically reporting fewer AEs than other sites by using bootstrap resampling. For a site that needs to be tested it draws with replacement a new patient sample from the entire study patient population. This is repeated several times to be able to determine the probability to get an equal or lower number of AEs than initially reported.</p>
+<p>There is a bit more to it of course <code>simaerep</code> needs to account for the fact that patients have been recruited at different points in time and it needs to account for the alpha-error that occurs when you perform many statistical tests. The exact methodology is explained <a href="https://openpharma.github.io/simaerep/articles/intro.html">here</a></p>
+<ul>
+<li><a href="https://github.com/openpharma/simaerep/">github</a></li>
+<li><a href="https://openpharma.github.io/simaerep/index.html">website</a></li>
+</ul>
+</div>
+<div id="ae-reporting-quality-assurance" class="section level1">
+<h1>AE Reporting Quality Assurance</h1>
+<p><code>simaerep</code> is currently a cornerstone in our AE reporting quality assurance strategy. As we describe in our latest publication:</p>
+<p>Koneswarakantha, B., Barmaz, Y., Ménard, T. et al. <em>Follow-up on the Use of Advanced Analytics for Clinical Quality Assurance: Bootstrap Resampling to Enhance Detection of Adverse Event Under-Reporting.</em> Drug
+Saf (2020).<br />
+<a href="https://doi.org/10.1007/s40264-020-01011-5" class="uri">https://doi.org/10.1007/s40264-020-01011-5</a></p>
+</div>
+<div id="collaboration" class="section level1">
+<h1>Collaboration</h1>
+<p>We are frequently refining our quality analytics methods and are happy to collaborate in developing industry standards. Please reach out if you have any comments or questions.</p>
+</div>
+<div id="application" class="section level1">
+<h1>Application</h1>
+<pre class="r"><code>suppressPackageStartupMessages(library(&quot;simaerep&quot;))
+
+set.seed(1)
+
+df_visit &lt;- sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id &lt;- &quot;A&quot;
+
+df_site &lt;- site_aggr(df_visit)
+
+df_sim_sites &lt;- sim_sites(df_site, df_visit, r = 1000)
+
+df_eval &lt;- eval_sites(df_sim_sites, r_sim_sites = 1000)
+
+plot_study(df_visit, df_site, df_eval, study = &quot;A&quot;) </code></pre>
+<p><img src="/post/2020-11-10-simaerep_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>

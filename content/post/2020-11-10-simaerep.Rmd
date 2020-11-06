@@ -1,0 +1,97 @@
+---
+title: simaerep
+author: Björn Koneswarakantha
+date: '2020-11-10'
+slug: simaerep
+categories:
+  - R
+tags:
+  - R
+  - bootstrap
+  - clinical studies
+summary: Detect Under-Reporting of Adverse Events in Clinical Trials
+thumbnailImagePosition : left
+thumbnailImage: simaerep_logo_square.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+<br></br>
+<br></br>
+
+```{r short_logo, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png'
+                    , thumbnail = 'https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png'
+                    , `thumbnail-width` = '360px'
+                    , `thumbnail-height` = '360px'
+                    , target = 'https://openpharma.github.io/simaerep/'
+                    )
+
+```
+
+<br></br>
+<br></br>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+
+```
+
+# Adverse Events
+
+An adverse event (AE) is any untoward medical occurrence in a patient or participating in a clincial trial. These events are not necessarily drug related. It could anything from a headache to a sporting accident to a life-threatening pneunomia. It is important though for the safety of the patients that these events are being reported in a timely manner from the clinical trial site to the sponsor of the trial so that the safety profile of the drug can be updated if necessary and appropriate actions can be taken.
+
+# {simaerep}
+
+`simaerep` can be used to flag sites that are statistically reporting fewer AEs than other sites by using bootstrap resampling. For a site that needs to be tested it draws with replacement a new patient sample from the entire study patient population. This is repeated several times to be able to determine the probability to get an equal or lower number of AEs than initially reported.
+
+There is a bit more to it of course `simaerep` needs to account for the fact that patients have been recruited at different points in time and it needs to account for the alpha-error that occurs when you perform many statistical tests. The exact methodology is explained [here](https://openpharma.github.io/simaerep/articles/intro.html)
+
+- [github](https://github.com/openpharma/simaerep/)
+- [website](https://openpharma.github.io/simaerep/index.html)
+
+# AE Reporting Quality Assurance
+
+`simaerep` is currently a cornerstone in our AE reporting quality assurance strategy. As we describe in our latest publication:  
+
+Koneswarakantha, B., Barmaz, Y., Ménard, T. et al. *Follow-up on the Use of Advanced Analytics for Clinical Quality Assurance: Bootstrap Resampling to Enhance Detection of Adverse Event Under-Reporting.* Drug
+Saf (2020).  
+<https://doi.org/10.1007/s40264-020-01011-5>
+
+# Collaboration
+
+We are frequently refining our quality analytics methods and are happy to collaborate in developing industry standards. Please reach out if you have any comments or questions.
+
+
+# Application
+
+```{r}
+suppressPackageStartupMessages(library("simaerep"))
+
+set.seed(1)
+
+df_visit <- sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id <- "A"
+
+df_site <- site_aggr(df_visit)
+
+df_sim_sites <- sim_sites(df_site, df_visit, r = 1000)
+
+df_eval <- eval_sites(df_sim_sites, r_sim_sites = 1000)
+
+plot_study(df_visit, df_site, df_eval, study = "A") 
+```
+
+
