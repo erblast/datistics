@@ -1,0 +1,1266 @@
+---
+title: Quality Control with R - Notes
+author: Björn Koneswarakantha
+date: '2021-08-27'
+slug: qcwithr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Quality Control with R - Notes
+thumbnailImagePosition : left
+thumbnailImage: https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/d3/d3.min.js"></script>
+<script src="/rmarkdown-libs/dagre/dagre-d3.min.js"></script>
+<link href="/rmarkdown-libs/mermaid/dist/mermaid.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/mermaid/dist/mermaid.slim.min.js"></script>
+<link href="/rmarkdown-libs/DiagrammeR-styles/styles.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/chromatography/chromatography.js"></script>
+<script src="/rmarkdown-libs/DiagrammeR-binding/DiagrammeR.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#r-packages">R packages</a></li>
+<li><a href="#iso-standard-qc-approach">ISO standard QC Approach</a></li>
+<li><a href="#qc-tools">QC tools</a>
+<ul>
+<li><a href="#cause-and-effect-diagrams">Cause and Effect Diagrams</a></li>
+<li><a href="#check-sheets">Check Sheets</a></li>
+<li><a href="#control-charts-shewhart-charts">Control Charts (Shewhart Charts)</a></li>
+<li><a href="#histogram">Histogram</a></li>
+<li><a href="#pareto-chart">Pareto Chart</a></li>
+<li><a href="#scatter-plots">Scatter Plots</a></li>
+<li><a href="#stratification">Stratification</a></li>
+</ul></li>
+<li><a href="#control-charts">Control Charts</a>
+<ul>
+<li><a href="#continuous-grouped-variables">Continuous Grouped Variables</a>
+<ul>
+<li><a href="#x-bar-chart">X-bar Chart</a></li>
+<li><a href="#r-chart">R Chart</a></li>
+<li><a href="#s-chart">S Chart</a></li>
+</ul></li>
+<li><a href="#continuous-non-grouped-variables">Continuous Non-Grouped Variables</a>
+<ul>
+<li><a href="#x-bar-chart-1">X-bar chart</a></li>
+<li><a href="#r-chart-1">R Chart</a></li>
+</ul></li>
+<li><a href="#discrete-measurements">Discrete Measurements</a>
+<ul>
+<li><a href="#p-and-np-charts">p and np Charts</a></li>
+<li><a href="#c-chart">c chart</a></li>
+<li><a href="#u-chart">u chart</a></li>
+</ul></li>
+<li><a href="#capabilityperformance-indices">Capability/Performance Indices</a></li>
+<li><a href="#cusum-chart">CUSUM Chart</a></li>
+<li><a href="#ewma-chart">EWMA Chart</a></li>
+</ul></li>
+<li><a href="#samplingstratification">Sampling/Stratification</a>
+<ul>
+<li><a href="#attribute-acceptance-sampling">Attribute Acceptance Sampling</a></li>
+<li><a href="#variable-acceptance-sampling">Variable Acceptance Sampling</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p><br></br>
+<br></br></p>
+{{% image classes="center" src="https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6" thumbnail="https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6" thumbnail-width="400px" thumbnail-height="600px" target="https://www.qualitycontrolwithr.com/" %}}
+<blockquote>
+<p>Quality Control with R. An ISO Standards Approach (Cano EL, Moguerza JM and Prieto M, 2015).</p>
+</blockquote>
+<p><br></br>
+<br></br></p>
+<div id="r-packages" class="section level1">
+<h1>R packages</h1>
+<p><code>qcc</code> seems to be the most popular and best maintained QC package for control charts.</p>
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
+# we use qcc 3.0 which is not released on CRAN yet
+# devtools::install_github(&quot;luca-scr/qcc&quot;, build = TRUE, build_opts = c(&quot;--no-resave-data&quot;, &quot;--no-manual&quot;))
+library(qcc)</code></pre>
+<pre><code>## Package &#39;qcc&#39; version 3.0
+## Type &#39;citation(&quot;qcc&quot;)&#39; for citing this R package in publications.</code></pre>
+<pre class="r"><code>library(AcceptanceSampling)
+library(SixSigma)
+library(DiagrammeR)</code></pre>
+</div>
+<div id="iso-standard-qc-approach" class="section level1">
+<h1>ISO standard QC Approach</h1>
+<p>ISO standards are defined by the International Organisation for Standardisation by technical committees using a process that is similar to peer-review. There are a lot of ISO standards covering Quality Control.</p>
+</div>
+<div id="qc-tools" class="section level1">
+<h1>QC tools</h1>
+<p>There are 7 general quality Ishikava tools, each of them is covered by numerous ISO documents.</p>
+<ul>
+<li>Cause and Effect Diagram</li>
+<li>Check sheet</li>
+<li>Control chart</li>
+<li>Histogram</li>
+<li>Pareto Chart</li>
+<li>Scatter Diagram</li>
+<li>Stratification
+<ul>
+<li>Flow charts</li>
+</ul></li>
+</ul>
+<div id="cause-and-effect-diagrams" class="section level2">
+<h2>Cause and Effect Diagrams</h2>
+<p>The effect is usually undesired. As causes for a given effect
+for processes of the producing industry the ISO standard is 5Ms+E</p>
+<ul>
+<li>Manpower</li>
+<li>Materials</li>
+<li>Machines</li>
+<li>Methods</li>
+<li>Measurements</li>
+<li>Environment</li>
+</ul>
+<p>Creatively I would adapt this for data-driven business processes to:</p>
+<ul>
+<li>Manpower</li>
+<li>Events</li>
+<li>IT System</li>
+<li>Methods (Statistics, DevOps, Code base, Manual Processes)</li>
+<li>Measurements of Events (Data Entry, Data Coding)</li>
+<li>Environment (Culture, External Events, Regulations)</li>
+</ul>
+<p>Specifically for the reporting of Adverse Drug Reactions in the form of individual case safety reports (ICSR) to Health Authorities (HA).</p>
+<pre class="r"><code>qcc::causeEffectDiagram(
+  cause = list(
+    Manpower = c(
+      &quot;Medical Reviewer&quot;,
+      &quot;Global Process Owner&quot;,
+      &quot;Local Process Owner&quot;,
+      &quot;IT Developer&quot;,
+      &quot;Database Manager&quot;,
+      &quot;Auditer&quot;
+    ),
+    Event = c(
+      &quot;ICSR Quality&quot;,
+      &quot;ICSR Detectability&quot;,
+      &quot;ICSR Quantity&quot;,
+      &quot;ICSR Complexity&quot;
+    ),
+    `IT Systems` = c(
+      &quot;Availability&quot;,
+      &quot;Complexity&quot;,
+      &quot;Performance&quot;,
+      &quot;Quality&quot;
+    ),
+    Methods = c(
+      &quot;Medial Review Process\n(Data Guides)&quot;,
+      &quot;Decisioning\n(Submission Rules)&quot;,
+      &quot;Risk Management&quot;,
+      &quot;Quality Mangement System&quot;,
+      &quot;Change Management&quot;
+    ),
+    Measurements = c(
+      &quot;Data Entry&quot;,
+      &quot;Medical Coding&quot;
+    ),
+    Environment = c(
+      &quot;HA Regulations&quot;,
+      &quot;Local Cultures&quot;,
+      &quot;Company Culture&quot;,
+      &quot;Epidemiology&quot;,
+      &quot;Local Health Systems&quot;
+    )
+  ),
+  effect = &quot;ICSR not\nreported\nto HA&quot;
+)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+</div>
+<div id="check-sheets" class="section level2">
+<h2>Check Sheets</h2>
+<p>Serve to generate process related data, should be part of a general data collection plan. Will be automated for most processes.</p>
+<ul>
+<li>Audit Trail Data</li>
+<li>Quality Evidence</li>
+<li>IT Logs</li>
+</ul>
+<p>Classically serves to attribute each effect (ICSR not reported to HA) to any of the suspected causes in the cause and effect diagram.</p>
+</div>
+<div id="control-charts-shewhart-charts" class="section level2">
+<h2>Control Charts (Shewhart Charts)</h2>
+<p>Process Monitoring Charts, can be used to track whether process KPI are in or out of control.</p>
+<pre class="r"><code>data(&quot;pistonrings&quot;)
+df &lt;- as_tibble(pistonrings)
+
+df_g1 &lt;- df %&gt;%
+  group_by(sample) %&gt;%
+  mutate(rwn = row_number()) %&gt;%
+  filter(rwn == 1)
+
+qcc_shew &lt;- qcc(
+  df$diameter,
+  type = &quot;xbar.one&quot;,
+  rules = c(1, 2, 3, 4)
+)
+
+qcc_shew</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = xbar.one 
+## Data (phase I)             = df$diameter 
+## Number of groups           = 200 
+## Group sample size          = 1 
+## Center of group statistics = 74.0036 
+## Standard deviation         = 0.01001461 
+## 
+## Control limits at nsigmas  = 3 
+##       LCL      UCL
+##  73.97356 74.03365</code></pre>
+<pre class="r"><code>str(qcc_shew)</code></pre>
+<pre><code>## List of 12
+##  $ call      : language qcc(data = df$diameter, type = &quot;xbar.one&quot;, rules = c(1, 2, 3, 4))
+##  $ type      : chr &quot;xbar.one&quot;
+##  $ data.name : chr &quot;df$diameter&quot;
+##  $ data      : num [1:200, 1] 74 74 74 74 74 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ Group  : chr [1:200] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+##   .. ..$ Samples: NULL
+##  $ statistics: Named num [1:200] 74 74 74 74 74 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:200] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+##  $ sizes     : int [1:200] 1 1 1 1 1 1 1 1 1 1 ...
+##  $ center    : num 74
+##  $ std.dev   : num 0.01
+##  $ rules     : num [1:4] 1 2 3 4
+##  $ nsigmas   : num 3
+##  $ limits    : num [1, 1:2] 74 74
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : chr &quot;&quot;
+##   .. ..$ : chr [1:2] &quot;LCL&quot; &quot;UCL&quot;
+##  $ violations: num [1:200] NA NA NA NA NA NA NA NA NA NA ...
+##   ..- attr(*, &quot;WesternElectricRules&quot;)= num [1:4] 1 2 3 4
+##  - attr(*, &quot;class&quot;)= chr &quot;qcc&quot;</code></pre>
+<pre class="r"><code>plot(qcc_shew)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>qcc_shew$violations</code></pre>
+<pre><code>##   [1] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+##  [26] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+##  [51] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA  1 NA NA NA NA NA NA NA NA
+##  [76] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+## [101] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+## [126] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA
+## [151] NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA NA  2 NA NA NA NA
+## [176] NA NA NA NA NA NA NA  3 NA  3  1  4  4  4  4  4  4  1  2  2  4  4  4 NA NA
+## attr(,&quot;WesternElectricRules&quot;)
+## [1] 1 2 3 4</code></pre>
+<pre class="r"><code>qcc_shew$rules</code></pre>
+<pre><code>## [1] 1 2 3 4</code></pre>
+<p><code>qcc</code> uses the <a href="https://en.wikipedia.org/wiki/Western_Electric_rules">Western Electric Rules</a> to flag out of control values.</p>
+<ul>
+<li>One point plots outside 3-sigma control limits.</li>
+<li>Two of three consecutive points plot beyond a 2-sigma limit.</li>
+<li>Four of five consecutive points plot beyond a 1-sigma limit.</li>
+<li>Eight consecutive points plot on one side of the center line.</li>
+</ul>
+<p>These rules do not appear to be customizable, it seems to me that <a href="https://en.wikipedia.org/wiki/Nelson_rules">Nelson Rules</a> are
+a bit more complete and cover more non-random scenarios such as trends and oscillation.</p>
+<p>The control chart type depends on the data type and its distribution. There is a decision tree for the chart selection.</p>
+<pre class="r"><code>DiagrammeR::mermaid(
+  &quot;graph TB
+    A(Select Control Chart)--&gt;B{data type}
+    B --&gt; |Discrete| C{Distribution}
+    B --&gt; |Continuous| D{Sample Size}
+    C --&gt; |Poisson| E{Sample Size}
+    C --&gt; |Binominal| F{Frequency}
+    E --&gt; |constant| G[c-chart]
+    E --&gt; |variable| H[u-chart]
+    F --&gt; |count| I[np-chart]
+    F --&gt; |proportion| J[p-chart]
+    D --&gt; |n = 1| K[x.one + R chart]
+    D --&gt; |n = 2-10| L[x + R chart]
+    D --&gt; |n &gt; 10| M[x + S chart]
+&quot;
+)</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"diagram":"graph TB\n    A(Select Control Chart)-->B{data type}\n    B --> |Discrete| C{Distribution}\n    B --> |Continuous| D{Sample Size}\n    C --> |Poisson| E{Sample Size}\n    C --> |Binominal| F{Frequency}\n    E --> |constant| G[c-chart]\n    E --> |variable| H[u-chart]\n    F --> |count| I[np-chart]\n    F --> |proportion| J[p-chart]\n    D --> |n = 1| K[x.one + R chart]\n    D --> |n = 2-10| L[x + R chart]\n    D --> |n > 10| M[x + S chart]\n"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="histogram" class="section level2">
+<h2>Histogram</h2>
+<p>self explanatory, explore distribution of continuous variable.</p>
+<pre class="r"><code>ggplot(df_g1) +
+  geom_histogram(aes(diameter))</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="pareto-chart" class="section level2">
+<h2>Pareto Chart</h2>
+<p>Plot Frequency of effect causes, apply <a href="https://en.wikipedia.org/wiki/Pareto_principle">80:20 rule</a></p>
+<pre class="r"><code>defect &lt;- c(80, 27, 66, 94, 33)
+names(defect) &lt;- c(&quot;HA Regulations&quot;, &quot;Risk Management&quot;, &quot;Data Entry&quot;, &quot;Change Management&quot;, &quot;IT System Performance&quot;)
+qcc_pareto &lt;- qcc::paretoChart(defect)
+str(qcc_pareto)</code></pre>
+<pre><code>## List of 3
+##  $ call     : language qcc::paretoChart(data = defect)
+##  $ data.name: chr &quot;defect&quot;
+##  $ tab      : num [1:5, 1:4] 94 80 66 33 27 94 174 240 273 300 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ defect: chr [1:5] &quot;Change Management&quot; &quot;HA Regulations&quot; &quot;Data Entry&quot; &quot;IT System Performance&quot; ...
+##   .. ..$       : chr [1:4] &quot;Frequency&quot; &quot;Cum.Freq.&quot; &quot;Percentage&quot; &quot;Cum.Percent.&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;paretoChart&quot;</code></pre>
+<pre class="r"><code>plot(qcc_pareto) +
+  theme(axis.text.x = element_text(angle = 90))</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="scatter-plots" class="section level2">
+<h2>Scatter Plots</h2>
+<ul>
+<li>validate established cause and effect relationships</li>
+<li>multivariate control diagrams</li>
+</ul>
+</div>
+<div id="stratification" class="section level2">
+<h2>Stratification</h2>
+<ul>
+<li>identify relevant process subgroups by which to stratify the analysis</li>
+<li>use of process flow charts</li>
+</ul>
+</div>
+</div>
+<div id="control-charts" class="section level1">
+<h1>Control Charts</h1>
+<ul>
+<li>ideally have even sample sizes to obtain even upper and lower control limits, although <code>qcc</code> allow you to create control charts with uneven sample sizes but oc plots cannot be created, thus it is difficult to make good estimates about appropriate sample sizes.</li>
+<li>plot in pairs to monitor different summary statistics like x-bar chart (means) and range chart (R chart) as a measure for variance</li>
+<li>use Shewart’s formula to estimate control limits</li>
+<li>phase I determine a calibration period during which the process is in control and determine control limits</li>
+<li>phase II monitor process for out of range values</li>
+</ul>
+<div id="continuous-grouped-variables" class="section level2">
+<h2>Continuous Grouped Variables</h2>
+<p>We are going to measure a continuous variable over time such as the thickness of a board.</p>
+<p>Controls Charts use the <strong>population</strong> standard deviation to flag out of control data points.</p>
+<p>Determine <strong>population</strong> standard deviation:</p>
+<ul>
+<li>determine a calibration period during which the process is in control (set n)</li>
+<li>at each time point measure samples and take the mean</li>
+<li>according to the <a href="https://en.wikipedia.org/wiki/Central_limit_theorem">central limit theorem</a> the distribution of the means will be normally distributed</li>
+<li>measure population standard deviation of the means <code>sqrt((n-1)/n) * sd(x)</code></li>
+<li>in statistical process control this is considered to be biased</li>
+<li>instead the range and the shewart constant (d2/c4) which depends on the number of measurements (n) are used by the Shewart’s formula to estimate control limits</li>
+</ul>
+<p>Determine sample size:
+- ARL is the average run length (number of consecutive samples) needed to get a point that is outside the upper and lower control limits. For a normal distribution the ARL is 370. So every 370 measurements we will get a false positive signal.
+- The power of a control chart depends on the sample size. The operator characteristics (OC) plots the probabilty of a false negative (type two error) against the process shift in standard deviations for several sample sizes (n). For a given shift in process deviation we can also determine the probability <em>beta</em> for a false negative using the OC curve.
+- ARL = 1 / (1 - <em>beta</em>)</p>
+<div id="x-bar-chart" class="section level3">
+<h3>X-bar Chart</h3>
+<ul>
+<li>Monitors the mean</li>
+<li>uses d2 Shewart’s constants</li>
+</ul>
+<pre class="r"><code>df</code></pre>
+<pre><code>## # A tibble: 200 x 3
+##    diameter sample trial
+##       &lt;dbl&gt;  &lt;int&gt; &lt;lgl&gt;
+##  1     74.0      1 TRUE 
+##  2     74.0      1 TRUE 
+##  3     74.0      1 TRUE 
+##  4     74.0      1 TRUE 
+##  5     74.0      1 TRUE 
+##  6     74.0      2 TRUE 
+##  7     74.0      2 TRUE 
+##  8     74.0      2 TRUE 
+##  9     74.0      2 TRUE 
+## 10     74.0      2 TRUE 
+## # … with 190 more rows</code></pre>
+<pre class="r"><code># pivot from long to wide
+qcc_gr &lt;- qcc::qccGroups(df, diameter, sample)
+
+qcc_gr</code></pre>
+<pre><code>##      [,1]   [,2]   [,3]   [,4]   [,5]
+## 1  74.030 74.002 74.019 73.992 74.008
+## 2  73.995 73.992 74.001 74.011 74.004
+## 3  73.988 74.024 74.021 74.005 74.002
+## 4  74.002 73.996 73.993 74.015 74.009
+## 5  73.992 74.007 74.015 73.989 74.014
+## 6  74.009 73.994 73.997 73.985 73.993
+## 7  73.995 74.006 73.994 74.000 74.005
+## 8  73.985 74.003 73.993 74.015 73.988
+## 9  74.008 73.995 74.009 74.005 74.004
+## 10 73.998 74.000 73.990 74.007 73.995
+## 11 73.994 73.998 73.994 73.995 73.990
+## 12 74.004 74.000 74.007 74.000 73.996
+## 13 73.983 74.002 73.998 73.997 74.012
+## 14 74.006 73.967 73.994 74.000 73.984
+## 15 74.012 74.014 73.998 73.999 74.007
+## 16 74.000 73.984 74.005 73.998 73.996
+## 17 73.994 74.012 73.986 74.005 74.007
+## 18 74.006 74.010 74.018 74.003 74.000
+## 19 73.984 74.002 74.003 74.005 73.997
+## 20 74.000 74.010 74.013 74.020 74.003
+## 21 73.988 74.001 74.009 74.005 73.996
+## 22 74.004 73.999 73.990 74.006 74.009
+## 23 74.010 73.989 73.990 74.009 74.014
+## 24 74.015 74.008 73.993 74.000 74.010
+## 25 73.982 73.984 73.995 74.017 74.013
+## 26 74.012 74.015 74.030 73.986 74.000
+## 27 73.995 74.010 73.990 74.015 74.001
+## 28 73.987 73.999 73.985 74.000 73.990
+## 29 74.008 74.010 74.003 73.991 74.006
+## 30 74.003 74.000 74.001 73.986 73.997
+## 31 73.994 74.003 74.015 74.020 74.004
+## 32 74.008 74.002 74.018 73.995 74.005
+## 33 74.001 74.004 73.990 73.996 73.998
+## 34 74.015 74.000 74.016 74.025 74.000
+## 35 74.030 74.005 74.000 74.016 74.012
+## 36 74.001 73.990 73.995 74.010 74.024
+## 37 74.015 74.020 74.024 74.005 74.019
+## 38 74.035 74.010 74.012 74.015 74.026
+## 39 74.017 74.013 74.036 74.025 74.026
+## 40 74.010 74.005 74.029 74.000 74.020</code></pre>
+<pre class="r"><code>q1 &lt;- qcc(
+  qcc_gr[1:25, ],
+  type = &quot;xbar&quot;,
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q1</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = xbar 
+## Data (phase I)             = qcc_gr[1:25, ] 
+## Number of groups           = 25 
+## Group sample size          = 5 
+## Center of group statistics = 74.00118 
+## Standard deviation         = 0.009785039 
+## 
+## New data (phase II)        = qcc_gr[26:nrow(qcc_gr), ] 
+## Number of groups           = 15 
+## Group sample size          = 5 
+## 
+## Control limits at nsigmas  = 3 
+##       LCL     UCL
+##  73.98805 74.0143</code></pre>
+<pre class="r"><code>plot(q1)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>q1_oc &lt;- qcc::ocCurves(q1)
+
+q1_oc</code></pre>
+<pre><code>## ── Operating Characteristic Curves ─────────────── 
+## 
+## Chart type                 = xbar 
+## Prob. type II error (beta) =
+##               sample size
+## shift (StdDev)      1      5     10     15     20
+##            0.0 0.9973 0.9973 0.9973 0.9973 0.9973
+##            0.1 0.9972 0.9966 0.9959 0.9952 0.9944
+##            0.2 0.9968 0.9944 0.9909 0.9869 0.9823
+##            :                                     
+##            4.9 0.0287 0.0000 0.0000 0.0000 0.0000
+##            5.0 0.0228 0.0000 0.0000 0.0000 0.0000
+## Average run length (ARL)   =
+##               sample size
+## shift (StdDev)   1   5  10  15  20
+##            0.0 370 370 370 370 370
+##            0.1 353 296 244 206 178
+##            0.2 308 178 110  76  57
+##            :                      
+##            4.9   1   1   1   1   1
+##            5.0   1   1   1   1   1</code></pre>
+<pre class="r"><code>plot(q1_oc)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<pre class="r"><code>arl_n5 &lt;- q1_oc$ARL %&gt;%
+  as_tibble(rownames = &quot;shift_stdev&quot;) %&gt;%
+  filter(shift_stdev == &quot;1.0&quot;) %&gt;%
+  pull(`5`)
+
+arl_n5</code></pre>
+<pre><code>## [1] 4.495312</code></pre>
+<p>So for a change in average diameter by 0.009785 we need in average 4.4953122 runs to detect a change in the mean statistic using 5 samples.</p>
+</div>
+<div id="r-chart" class="section level3">
+<h3>R Chart</h3>
+<ul>
+<li>monitors process stability by means of the sample ranges</li>
+<li>uses d3 and d2 Shewart’s constants</li>
+<li>appropriate for sample sizes &lt; 8</li>
+</ul>
+<pre class="r"><code>q2 &lt;- qcc(
+  qcc_gr[1:25, ],
+  type = &quot;R&quot;,
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q2</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = R 
+## Data (phase I)             = qcc_gr[1:25, ] 
+## Number of groups           = 25 
+## Group sample size          = 5 
+## Center of group statistics = 0.02276 
+## Standard deviation         = 0.009785039 
+## 
+## New data (phase II)        = qcc_gr[26:nrow(qcc_gr), ] 
+## Number of groups           = 15 
+## Group sample size          = 5 
+## 
+## Control limits at nsigmas  = 3 
+##  LCL        UCL
+##    0 0.04812533</code></pre>
+<pre class="r"><code>plot(q2)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>q2_oc &lt;- qcc::ocCurves(q2)
+
+# throws error, https://github.com/luca-scr/qcc/issues/31
+# plot(q2_oc)
+
+q2_oc</code></pre>
+<pre><code>## ── Operating Characteristic Curves ─────────────── 
+## 
+## Chart type                 = R 
+## Prob. type II error (beta) =
+##                 sample size
+## scale multiplier      2      5     10     15     20
+##              1.0 0.9908 0.9954 0.9956 0.9955 0.9954
+##              1.1 0.9822 0.9864 0.9841 0.9818 0.9798
+##              1.2 0.9701 0.9692 0.9583 0.9486 0.9403
+##              :                                     
+##              5.9 0.3413 0.0233 0.0003 0.0000 0.0000
+##              6.0 0.3360 0.0219 0.0002 0.0000 0.0000
+## Average run length (ARL)   =
+##                 sample size
+## scale multiplier   2   5  10  15  20
+##              1.0 109 217 229 223 217
+##              1.1  56  74  63  55  50
+##              1.2  33  32  24  19  17
+##              :                      
+##              5.9   2   1   1   1   1
+##              6.0   2   1   1   1   1</code></pre>
+<pre class="r"><code>arl_n5 &lt;- q2_oc$ARL %&gt;%
+  as_tibble(rownames = &quot;scale_multiplier&quot;) %&gt;%
+  filter(scale_multiplier == &quot;1.5&quot;) %&gt;%
+  pull(`5`)
+
+arl_n5</code></pre>
+<pre><code>## [1] 7.198125</code></pre>
+<p>So for a change in range by 50% need in average 7.1981249 runs using 5 samples.</p>
+</div>
+<div id="s-chart" class="section level3">
+<h3>S Chart</h3>
+<ul>
+<li>monitors process stability by means of standard deviations</li>
+<li>uses c4 Shewart’s constant</li>
+<li>appropriate for sample sizes &gt;= 8</li>
+</ul>
+<pre class="r"><code>q3 &lt;- qcc(
+  qcc_gr[1:25, ],
+  type = &quot;S&quot;,
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q3</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = S 
+## Data (phase I)             = qcc_gr[1:25, ] 
+## Number of groups           = 25 
+## Group sample size          = 5 
+## Center of group statistics = 0.009240037 
+## Standard deviation         = 0.009829977 
+## 
+## New data (phase II)        = qcc_gr[26:nrow(qcc_gr), ] 
+## Number of groups           = 15 
+## Group sample size          = 5 
+## 
+## Control limits at nsigmas  = 3 
+##  LCL        UCL
+##    0 0.01930242</code></pre>
+<pre class="r"><code>plot(q3)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>q3_oc &lt;- qcc::ocCurves(q3)
+
+# throws error, https://github.com/luca-scr/qcc/issues/31
+# plot(q3_oc)
+
+q3_oc</code></pre>
+<pre><code>## ── Operating Characteristic Curves ─────────────── 
+## 
+## Chart type                 = S 
+## Prob. type II error (beta) =
+##                 sample size
+## scale multiplier      2      5     10     15     20
+##              1.0 0.9908 0.9961 0.9970 0.9972 0.9972
+##              1.1 0.9822 0.9874 0.9860 0.9838 0.9812
+##              1.2 0.9701 0.9700 0.9574 0.9425 0.9261
+##              :                                     
+##              5.9 0.3413 0.0212 0.0001 0.0000 0.0000
+##              6.0 0.3360 0.0199 0.0001 0.0000 0.0000
+## Average run length (ARL)   =
+##                 sample size
+## scale multiplier   2   5  10  15  20
+##              1.0 109 256 333 351 358
+##              1.1  56  79  72  62  53
+##              1.2  33  33  23  17  14
+##              :                      
+##              5.9   2   1   1   1   1
+##              6.0   2   1   1   1   1</code></pre>
+<pre class="r"><code>arl_n5 &lt;- q3_oc$ARL %&gt;%
+  as_tibble(rownames = &quot;scale_multiplier&quot;) %&gt;%
+  filter(scale_multiplier == &quot;1.5&quot;) %&gt;%
+  pull(`5`)</code></pre>
+<p>So for a change in range by 50% need in average 6.9559271 runs using 5 samples.</p>
+</div>
+</div>
+<div id="continuous-non-grouped-variables" class="section level2">
+<h2>Continuous Non-Grouped Variables</h2>
+<p>If a process is described best by a continuous one at a time measurement we cannot use sampling</p>
+<ul>
+<li>central limit theorem does not apply</li>
+<li>normality needs to be confirmed</li>
+<li>if possible use power transformation to normalize</li>
+<li>accompany x-bar chart with moving range chart</li>
+</ul>
+<div id="x-bar-chart-1" class="section level3">
+<h3>X-bar chart</h3>
+<ul>
+<li>uses the moving range to calculate global standard deviation</li>
+<li>takes Shewart’s constant d2 for n = 2</li>
+</ul>
+<pre class="r"><code># airplane paint viscosity, one batch takes hours to produce and no rational subgroups can be formed
+data(&quot;viscosity&quot;)
+df_vis &lt;- viscosity
+
+df_vis</code></pre>
+<pre><code>##    batch viscosity trial
+## 1      1     34.05  TRUE
+## 2      2     34.40  TRUE
+## 3      3     33.59  TRUE
+## 4      4     35.96  TRUE
+## 5      5     34.70  TRUE
+## 6      6     33.51  TRUE
+## 7      7     33.79  TRUE
+## 8      8     34.04  TRUE
+## 9      9     34.52  TRUE
+## 10    10     33.75  TRUE
+## 11    11     33.27  TRUE
+## 12    12     33.71  TRUE
+## 13    13     34.03  TRUE
+## 14    14     34.58  TRUE
+## 15    15     34.02  TRUE
+## 16    16     33.97  TRUE
+## 17    17     34.05  TRUE
+## 18    18     34.04  TRUE
+## 19    19     33.73  TRUE
+## 20    20     34.05  TRUE
+## 21    21     34.39 FALSE
+## 22    22     33.75 FALSE
+## 23    23     33.40 FALSE
+## 24    24     33.27 FALSE
+## 25    25     34.65 FALSE
+## 26    26     34.80 FALSE
+## 27    27     34.55 FALSE
+## 28    28     35.40 FALSE
+## 29    29     34.75 FALSE
+## 30    30     34.50 FALSE
+## 31    31     34.70 FALSE
+## 32    32     34.29 FALSE
+## 33    33     34.61 FALSE
+## 34    34     34.49 FALSE
+## 35    35     35.03 FALSE</code></pre>
+<pre class="r"><code>q4 &lt;- qcc(
+  df_vis$viscosity[df_vis$trial],
+  type = &quot;xbar.one&quot;,
+  newdata = df_vis$viscosity[! df_vis$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q4</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = xbar.one 
+## Data (phase I)             = df_vis$viscosity[df_vis$trial] 
+## Number of groups           = 20 
+## Group sample size          = 1 
+## Center of group statistics = 34.088 
+## Standard deviation         = 0.5076521 
+## 
+## New data (phase II)        = df_vis$viscosity[!df_vis$trial] 
+## Number of groups           = 15 
+## Group sample size          = 1 
+## 
+## Control limits at nsigmas  = 3 
+##       LCL      UCL
+##  32.56504 35.61096</code></pre>
+<pre class="r"><code>plot(q4)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="r-chart-1" class="section level3">
+<h3>R Chart</h3>
+<ul>
+<li>uses the range between a given and the next measurement</li>
+</ul>
+<pre class="r"><code>vis_mat &lt;- df_vis %&gt;%
+  mutate(lead = lead(viscosity)) %&gt;%
+  select(viscosity, lead) %&gt;%
+  filter(! is.na(lead)) %&gt;%
+  as.matrix()
+
+
+q5 &lt;- qcc(
+  vis_mat[df_vis$trial[1:nrow(df_vis)-1], ],
+  type = &quot;R&quot;,
+  newdata = vis_mat[! df_vis$trial[1:nrow(df_vis)-1], ]
+)
+
+q5</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = R 
+## Data (phase I)             = vis_mat[df_vis$trial[1:nrow(df_vis) - 1], ] 
+## Number of groups           = 20 
+## Group sample size          = 2 
+## Center of group statistics = 0.561 
+## Standard deviation         = 0.4973404 
+## 
+## New data (phase II)        = vis_mat[!df_vis$trial[1:nrow(df_vis) - 1], ] 
+## Number of groups           = 14 
+## Group sample size          = 2 
+## 
+## Control limits at nsigmas  = 3 
+##  LCL      UCL
+##    0 1.832953</code></pre>
+<pre class="r"><code>plot(q5)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+</div>
+<div id="discrete-measurements" class="section level2">
+<h2>Discrete Measurements</h2>
+<div id="p-and-np-charts" class="section level3">
+<h3>p and np Charts</h3>
+<ul>
+<li>measure frequency or relative frequency</li>
+<li>p is for relative frequency</li>
+<li>np for frequency</li>
+</ul>
+<pre class="r"><code>data(&quot;orangejuice&quot;)
+df_oj &lt;- orangejuice
+
+q6 &lt;- qcc(
+  df_oj$D[df_oj$trial],
+  df_oj$size[df_oj$trial],
+  type = &quot;p&quot;,
+  newdata = df_oj$D[! df_oj$trial],
+  newsizes = df_oj$size[! df_oj$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q6</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = p 
+## Data (phase I)             = df_oj$D[df_oj$trial] 
+## Number of groups           = 30 
+## Group sample size          = 50 
+## Center of group statistics = 0.2313333 
+## Standard deviation         = 0.05963526 
+## 
+## New data (phase II)        = df_oj$D[!df_oj$trial] 
+## Number of groups           = 24 
+## Group sample size          = 50 
+## 
+## Control limits at nsigmas  = 3 
+##          LCL       UCL
+##   0.05242755 0.4102391
+##   0.05242755 0.4102391
+## :                     
+##   0.05242755 0.4102391</code></pre>
+<pre class="r"><code>plot(q6)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>q6_oc &lt;- qcc::ocCurves(q6)
+
+q6_oc</code></pre>
+<pre><code>## ── Operating Characteristic Curves ─────────────── 
+## 
+## Chart type                 = p 
+## Prob. type II error (beta) =
+##                       
+## fraction nonconforming   [,1]
+##                   0.00 0.0000
+##                   0.01 0.0894
+##                   0.02 0.2642
+##                   :          
+##                   0.99 0.0000
+##                   1.00 0.0000
+## Average run length (ARL)   =
+##                       
+## fraction nonconforming [,1]
+##                   0.00    1
+##                   0.01    1
+##                   0.02    1
+##                   :        
+##                   0.99    1
+##                   1.00    1</code></pre>
+<pre class="r"><code>plot(q6_oc)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<pre class="r"><code>plot(q6_oc, what = &quot;ARL&quot;)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-13-3.png" width="672" /></p>
+<pre class="r"><code>q6a &lt;- qcc(
+  df_oj$D[df_oj$trial],
+  df_oj$size[df_oj$trial],
+  type = &quot;np&quot;,
+  newdata = df_oj$D[! df_oj$trial],
+  newsizes = df_oj$size[! df_oj$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q6a</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = np 
+## Data (phase I)             = df_oj$D[df_oj$trial] 
+## Number of groups           = 30 
+## Group sample size          = 50 
+## Center of group statistics = 11.56667 
+## Standard deviation         = 2.981763 
+## 
+## New data (phase II)        = df_oj$D[!df_oj$trial] 
+## Number of groups           = 24 
+## Group sample size          = 50 
+## 
+## Control limits at nsigmas  = 3 
+##       LCL      UCL
+##  2.621377 20.51196</code></pre>
+<pre class="r"><code>plot(q6a)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-13-4.png" width="672" /></p>
+</div>
+<div id="c-chart" class="section level3">
+<h3>c chart</h3>
+<ul>
+<li>for count of events that cannot be attributed to a sample size</li>
+<li>examples: nonconformities per day, defects per m^2 of fabric or flaws per metal plate</li>
+<li>unit should stay constant</li>
+</ul>
+<pre class="r"><code>library(SixSigma)
+
+ss.data.thickness2 %&gt;%
+  head(15)</code></pre>
+<pre><code>##    day shift thickness ushift flaws
+## 1    1     1     0.713    1.1     9
+## 2    1     1     0.776    1.1    NA
+## 3    1     1     0.743    1.1    NA
+## 4    1     1     0.713    1.1    NA
+## 5    1     1     0.747    1.1    NA
+## 6    1     1     0.753    1.1    NA
+## 7    1     2     0.749    1.2     2
+## 8    1     2     0.726    1.2     7
+## 9    1     2     0.774    1.2     9
+## 10   1     2     0.744    1.2    NA
+## 11   1     2     0.718    1.2    NA
+## 12   1     2     0.677    1.2    NA
+## 13   2     1     0.778    2.1     7
+## 14   2     1     0.802    2.1    NA
+## 15   2     1     0.798    2.1    NA</code></pre>
+<pre class="r"><code># remove uninspected items
+df_flaws &lt;- ss.data.thickness2 %&gt;%
+  as_tibble() %&gt;%
+  filter(! is.na(flaws))
+
+df_flaws</code></pre>
+<pre><code>## # A tibble: 23 x 5
+##    day   shift thickness ushift flaws
+##    &lt;fct&gt; &lt;fct&gt;     &lt;dbl&gt; &lt;chr&gt;  &lt;int&gt;
+##  1 1     1         0.713 1.1        9
+##  2 1     2         0.749 1.2        2
+##  3 1     2         0.726 1.2        7
+##  4 1     2         0.774 1.2        9
+##  5 2     1         0.778 2.1        7
+##  6 2     2         0.78  2.2        4
+##  7 2     2         0.729 2.2        6
+##  8 2     2         0.793 2.2        9
+##  9 3     1         0.775 3.1        9
+## 10 3     2         0.727 3.2        4
+## # … with 13 more rows</code></pre>
+<pre class="r"><code>q7 &lt;- qcc(
+  df_flaws$flaws,
+  type = &quot;c&quot;,
+  rules = c(1, 2, 3, 4)
+)
+
+q7</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = c 
+## Data (phase I)             = df_flaws$flaws 
+## Number of groups           = 23 
+## Group sample size          = 1 
+## Center of group statistics = 5.26087 
+## Standard deviation         = 2.293659 
+## 
+## Control limits at nsigmas  = 3 
+##  LCL      UCL
+##    0 12.14185</code></pre>
+<pre class="r"><code>plot(q7)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code>q7_oc &lt;- qcc::ocCurves(q7)
+
+q7_oc</code></pre>
+<pre><code>## ── Operating Characteristic Curves ─────────────── 
+## 
+## Chart type                 = c 
+## Prob. type II error (beta) =
+##        [,1]
+## 0.00  1e+00
+## 1.00  1e+00
+## 2.00  1e+00
+## :          
+## 28.00 6e-04
+## 29.00 3e-04
+## Average run length (ARL)   =
+##              [,1]
+## 0.00          Inf
+## 1.00  15723815904
+## 2.00      4822834
+## :                
+## 28.00           1
+## 29.00           1</code></pre>
+<pre class="r"><code>plot(q7_oc, what = &quot;ARL&quot;) +
+  coord_cartesian(ylim = c(0, 10))</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
+</div>
+<div id="u-chart" class="section level3">
+<h3>u chart</h3>
+<ul>
+<li>average number of defects from a varying number of samples</li>
+<li>for example: 18 flaws from 3 metal plates, then 3 flaws in 5 metal plates</li>
+</ul>
+<pre class="r"><code>df_gr_flaws &lt;- df_flaws %&gt;%
+  group_by(ushift) %&gt;%
+  summarise(n_plates_per_shift = n(),
+            n_flaws_per_shift = sum(flaws))
+
+df_gr_flaws</code></pre>
+<pre><code>## # A tibble: 14 x 3
+##    ushift n_plates_per_shift n_flaws_per_shift
+##    &lt;chr&gt;               &lt;int&gt;             &lt;int&gt;
+##  1 1.1                     1                 9
+##  2 1.2                     3                18
+##  3 2.1                     1                 7
+##  4 2.2                     3                19
+##  5 3.1                     1                 9
+##  6 3.2                     1                 4
+##  7 4.1                     2                 6
+##  8 4.2                     1                 4
+##  9 5.1                     1                 5
+## 10 5.2                     2                13
+## 11 6.1                     2                 5
+## 12 6.2                     1                 4
+## 13 7.1                     1                 7
+## 14 7.2                     3                11</code></pre>
+<pre class="r"><code>qu8 &lt;- qcc(
+  df_gr_flaws$n_flaws_per_shift,
+  type = &quot;u&quot;,
+  sizes = df_gr_flaws$n_plates_per_shift,
+  rules = c(1, 2, 3, 4)
+)
+
+qu8</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = u 
+## Data (phase I)             = df_gr_flaws$n_flaws_per_shift 
+## Number of groups           = 14 
+## Group sample sizes         =              
+##   sizes  1 2 3
+##   counts 8 3 3
+## Center of group statistics = 5.26087 
+## Standard deviation         = 2.293659 
+## 
+## Control limits at nsigmas  = 3 
+##        LCL       UCL
+##   0.000000 12.141845
+##   1.288136  9.233603
+## :                   
+##   1.288136  9.233603</code></pre>
+<pre class="r"><code>plot(qu8)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre class="r"><code># OC curves need constant sample sizes
+# qu8_oc &lt;- qcc::ocCurves(qu8)</code></pre>
+</div>
+</div>
+<div id="capabilityperformance-indices" class="section level2">
+<h2>Capability/Performance Indices</h2>
+<ul>
+<li>measure whether consumer specified upper and lower specification limits (LSL/USL) are compatible with process control limits (LCL/UCL)</li>
+<li>performance measures long-term variability and capacity short-term variability</li>
+<li>C = (USL - LSL) / 6sigma</li>
+<li>index below 1 is unsufficient, 1.33-167 is outstanding and 2 refers to six sigma quality</li>
+<li>adjusted index variations account for processes that are not perfectly centered</li>
+</ul>
+<p>Cp: capability index
+Cp_l: lower index
+Cp_u: upper index
+Cp_k: minimum of lower and upper index
+Cpm : Tagauchi index (controls for not centered processes)</p>
+<pre class="r"><code>q1</code></pre>
+<pre><code>## ── Quality Control Chart ───────────────────────── 
+## 
+## Chart type                 = xbar 
+## Data (phase I)             = qcc_gr[1:25, ] 
+## Number of groups           = 25 
+## Group sample size          = 5 
+## Center of group statistics = 74.00118 
+## Standard deviation         = 0.009785039 
+## 
+## New data (phase II)        = qcc_gr[26:nrow(qcc_gr), ] 
+## Number of groups           = 15 
+## Group sample size          = 5 
+## 
+## Control limits at nsigmas  = 3 
+##       LCL     UCL
+##  73.98805 74.0143</code></pre>
+<pre class="r"><code>q1_pc &lt;- qcc::processCapability(q1, spec.limits = c(73.975, 74.025))
+
+q1_pc</code></pre>
+<pre><code>## ── Process Capability Analysis ─────────────────── 
+## 
+## Number of obs = 125          Target = 74      
+## Center        = 74.00118     LSL    = 73.975  
+## StdDev        = 0.009785039  USL    = 74.025  
+##                   
+## Capability indices  Value   2.5%  97.5%
+##               Cp    0.852  0.746  0.957
+##               Cp_l  0.892  0.786  0.997
+##               Cp_u  0.812  0.714  0.910
+##               Cp_k  0.812  0.695  0.928
+##               Cpm   0.846  0.740  0.951
+## 
+## Exp&lt;LSL 0.0037%   Obs&lt;LSL 0.008%
+## Exp&gt;USL 0.0075%   Obs&gt;USL 0.008%</code></pre>
+<pre class="r"><code>plot(q1_pc)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>q1_pc &lt;- qcc::processCapability(q1, spec.limits = c(73.95, 74.05))
+
+q1_pc</code></pre>
+<pre><code>## ── Process Capability Analysis ─────────────────── 
+## 
+## Number of obs = 125          Target = 74      
+## Center        = 74.00118     LSL    = 73.95   
+## StdDev        = 0.009785039  USL    = 74.05   
+##                   
+## Capability indices  Value  2.5%  97.5%
+##               Cp     1.70  1.49   1.91
+##               Cp_l   1.74  1.55   1.93
+##               Cp_u   1.66  1.48   1.84
+##               Cp_k   1.66  1.45   1.88
+##               Cpm    1.69  1.48   1.90
+## 
+## Exp&lt;LSL 0%    Obs&lt;LSL 0%
+## Exp&gt;USL 0%    Obs&gt;USL 0%</code></pre>
+<pre class="r"><code>plot(q1_pc)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
+</div>
+<div id="cusum-chart" class="section level2">
+<h2>CUSUM Chart</h2>
+<ul>
+<li>cumulative sum chart</li>
+<li>two lines one below zero and one above zero and a center which is the expected value.</li>
+<li>positive deviation of the process from the central value results in an uptick of both lines</li>
+<li>negative deviation of the process from the central value results in a down tick of both lines</li>
+<li>both lines never cross the central line</li>
+<li>supposedly more sensitive than regular control charts</li>
+</ul>
+<pre class="r"><code>qcc_gr</code></pre>
+<pre><code>##      [,1]   [,2]   [,3]   [,4]   [,5]
+## 1  74.030 74.002 74.019 73.992 74.008
+## 2  73.995 73.992 74.001 74.011 74.004
+## 3  73.988 74.024 74.021 74.005 74.002
+## 4  74.002 73.996 73.993 74.015 74.009
+## 5  73.992 74.007 74.015 73.989 74.014
+## 6  74.009 73.994 73.997 73.985 73.993
+## 7  73.995 74.006 73.994 74.000 74.005
+## 8  73.985 74.003 73.993 74.015 73.988
+## 9  74.008 73.995 74.009 74.005 74.004
+## 10 73.998 74.000 73.990 74.007 73.995
+## 11 73.994 73.998 73.994 73.995 73.990
+## 12 74.004 74.000 74.007 74.000 73.996
+## 13 73.983 74.002 73.998 73.997 74.012
+## 14 74.006 73.967 73.994 74.000 73.984
+## 15 74.012 74.014 73.998 73.999 74.007
+## 16 74.000 73.984 74.005 73.998 73.996
+## 17 73.994 74.012 73.986 74.005 74.007
+## 18 74.006 74.010 74.018 74.003 74.000
+## 19 73.984 74.002 74.003 74.005 73.997
+## 20 74.000 74.010 74.013 74.020 74.003
+## 21 73.988 74.001 74.009 74.005 73.996
+## 22 74.004 73.999 73.990 74.006 74.009
+## 23 74.010 73.989 73.990 74.009 74.014
+## 24 74.015 74.008 73.993 74.000 74.010
+## 25 73.982 73.984 73.995 74.017 74.013
+## 26 74.012 74.015 74.030 73.986 74.000
+## 27 73.995 74.010 73.990 74.015 74.001
+## 28 73.987 73.999 73.985 74.000 73.990
+## 29 74.008 74.010 74.003 73.991 74.006
+## 30 74.003 74.000 74.001 73.986 73.997
+## 31 73.994 74.003 74.015 74.020 74.004
+## 32 74.008 74.002 74.018 73.995 74.005
+## 33 74.001 74.004 73.990 73.996 73.998
+## 34 74.015 74.000 74.016 74.025 74.000
+## 35 74.030 74.005 74.000 74.016 74.012
+## 36 74.001 73.990 73.995 74.010 74.024
+## 37 74.015 74.020 74.024 74.005 74.019
+## 38 74.035 74.010 74.012 74.015 74.026
+## 39 74.017 74.013 74.036 74.025 74.026
+## 40 74.010 74.005 74.029 74.000 74.020</code></pre>
+<pre class="r"><code>q1 &lt;- qcc(
+  qcc_gr[1:25, ],
+  type = &quot;xbar&quot;,
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+plot(q1)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<pre class="r"><code>q9 &lt;- qcc::cusum(
+  qcc_gr[1:25, ],
+  newdata = qcc_gr[26:nrow(qcc_gr), ]
+)
+
+plot(q9)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-17-2.png" width="672" /></p>
+</div>
+<div id="ewma-chart" class="section level2">
+<h2>EWMA Chart</h2>
+<ul>
+<li>exponentially weighted moving average chart</li>
+<li>zj = gamma * xj + (1 - gamma) * zj-1</li>
+<li>if the smoothing parameter gamma is 0.2 a given value for x is 20% present value and 80% past values</li>
+<li><code>+</code> indicates the actual values</li>
+<li>supposed to work well for not normal values</li>
+</ul>
+<pre class="r"><code>q10 &lt;- qcc::ewma(
+  qcc_gr[1:25, ],
+  newdata = qcc_gr[26:nrow(qcc_gr), ]
+)
+
+plot(q10)</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+</div>
+<div id="samplingstratification" class="section level1">
+<h1>Sampling/Stratification</h1>
+<p>Naturally samples need to be representative of the population. If there are known subgroups it is important to adapt a stratified sampling strategy.</p>
+<p><a href="https://bookdown.org/lawson/an_introduction_to_acceptance_sampling_and_spc_with_r26/">free ebook</a></p>
+<div id="attribute-acceptance-sampling" class="section level2">
+<h2>Attribute Acceptance Sampling</h2>
+<ul>
+<li>attribute: defective / not defective</li>
+<li>producer wants a high probability of acceptance for a lot with a low defective fraction</li>
+<li>producers and consumer agree on acceptable quality level (AQL)</li>
+<li>alpha (producers risk) is the probability with which a lot that passes AQL is rejected</li>
+<li>consumer wants a high probability of rejection for a lot with a high defective ratio</li>
+<li>producers and consumer agree on lot tolerance percent defective (LTPD)</li>
+<li>beta (consumers risk) is the probability with which a lot that does not pass LTPD is accepted</li>
+</ul>
+<p>Requirements:</p>
+<ul>
+<li>AQL: 0.06</li>
+<li>alpha: 0.05</li>
+<li>LTPD: 0.16</li>
+<li>beta: 0.10</li>
+</ul>
+<pre class="r"><code>library(AcceptanceSampling)
+
+plan &lt;- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10)
+)
+
+plan</code></pre>
+<pre><code>## $n
+## [1] 79
+## 
+## $c
+## [1] 8
+## 
+## $r
+## [1] 9</code></pre>
+<pre class="r"><code>oc &lt;- AcceptanceSampling::OC2c(plan$n, plan$c, plan$r)
+
+plot(oc, xlim = c(0, 0.25))</code></pre>
+<p><img src="/post/2021-08-27-qcwithr_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>take a sample of 79 and reject when 9 items are defective</p>
+</div>
+<div id="variable-acceptance-sampling" class="section level2">
+<h2>Variable Acceptance Sampling</h2>
+<p>specify:</p>
+<ul>
+<li>upper specification limit (USL)</li>
+</ul>
+<p>and or:</p>
+<ul>
+<li>lower specification limit (LSL)</li>
+</ul>
+<pre class="r"><code>plan2 &lt;- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10),
+  type = &quot;normal&quot;,
+  s.type = &quot;known&quot;
+)
+
+plan2</code></pre>
+<pre><code>## $n
+## [1] 28
+## 
+## $k
+## [1] 1.243925
+## 
+## $s.type
+## [1] &quot;known&quot;</code></pre>
+<p>proceed:</p>
+<ul>
+<li>take a sample of 28<br />
+</li>
+<li>compute the mean<br />
+</li>
+<li>compute LSL/USL - mean(sample) / sd<br />
+</li>
+<li>compare accept if value above is greater 1.2439255</li>
+</ul>
+<pre class="r"><code>plan3 &lt;- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10),
+  type = &quot;normal&quot;,
+  s.type = &quot;unknown&quot;
+)
+
+plan3</code></pre>
+<pre><code>## $n
+## [1] 49
+## 
+## $k
+## [1] 1.245424
+## 
+## $s.type
+## [1] &quot;unknown&quot;</code></pre>
+<p>proceed:</p>
+<ul>
+<li>take a sample of 49<br />
+</li>
+<li>compute the mean<br />
+</li>
+<li>compute LSL/USL - mean(sample) / sd(sample)<br />
+</li>
+<li>compare accept if value above is greater 1.2454244</li>
+</ul>
+<p>Note that sample size has increased because we do not know population sd and need to estimate it from the sample.</p>
+</div>
+</div>

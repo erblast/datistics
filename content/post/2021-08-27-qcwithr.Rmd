@@ -1,0 +1,724 @@
+---
+title: Quality Control with R - Notes
+author: Björn Koneswarakantha
+date: '2021-08-27'
+slug: qcwithr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Quality Control with R - Notes
+thumbnailImagePosition : left
+thumbnailImage: https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<br></br>
+<br></br>
+
+```{r, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6'
+                    , thumbnail = 'https://media.springernature.com/w306/springer-static/cover-hires/book/978-3-319-24046-6'
+                    , `thumbnail-width` = '400px'
+                    , `thumbnail-height` = '600px'
+                    , target = 'https://www.qualitycontrolwithr.com/'
+                    )
+
+```
+
+
+> Quality Control with R. An ISO Standards Approach (Cano EL, Moguerza JM and Prieto M, 2015).
+
+<br></br>
+<br></br>
+
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+```
+
+
+# R packages
+
+`qcc` seems to be the most popular and best maintained QC package for control charts.
+
+```{r load}
+suppressPackageStartupMessages(library(tidyverse))
+# we use qcc 3.0 which is not released on CRAN yet
+# devtools::install_github("luca-scr/qcc", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
+library(qcc)
+library(AcceptanceSampling)
+library(SixSigma)
+library(DiagrammeR)
+```
+
+
+# ISO standard QC Approach
+
+ISO standards are defined by the International Organisation for Standardisation by technical committees using a process that is similar to peer-review. There are a lot of ISO standards covering Quality Control.
+
+# QC tools
+
+There are 7 general quality Ishikava tools, each of them is covered by numerous ISO documents.
+
+- Cause and Effect Diagram
+- Check sheet
+- Control chart
+- Histogram
+- Pareto Chart
+- Scatter Diagram
+- Stratification
+  * Flow charts
+
+## Cause and Effect Diagrams
+
+The effect is usually undesired. As causes for a given effect 
+for processes of the producing industry the ISO standard is 5Ms+E
+
+- Manpower
+- Materials
+- Machines
+- Methods
+- Measurements
+- Environment
+
+Creatively I would adapt this for data-driven business processes to:
+
+- Manpower
+- Events
+- IT System
+- Methods (Statistics, DevOps, Code base, Manual Processes)
+- Measurements of Events (Data Entry, Data Coding)
+- Environment (Culture, External Events, Regulations)
+
+Specifically for the reporting of Adverse Drug Reactions in the form of individual case safety reports (ICSR) to Health Authorities (HA).
+
+```{r, fig.width=10, fig.height = 7}
+qcc::causeEffectDiagram(
+  cause = list(
+    Manpower = c(
+      "Medical Reviewer",
+      "Global Process Owner",
+      "Local Process Owner",
+      "IT Developer",
+      "Database Manager",
+      "Auditer"
+    ),
+    Event = c(
+      "ICSR Quality",
+      "ICSR Detectability",
+      "ICSR Quantity",
+      "ICSR Complexity"
+    ),
+    `IT Systems` = c(
+      "Availability",
+      "Complexity",
+      "Performance",
+      "Quality"
+    ),
+    Methods = c(
+      "Medial Review Process\n(Data Guides)",
+      "Decisioning\n(Submission Rules)",
+      "Risk Management",
+      "Quality Mangement System",
+      "Change Management"
+    ),
+    Measurements = c(
+      "Data Entry",
+      "Medical Coding"
+    ),
+    Environment = c(
+      "HA Regulations",
+      "Local Cultures",
+      "Company Culture",
+      "Epidemiology",
+      "Local Health Systems"
+    )
+  ),
+  effect = "ICSR not\nreported\nto HA"
+)
+```
+
+## Check Sheets
+
+Serve to generate process related data, should be part of a general data collection plan. Will be automated for most processes.
+
+- Audit Trail Data
+- Quality Evidence
+- IT Logs
+
+Classically serves to attribute each effect (ICSR not reported to HA) to any of the suspected causes in the cause and effect diagram.
+
+## Control Charts (Shewhart Charts)
+
+Process Monitoring Charts, can be used to track whether process KPI are in or out of control.
+
+```{r}
+data("pistonrings")
+df <- as_tibble(pistonrings)
+
+df_g1 <- df %>%
+  group_by(sample) %>%
+  mutate(rwn = row_number()) %>%
+  filter(rwn == 1)
+
+qcc_shew <- qcc(
+  df$diameter,
+  type = "xbar.one",
+  rules = c(1, 2, 3, 4)
+)
+
+qcc_shew
+str(qcc_shew)
+plot(qcc_shew)
+
+qcc_shew$violations
+qcc_shew$rules
+```
+
+`qcc` uses the [Western Electric Rules](https://en.wikipedia.org/wiki/Western_Electric_rules) to flag out of control values.
+
+- One point plots outside 3-sigma control limits.
+- Two of three consecutive points plot beyond a 2-sigma limit.
+- Four of five consecutive points plot beyond a 1-sigma limit.
+- Eight consecutive points plot on one side of the center line.
+
+These rules do not appear to be customizable, it seems to me that [Nelson Rules](https://en.wikipedia.org/wiki/Nelson_rules) are
+a bit more complete and cover more non-random scenarios such as trends and oscillation.
+
+The control chart type depends on the data type and its distribution. There is a decision tree for the chart selection.
+
+```{r}
+DiagrammeR::mermaid(
+  "graph TB
+    A(Select Control Chart)-->B{data type}
+    B --> |Discrete| C{Distribution}
+    B --> |Continuous| D{Sample Size}
+    C --> |Poisson| E{Sample Size}
+    C --> |Binominal| F{Frequency}
+    E --> |constant| G[c-chart]
+    E --> |variable| H[u-chart]
+    F --> |count| I[np-chart]
+    F --> |proportion| J[p-chart]
+    D --> |n = 1| K[x.one + R chart]
+    D --> |n = 2-10| L[x + R chart]
+    D --> |n > 10| M[x + S chart]
+"
+)
+```
+
+## Histogram
+
+self explanatory, explore distribution of continuous variable.
+
+```{r}
+ggplot(df_g1) +
+  geom_histogram(aes(diameter))
+```
+
+## Pareto Chart
+
+Plot Frequency of effect causes, apply [80:20 rule](https://en.wikipedia.org/wiki/Pareto_principle)
+
+```{r}
+defect <- c(80, 27, 66, 94, 33)
+names(defect) <- c("HA Regulations", "Risk Management", "Data Entry", "Change Management", "IT System Performance")
+qcc_pareto <- qcc::paretoChart(defect)
+str(qcc_pareto)
+
+plot(qcc_pareto) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+## Scatter Plots
+
+- validate established cause and effect relationships
+- multivariate control diagrams
+
+## Stratification
+
+- identify relevant process subgroups by which to stratify the analysis
+- use of process flow charts
+
+# Control Charts
+
+- ideally have even sample sizes to obtain even upper and lower control limits, although `qcc` allow you to create control charts with uneven sample sizes but oc plots cannot be created, thus it is difficult to make good estimates about appropriate sample sizes.
+- plot in pairs to monitor different summary statistics like x-bar chart (means) and range chart (R chart) as a measure for variance
+- use Shewart's formula to estimate control limits
+- phase I determine a calibration period during which the process is in control and determine control limits
+- phase II monitor process for out of range values
+
+## Continuous Grouped Variables
+
+We are going to measure a continuous variable over time such as the thickness of a board.
+
+Controls Charts use the **population** standard deviation to flag out of control data points.
+
+Determine **population** standard deviation:
+
+- determine a calibration period during which the process is in control (set n)
+- at each time point measure samples and take the mean
+- according to the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) the distribution of the means will be normally distributed
+- measure population standard deviation of the means `sqrt((n-1)/n) * sd(x)`
+- in statistical process control this is considered to be biased
+- instead the range and the shewart constant (d2/c4) which depends on the number of measurements (n) are used by the Shewart's formula to estimate control limits
+
+Determine sample size:
+- ARL is the average run length (number of consecutive samples) needed to get a point that is outside the upper and lower control limits. For a normal distribution the ARL is 370. So every 370 measurements we will get a false positive signal.
+- The power of a control chart depends on the sample size. The operator characteristics (OC) plots the probabilty of a false negative (type two error) against the process shift in standard deviations for several sample sizes (n). For a given shift in process deviation we can also determine the probability *beta* for a false negative using the OC curve.
+- ARL = 1 / (1 - *beta*)
+
+### X-bar Chart
+
+- Monitors the mean
+- uses d2 Shewart's constants
+
+```{r}
+df
+
+# pivot from long to wide
+qcc_gr <- qcc::qccGroups(df, diameter, sample)
+
+qcc_gr
+
+q1 <- qcc(
+  qcc_gr[1:25, ],
+  type = "xbar",
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q1
+
+plot(q1)
+
+q1_oc <- qcc::ocCurves(q1)
+
+q1_oc
+
+plot(q1_oc)
+
+arl_n5 <- q1_oc$ARL %>%
+  as_tibble(rownames = "shift_stdev") %>%
+  filter(shift_stdev == "1.0") %>%
+  pull(`5`)
+
+arl_n5
+```
+
+So for a change in average diameter by `r q1$std.dev` we need in average `r arl_n5` runs to detect a change in the mean statistic using 5 samples.
+
+### R Chart
+
+- monitors process stability by means of the sample ranges
+- uses d3 and d2 Shewart's constants
+- appropriate for sample sizes < 8
+
+```{r}
+q2 <- qcc(
+  qcc_gr[1:25, ],
+  type = "R",
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q2
+
+plot(q2)
+
+q2_oc <- qcc::ocCurves(q2)
+
+# throws error, https://github.com/luca-scr/qcc/issues/31
+# plot(q2_oc)
+
+q2_oc
+
+arl_n5 <- q2_oc$ARL %>%
+  as_tibble(rownames = "scale_multiplier") %>%
+  filter(scale_multiplier == "1.5") %>%
+  pull(`5`)
+
+arl_n5
+```
+
+So for a change in range by 50% need in average `r arl_n5` runs using 5 samples.
+
+
+### S Chart
+
+- monitors process stability by means of standard deviations
+- uses c4 Shewart's constant
+- appropriate for sample sizes >= 8
+
+```{r}
+q3 <- qcc(
+  qcc_gr[1:25, ],
+  type = "S",
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+q3
+
+plot(q3)
+
+q3_oc <- qcc::ocCurves(q3)
+
+# throws error, https://github.com/luca-scr/qcc/issues/31
+# plot(q3_oc)
+
+q3_oc
+
+arl_n5 <- q3_oc$ARL %>%
+  as_tibble(rownames = "scale_multiplier") %>%
+  filter(scale_multiplier == "1.5") %>%
+  pull(`5`)
+```
+
+So for a change in range by 50% need in average `r arl_n5` runs using 5 samples.
+
+
+## Continuous Non-Grouped Variables
+
+If a process is described best by a continuous one at a time measurement we cannot use sampling
+
+- central limit theorem does not apply
+- normality needs to be confirmed
+- if possible use power transformation to normalize
+- accompany x-bar chart with moving range chart
+
+### X-bar chart
+
+- uses the moving range to calculate global standard deviation
+- takes Shewart's constant d2 for n = 2
+
+```{r}
+# airplane paint viscosity, one batch takes hours to produce and no rational subgroups can be formed
+data("viscosity")
+df_vis <- viscosity
+
+df_vis
+
+q4 <- qcc(
+  df_vis$viscosity[df_vis$trial],
+  type = "xbar.one",
+  newdata = df_vis$viscosity[! df_vis$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q4
+
+plot(q4)
+```
+
+### R Chart
+
+- uses the range between a given and the next measurement
+
+```{r}
+
+vis_mat <- df_vis %>%
+  mutate(lead = lead(viscosity)) %>%
+  select(viscosity, lead) %>%
+  filter(! is.na(lead)) %>%
+  as.matrix()
+
+
+q5 <- qcc(
+  vis_mat[df_vis$trial[1:nrow(df_vis)-1], ],
+  type = "R",
+  newdata = vis_mat[! df_vis$trial[1:nrow(df_vis)-1], ]
+)
+
+q5
+
+plot(q5)
+```
+
+## Discrete Measurements
+
+### p and np Charts
+
+- measure frequency or relative frequency
+- p is for relative frequency 
+- np for frequency
+
+```{r}
+data("orangejuice")
+df_oj <- orangejuice
+
+q6 <- qcc(
+  df_oj$D[df_oj$trial],
+  df_oj$size[df_oj$trial],
+  type = "p",
+  newdata = df_oj$D[! df_oj$trial],
+  newsizes = df_oj$size[! df_oj$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q6
+
+plot(q6)
+
+q6_oc <- qcc::ocCurves(q6)
+
+q6_oc
+
+plot(q6_oc)
+
+plot(q6_oc, what = "ARL")
+
+q6a <- qcc(
+  df_oj$D[df_oj$trial],
+  df_oj$size[df_oj$trial],
+  type = "np",
+  newdata = df_oj$D[! df_oj$trial],
+  newsizes = df_oj$size[! df_oj$trial],
+  rules = c(1, 2, 3, 4)
+)
+
+q6a
+
+plot(q6a)
+
+```
+
+### c chart
+
+- for count of events that cannot be attributed to a sample size
+- examples: nonconformities per day, defects per m^2 of fabric or flaws per metal plate
+- unit should stay constant
+
+```{r}
+library(SixSigma)
+
+ss.data.thickness2 %>%
+  head(15)
+
+# remove uninspected items
+df_flaws <- ss.data.thickness2 %>%
+  as_tibble() %>%
+  filter(! is.na(flaws))
+
+df_flaws
+
+q7 <- qcc(
+  df_flaws$flaws,
+  type = "c",
+  rules = c(1, 2, 3, 4)
+)
+
+q7
+
+plot(q7)
+
+q7_oc <- qcc::ocCurves(q7)
+
+q7_oc
+
+plot(q7_oc, what = "ARL") +
+  coord_cartesian(ylim = c(0, 10))
+```
+
+
+### u chart
+
+- average number of defects from a varying number of samples
+- for example: 18 flaws from 3 metal plates, then 3 flaws in 5 metal plates
+
+```{r}
+df_gr_flaws <- df_flaws %>%
+  group_by(ushift) %>%
+  summarise(n_plates_per_shift = n(),
+            n_flaws_per_shift = sum(flaws))
+
+df_gr_flaws
+
+qu8 <- qcc(
+  df_gr_flaws$n_flaws_per_shift,
+  type = "u",
+  sizes = df_gr_flaws$n_plates_per_shift,
+  rules = c(1, 2, 3, 4)
+)
+
+qu8
+
+plot(qu8)
+
+# OC curves need constant sample sizes
+# qu8_oc <- qcc::ocCurves(qu8)
+```
+
+## Capability/Performance Indices
+
+- measure whether consumer specified upper and lower specification limits (LSL/USL) are compatible with process control limits (LCL/UCL)
+- performance measures long-term variability and capacity short-term variability
+- C = (USL - LSL) / 6sigma
+- index below 1 is unsufficient, 1.33-167 is outstanding and 2 refers to six sigma quality
+- adjusted index variations account for processes that are not perfectly centered
+
+Cp:   capability index
+Cp_l: lower index
+Cp_u: upper index
+Cp_k: minimum of lower and upper index
+Cpm : Tagauchi index (controls for not centered processes)
+
+```{r}
+
+q1
+
+q1_pc <- qcc::processCapability(q1, spec.limits = c(73.975, 74.025))
+
+q1_pc
+
+plot(q1_pc)
+
+q1_pc <- qcc::processCapability(q1, spec.limits = c(73.95, 74.05))
+
+q1_pc
+
+plot(q1_pc)
+
+```
+
+## CUSUM Chart
+
+- cumulative sum chart
+- two lines one below zero and one above zero and a center which is the expected value. 
+- positive deviation of the process from the central value results in an uptick of both lines
+- negative deviation of the process from the central value results in a down tick of both lines
+- both lines never cross the central line
+- supposedly more sensitive than regular control charts
+
+```{r}
+qcc_gr
+
+q1 <- qcc(
+  qcc_gr[1:25, ],
+  type = "xbar",
+  newdata = qcc_gr[26:nrow(qcc_gr), ],
+  rules = c(1, 2, 3, 4)
+)
+
+plot(q1)
+
+q9 <- qcc::cusum(
+  qcc_gr[1:25, ],
+  newdata = qcc_gr[26:nrow(qcc_gr), ]
+)
+
+plot(q9)
+```
+
+## EWMA Chart
+
+- exponentially weighted moving average chart
+- zj = gamma * xj + (1 - gamma) * zj-1
+- if the smoothing parameter gamma is 0.2 a given value for x is 20% present value and 80% past values
+- `+` indicates the actual values
+- supposed to work well for not normal values
+
+```{r}
+q10 <- qcc::ewma(
+  qcc_gr[1:25, ],
+  newdata = qcc_gr[26:nrow(qcc_gr), ]
+)
+
+plot(q10)
+```
+
+# Sampling/Stratification
+
+Naturally samples need to be representative of the population. If there are known subgroups it is important to adapt a stratified sampling strategy.
+
+[free ebook](https://bookdown.org/lawson/an_introduction_to_acceptance_sampling_and_spc_with_r26/)
+
+## Attribute Acceptance Sampling
+
+- attribute: defective / not defective
+- producer wants a high probability of acceptance for a lot with a low defective fraction
+- producers and consumer agree on acceptable quality level (AQL)
+- alpha (producers risk) is the probability with which a lot that passes AQL is rejected
+- consumer wants a high probability of rejection for a lot with a high defective ratio
+- producers and consumer agree on lot tolerance percent defective (LTPD)
+- beta (consumers risk) is the probability with which a lot that does not pass LTPD is accepted
+
+Requirements:
+
+- AQL: 0.06
+- alpha: 0.05
+- LTPD: 0.16
+- beta: 0.10
+
+```{r}
+library(AcceptanceSampling)
+
+plan <- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10)
+)
+
+plan
+
+oc <- AcceptanceSampling::OC2c(plan$n, plan$c, plan$r)
+
+plot(oc, xlim = c(0, 0.25))
+```
+
+take a sample of `r plan$n` and reject when `r plan$r` items are defective
+
+## Variable Acceptance Sampling
+
+specify:
+
+- upper specification limit (USL)
+
+and or:
+
+- lower specification limit (LSL)
+
+```{r}
+plan2 <- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10),
+  type = "normal",
+  s.type = "known"
+)
+
+plan2
+
+```
+
+proceed:
+
+- take a sample of `r plan2$n`  
+- compute the mean  
+- compute LSL/USL - mean(sample) / sd  
+- compare accept if value above is greater `r plan2$k`  
+
+```{r}
+plan3 <- AcceptanceSampling::find.plan(
+  PRP = c(0.06, 0.95),
+  CRP = c(0.16, 0.10),
+  type = "normal",
+  s.type = "unknown"
+)
+
+plan3
+```
+
+proceed:
+
+- take a sample of `r plan3$n`  
+- compute the mean  
+- compute LSL/USL - mean(sample) / sd(sample)  
+- compare accept if value above is greater `r plan3$k`
+
+Note that sample size has increased because we do not know population sd and need to estimate it from the sample.
