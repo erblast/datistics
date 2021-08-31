@@ -1,0 +1,448 @@
+---
+title: Tidymodels
+author: Björn Koneswarakantha
+date: '2020-11-12'
+slug: tidymodels
+categories:
+  - R
+  - modelling
+tags:
+  - R
+  - tidymodels
+  - modelling
+summary: A preview on the tidymodels meta package
+thumbnailImagePosition : left
+thumbnailImage: https://avatars0.githubusercontent.com/u/29100987?s=400&v=4
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<br></br>
+<br></br>
+
+```{r short_logo, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://avatars0.githubusercontent.com/u/29100987?s=400&v=4'
+                    , thumbnail = 'https://avatars0.githubusercontent.com/u/29100987?s=400&v=4'
+                    , `thumbnail-width` = '360px'
+                    , `thumbnail-height` = '360px'
+                    , target = 'https://github.com/tidymodels/tidymodels'
+                    )
+
+```
+
+<br></br>
+<br></br>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+```
+
+# Introduction
+
+Two years ago I took the tidymodels packages for a test drive. Now some of the packages at experimental stage have been released on CRAN and are ready to be added to my exemplatory modelling flow. The biggest change is that we will use `parsnip`, `dials`, `tune` and `workflows` instead of `caret`.
+
+We will still try to organize all steps in a modeling dataframe and use `purrr` and `furrr` maping functions whenever possible.
+
+# Modeling
+
+We will fit the following regression models to the Boston Housing Data Set
+
+- xgbTree
+- lm
+- randomForest
+- MARS
+- CART tree
+
+For tuning we will use a randomized parameter search in a 5-fold cross validation
+
+We will use the following packages:
+-`recipes`
+-`resample`
+-`dials`
+-`tune`
+-`parsnip`
+-`yardstick`
+-`workflows`
+
+```{r}
+suppressPackageStartupMessages( library('mlbench') )
+suppressPackageStartupMessages( library('tidyverse') )
+suppressPackageStartupMessages( library('recipes') )
+suppressPackageStartupMessages( library('caret') )
+suppressPackageStartupMessages( library('Hmisc') )
+suppressPackageStartupMessages( library('xgboost') )
+suppressPackageStartupMessages( library('parsnip') )
+suppressPackageStartupMessages( library('dials') )
+suppressPackageStartupMessages( library('tune') )
+suppressPackageStartupMessages( library('workflows') )
+suppressPackageStartupMessages( library('xgboost') )
+suppressPackageStartupMessages( library('doFuture') )
+suppressPackageStartupMessages( library('parallel') )
+suppressPackageStartupMessages( library('easyalluvial') )
+
+
+# ggplot default theme
+theme_set(theme_minimal())
+
+```
+
+
+
+## Data
+
+```{r}
+data('BostonHousing')
+df = as_tibble( BostonHousing )
+summary(df)
+```
+
+
+## Preprocessing with recipe
+
+
+**Note we are intentionally standardizing the response variable since the unit of lstat is irrelevant for this demo**
+
+We will 
+
+- Yeo Johnson Transform
+- Scale
+- Center
+- remove co-correlating variables (threshold 0.5)
+- dummy encode
+
+```{r}
+rec = recipe(df, lstat ~ . )
+
+summary(rec)
+```
+
+```{r}
+rec = rec %>%
+  step_scale(all_numeric(), - all_outcomes()) %>%
+  step_center(all_numeric(), - all_outcomes()) %>%
+  step_YeoJohnson(all_numeric()) %>%
+  step_corr(all_numeric(), - all_outcomes(), threshold = 0.5 ) %>%
+  step_dummy(all_nominal())
+  
+
+```
+
+### Summary Recipe
+
+```{r}
+prep_rec = prep(rec, df)
+prep_rec
+df_prep = bake(prep_rec, df )
+```
+
+## Resampling with rsample
+
+
+```{r}
+rs = rsample::vfold_cv(df, v = 5)
+
+rsample::pretty.vfold_cv(rs)
+```
+
+
+## Modelling with parsnip
+
+- xgbTree
+- lm
+- lm with regularisation
+- randomForest
+- MARS
+- CART tree
+
+### Modelling Dataframe with Workflows
+
+```{r}
+
+get_wflow_all_params_set_to_tune <- function(.f, engine, mode, recipe) {
+  
+  arg_names <- formals(.f) %>%
+    names()
+  
+  # remove arguments if they do not have a dials function
+  arg_names <- intersect(arg_names, ls("package:dials"))
+  
+  arg_values <- rep(list(tune()), length(arg_names))
+  
+  arg_comb <- setNames(arg_values, arg_names)
+  
+  arg_comb$mode <- mode
+  
+  m <- do.call(.f, arg_comb) %>%
+    parsnip::set_engine(engine)
+  
+  wf <- workflows::workflow() %>%
+    workflows::add_model(m) %>%
+    workflows::add_recipe(recipe)
+  
+  return(wf)
+}
+
+finalize_unkowns <- function(wf, rs) {
+  data <- rs$splits[[1]]$data
+  pset <- parameters(wf)
+  predictors <- workflows::.fit_pre(wf, data)$pre$mold$predictors
+  pset$object <- purrr::map(pset$object, dials::finalize, x = predictors)
+  return(pset)
+}
+
+df_m <- tibble(
+    .f_parsnip = c(parsnip::decision_tree, parsnip::boost_tree, parsnip::rand_forest, parsnip::mars, parsnip::linear_reg),
+    mode = "regression",
+    engine = c("rpart", "xgboost", "randomForest", "earth", "glmnet") 
+  ) %>%
+  mutate(wf = pmap(list(.f_parsnip, engine, mode), get_wflow_all_params_set_to_tune, rec),
+         pset = map(wf, finalize_unkowns, rs))
+
+
+df_m
+
+```
+
+#### Tuning
+
+##### Parallel Processing
+
+```{r}
+all_cores <- parallel::detectCores(logical = FALSE)
+
+library(doFuture)
+registerDoFuture()
+cl <- parallel::makeCluster(all_cores)
+plan(cluster, workers = cl)
+```
+
+
+##### Bayes 
+
+```{r cache = TRUE}
+
+df_m_tune_bayes <- df_m %>%
+  mutate(
+     tune = map2(
+       wf,
+       pset,
+       function(x,y) tune_bayes(
+         object = x,
+         rs,
+         iter = 10,
+         param_info = y,
+         metrics = yardstick::metric_set(
+           yardstick::rmse,
+           yardstick::rsq,
+           yardstick::mape,
+           yardstick::smape,
+           yardstick::rpd,
+           yardstick::mase
+         ),
+         control = control_bayes(save_pred = TRUE)
+      )
+    )
+  )
+
+df_m_tune_bayes
+
+```
+
+#### Random
+
+```{r cache = TRUE}
+df_m_tune_rnd <- df_m %>%
+  # filter(! engine %in% c("xgboost")) %>%
+  # filter(engine == "earth") %>%
+  mutate(
+     tune = map2(
+       wf,
+       pset,
+       function(x,y) tune_grid(
+         x,
+         rs,
+         iter = 10,
+         param_info = y,
+         metrics = yardstick::metric_set(
+           yardstick::rmse,
+           yardstick::rsq,
+           yardstick::mape,
+           yardstick::smape,
+           yardstick::mase
+        ),
+        control = control_grid(save_pred = TRUE)
+      )
+    )
+  )
+
+df_m_tune_rnd
+```
+
+
+#### Finalize
+
+```{r}
+
+possibly_best_param <- purrr::possibly(tune::select_best, otherwise = NA)
+possibly_best_metric <- purrr::possibly(tune::show_best, otherwise = NA)
+possibly_final_wf <- purrr::possibly(tune::finalize_workflow, otherwise = NA)
+possibly_fit <- purrr::possibly(parsnip::fit, otherwise = NA)
+possibly_pulled_m <- purrr::possibly(workflows::pull_workflow_fit, otherwise = NA)
+possibly_imp <- purrr::possibly(vip::vi_model, otherwise = NA)
+
+df_m_tune <- bind_rows(
+  mutate(df_m_tune_bayes, tune_meth = "bayes"),
+  mutate(df_m_tune_rnd, tune_meth = "rnd")
+  )
+
+df_m_final <- df_m_tune %>%
+  mutate( best_metrics = map(tune, possibly_best_metric, metric = "rmse"),
+          best_param = map(tune, possibly_best_param, metric = "rmse"),
+          final_wf = map2(wf, best_param, possibly_final_wf),
+          final_fit = map(final_wf, possibly_fit, df),
+          m = map(final_fit, possibly_pulled_m),
+          imp = map(m, possibly_imp))
+
+df_m_final
+
+```
+
+### Plot Model Metrics
+
+```{r fig.height=7}
+
+get_fold_metrics <- function(tu, best_param) {
+  tu %>%
+    unnest(.metrics) %>%
+    inner_join(best_param) %>%
+    select(id, .metric, .estimate)
+}
+
+df_plot <- df_m_final %>%
+  filter(! is.na(best_param)) %>%
+  mutate(fold_metrics = map2(tune, best_param, get_fold_metrics)) %>%
+  unnest(fold_metrics) %>%
+  mutate(method = paste0(engine, "_", tune_meth)) %>%
+  select(method, id, .metric, .estimate) %>%
+  group_by(method, .metric) %>%
+  mutate(me = mean(.estimate),
+         se = sd(.estimate) / sqrt(n()))
+
+df_plot
+
+df_1se = df_plot %>%
+  select(method, .metric, me, se) %>%
+  distinct() %>%
+  mutate(  ymin = me - se
+          , ymax = me + se ) %>%
+  group_by(.metric) %>%
+  mutate( rnk = rank(me, ties.method = 'first')
+          , rnk_desc = rank( desc(me), ties.method = 'first')
+          ) %>%
+  rename( best_method = method ) %>%
+  filter( (rnk == 1 & .metric != 'rsq') | (.metric == 'rsq' & rnk_desc == 1) )
+
+df_1se
+
+len = df_plot$method %>%
+  n_distinct()
+
+col_class = RColorBrewer::brewer.pal('Greys', n = 9) %>% rev()
+col_folds = RColorBrewer::brewer.pal('Dark2', n = 8) %>%
+  easyalluvial::palette_filter(greens = F, greys = F)
+
+pal = c( col_class[2], col_folds[1:5], col_class[4], col_class[6] )
+
+df_plot %>%
+  left_join( select(df_1se, .metric, ymin, ymax, best_method) ) %>%
+  mutate( classification = case_when( best_method == method ~ 'best'
+                                      , me >= ymin & me <= ymax ~ 'in'
+                                      , T ~ 'out' )
+          ) %>%
+  ggplot( aes(method, .estimate) ) +
+    geom_rect( aes(ymin = ymin, ymax = ymax )
+               , xmin = 0, xmax = len
+               , fill = col_class[7]
+               , alpha = 0.05
+               ) +
+    geom_line( aes( group = id, color = id)
+               , size = .5, alpha = 1 ) +
+    stat_summary( aes( color = classification)
+                  , size = 1
+                  , fun.data = function(x) mean_se( x, mult = 1) ) +
+    scale_color_manual( values = pal ) +
+    theme( legend.position = 'none', axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    labs( y = '', x = '', caption = 'grey area: 1SE range of best model'
+        , title = 'CV Performance Metrics + SE') +
+    facet_wrap(~.metric, scales = 'free_y', ncol = 1) 
+```
+
+### Plot Predictions
+
+```{r}
+get_test_predictions <- function(tu, best_param, data = df_prep) {
+  tu %>%
+    unnest(.predictions) %>%
+    inner_join(best_param) %>%
+    select(id, .pred, .row) %>%
+    mutate(.obs = df_prep$lstat[.row])
+}
+
+df_plot <- df_m_final %>%
+  filter(! is.na(best_param)) %>%
+  mutate(test_preds = map2(tune, best_param, get_test_predictions)) %>%
+  unnest(test_preds) %>%
+  mutate(method = paste0(engine, "_", tune_meth)) 
+
+df_plot %>%
+  ggplot(aes(.pred, .obs)) +
+    geom_point(alpha = 0.2) +
+    geom_smooth() +
+    facet_grid(tune_meth ~ engine) +
+    geom_abline(slope = 1, color = "tomato") +
+    theme(aspect.ratio = 1)
+
+```
+
+### Plot Partial Dependence Alluvial Plots
+
+```{r}
+df_pdap <- df_m_final %>%
+  mutate(is_lgl = map_lgl(final_fit, ~ is.logical(.))) %>%
+  filter(! is_lgl) %>%
+  mutate(pdap = map(final_fit, easyalluvial::alluvial_model_response_parsnip, df, degree = 4, bins = 5, resp_var = "lstat", method = "pdp", parallel = TRUE))
+
+wf <- df_m_final$final_fit[[1]]
+wf
+
+p <- easyalluvial::alluvial_model_response_parsnip(wf, df, method = "pdp", parallel = TRUE, resp_var = "lstat")
+
+predict(wf, new_data = df)
+
+wf <- df_m_final$final_fit[[1]]
+
+predict(wf, new_data = df)
+
+m <- decision_tree() %>%
+  set_engine("rpart")
+
+wf <- workflow() %>%
+  add_model(m) %>%
+  add_recipe(prep_rec) %>%
+  fit(df)
+
+predict(wf, new_data = df)
+
+
+p <- easyalluvial::alluvial_model_response_parsnip(m, df_prep, method = "pdp", parallel = TRUE, )
+
+grid <- p %>%
+  easyalluvial::add_marginal_histograms(data_input = df_prep) %>%
+  easyalluvial::add_imp_plot(p = p, data_input = df_prep, )
+```
+
