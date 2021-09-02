@@ -1,0 +1,248 @@
+---
+title: Six Sigma with R - Notes
+author: Björn Koneswarakantha
+date: '2021-09-01'
+slug: sixsigmawithr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Quality Control with R - Notes
+thumbnailImagePosition : left
+thumbnailImage: https://images.springer.com/sgw/books/medium/9781461436515.jpg
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<br></br>
+<br></br>
+
+```{r, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://images.springer.com/sgw/books/medium/9781461436515.jpg'
+                    , thumbnail = 'https://images.springer.com/sgw/books/medium/9781461436515.jpg'
+                    , `thumbnail-width` = '400px'
+                    , `thumbnail-height` = '600px'
+                    , target = 'https://www.sixsigmawithr.com/'
+                    )
+
+```
+
+
+> Six Sigma with R. Statistical Engineering for Process Improvement (Cano EL, Moguerza JM and Redchuk A, 2012).
+
+<br></br>
+<br></br>
+
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+```
+
+
+# R packages
+
+
+```{r load}
+suppressPackageStartupMessages(library(tidyverse))
+library(SixSigma)
+library(DiagrammeR)
+library(nomnoml)
+```
+
+
+# 6 Sigma
+
+6 sigma is framework for process improvement and is not limited to process control. It consists of a cycle of several stages all of which are employing the **scientific method**:
+
+**DMAIC cycle:**
+
+1. **D**efine
+2. **M**easure
+3. **A**nalyse
+4. **I**mprove
+5. **C**ontrol
+
+# Define
+
+## Process Charts
+
+### High Level: 
+
+- Process fits onto one power point slide
+- Onboarding new people
+- [SIPOC](https://en.wikipedia.org/wiki/SIPOC), [VSM](https://en.wikipedia.org/wiki/Value-stream_mapping) are commonly used in six sigma
+
+six sigma focuses on the inputs and the output of a process.
+
+**Inputs** are the 6 Ms:
+
+- Manpower
+- Materials
+- Machines
+- Methods
+- Measurements
+- Mother Nature (Environment)
+
+**Output**:
+
+- CTQ (Crtitical to Quality Characteristics)
+- key measurable characteristics of a product or process whose performance standards or specification limits must be met
+
+For example the processing of Individual Case Safety Reports for submission to the Health Authorities.
+
+[`nomnoml` webtool](https://www.nomnoml.com/)
+
+```{r}
+nomnoml::nomnoml(
+"#direction: right
+#padding: 20
+#spacing: 100
+
+[Input 6M's|ICSR; IT System; Legislation; Process Owner; PV Associate]
+
+[Input 6M's]->[Output CTQs|Recipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk]"
+)
+
+```
+
+
+### Low Level: 
+
+- more elaborate flow charts
+- [UML activity diagram](https://en.wikipedia.org/wiki/Activity_diagram) provides some standards.
+- [BMPN Swim Lanes](https://en.wikipedia.org/wiki/Swim_lane) 
+
+UML/BMPN process maps do not focus on 6 Ms and CTQs. We can continue the simplified input output diagram ba adding more steps to the process.
+The input for each individual consists of elements of the initial 6M input (X) or the output produced by one of the previous steps. Each Step can have parameters (x) that influence the quality of the output. Each step output has quality features (y). Which can be included in the final output CTQs (Y).
+
+```{r, fig.height=8, fig.width=12}
+nomnoml::nomnoml(
+"#title: ICSR Processing
+#direction: right
+#padding: 20
+#spacing: 100
+
+
+[Input 6M's (X)|ICSR; IT System; Legislation; Process Owner; PV Associate; Product]
+[Input 6M's (X)]->[<table> Ensure Completeness|
+	Input| ICSR; IT System; PV Associate||
+    Substeps/Methods| follow_up()||
+    Parameters(x); influence Quality|ICSR Source||
+    Quality Features(y)|ICSR Completeness; Time
+]
+[Ensure Completeness]->[Medical Review|
+  ICSR Complete; IT System; PV Associate|
+  review(); follow_up()|
+  ICSR Complexity;Source Accessibility; Privacy Laws|
+  Medical Risk; Causality;Severity; Labelling; Product Approval; Time
+]
+[Medical Review]->[Apply Submission Legislation|
+  ICSR Reviewed; Legislation; IT System; Process Owner|
+  encode_legislation(); qc_submission_status(); submit()|
+  Legislation Complexity; Number Cases to Review|
+  Compliance Risk; Submission Status; Recipients; Time; QC Status
+]
+[Apply Submission Legislation]->[Output CTQs (Y)|
+	Recipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk; QC Status
+]")
+```
+
+# Analyse
+
+## Loss Function Analysis
+
+Loss functioncan be used during the DMAIC measure phase by calculating expected loss as a product of average loss per item by number of items.
+It can also be used to set the [upper and lower specification limits (USL/LSL)](https://www.datisticsblog.com/2021/08/qcwithr/#capabilityperformance-indices).
+
+In six sigma loss increases quadratically when deviating from the process target not only after crossing a threshold.
+
+**Loss = k(Y-Y0)^2**
+
+```{r}
+df <- SixSigma::ss.data.bolts
+head(df)
+
+lfa <- SixSigma::ss.lfa(
+  lfa.data = df,
+  lfa.ctq = "diameter",
+  lfa.Delta = 0.5, #process tolerance,
+  lfa.Y0 = 10, #process target
+  lfa.L0 = 0.001, #cost at tolerance limit
+  lfa.size = 1e5
+)
+
+lfa
+
+loss_at_10.25 <- lfa$lfa.k * (10.25 - 10)^2
+loss_at_10.25
+```
+
+## Measurement System Analysis
+
+Measurement system analysis (MSA) is also known as gage R&R study identifies and quantifies the sources of variation that influence the measurement system.
+
+In a good measurement the only variability is random and stems from the difference in the parts that are measured and not from the so called appraisers (operator, measurement machines, time of the day). MSA uses ANOVA to compare the ratio of between-groups variability to within-groups variability. If this ratio is large, we conclude that the groups are significantly different.
+
+- G R&R (appraisal) contribution to variation must be low and is the sum of Repeatability (appraisers) and Reproducibility (interactions)
+- part to part contribution to variation must be high
+- total variation = R&R + part to part
+
+```{r}
+df <- SixSigma::ss.data.rr
+head(df)
+
+rr <- SixSigma::ss.rr(
+  var = time1,
+  part = prototype,
+  appr = operator,
+  data = df,
+  alphaLim = 0.05,
+  errorTerm = "Interaction",
+  lsl = 0.7,
+  usl = 1.8,
+  method = "crossed" #crossed uses all possible combinations of parts and appraisals
+  # https://blog.minitab.com/en/a-simple-guide-to-gage-randr-for-destructive-testing
+)
+```
+
+- % Contribution is the total contribution to variability (range)
+- % Study Var is the within group variance as percent of the total variance
+- % Tolerance should be below 100 for R&R
+
+## Capability Analysis
+
+[see capability performance indeces from previous blogpost](https://www.datisticsblog.com/2021/08/qcwithr/#capabilityperformance-indices).
+
+```{r}
+ 
+ss.study.ca(
+  xST = ss.data.ca$Volume, # short-term process data,
+  xLT = rnorm(40, 753, 3), # long-term process data
+	LSL = 740,
+  USL = 760,
+  Target = 750,
+  alpha = 0.05,
+)
+ 			
+```
+
+Cpk: min(left right capability index)
+CI: Confidence Interval of capability index
+
+# Improve
+
+## Experimental Design
+
+When optimizing a process it is not enough to vary one variable and keep all other variables constant, because we are missing out on interactions. It is best to use a factorial design (binning continuous variables into two) and try all possible combinations in several repeats. Use ANOVA or pairwise t-test to get best result. Include uncontrollable factors in experimental design to find which controllable variables give most robust results when uncontrollable variables vary. Example: Best frozen Pizza recipe for varying baking time and temperature.
+
+# Control
+
+## Control Charts
+
+[see controil charts in a previous blog post](https://www.datisticsblog.com/2021/08/qcwithr/#control-charts)

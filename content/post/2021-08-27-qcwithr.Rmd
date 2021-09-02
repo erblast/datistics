@@ -564,11 +564,11 @@ plot(qu8)
 - index below 1 is unsufficient, 1.33-167 is outstanding and 2 refers to six sigma quality
 - adjusted index variations account for processes that are not perfectly centered
 
-Cp:   capability index
-Cp_l: lower index
-Cp_u: upper index
-Cp_k: minimum of lower and upper index
-Cpm : Tagauchi index (controls for not centered processes)
+- Cp:   capability index  
+- Cp_l: lower index  
+- Cp_u: upper index  
+- Cp_k: minimum of lower and upper index  
+- Cpm : Tagauchi index (controls for not centered processes)  
 
 ```{r}
 

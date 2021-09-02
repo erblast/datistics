@@ -1,0 +1,320 @@
+---
+title: Six Sigma with R - Notes
+author: Björn Koneswarakantha
+date: '2021-09-01'
+slug: sixsigmawithr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Quality Control with R - Notes
+thumbnailImagePosition : left
+thumbnailImage: https://images.springer.com/sgw/books/medium/9781461436515.jpg
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/es6shim/es6shim.js"></script>
+<script src="/rmarkdown-libs/es7shim/es7shim.js"></script>
+<script src="/rmarkdown-libs/graphre/graphre.js"></script>
+<script src="/rmarkdown-libs/nomnoml/nomnoml.js"></script>
+<script src="/rmarkdown-libs/nomnoml-binding/nomnoml.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#r-packages">R packages</a></li>
+<li><a href="#sigma">6 Sigma</a></li>
+<li><a href="#define">Define</a>
+<ul>
+<li><a href="#process-charts">Process Charts</a>
+<ul>
+<li><a href="#high-level">High Level:</a></li>
+<li><a href="#low-level">Low Level:</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#analyse">Analyse</a>
+<ul>
+<li><a href="#loss-function-analysis">Loss Function Analysis</a></li>
+<li><a href="#measurement-system-analysis">Measurement System Analysis</a></li>
+<li><a href="#capability-analysis">Capability Analysis</a></li>
+</ul></li>
+<li><a href="#improve">Improve</a>
+<ul>
+<li><a href="#experimental-design">Experimental Design</a></li>
+</ul></li>
+<li><a href="#control">Control</a>
+<ul>
+<li><a href="#control-charts">Control Charts</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p><br></br>
+<br></br></p>
+{{% image classes="center" src="https://images.springer.com/sgw/books/medium/9781461436515.jpg" thumbnail="https://images.springer.com/sgw/books/medium/9781461436515.jpg" thumbnail-width="400px" thumbnail-height="600px" target="https://www.sixsigmawithr.com/" %}}
+<blockquote>
+<p>Six Sigma with R. Statistical Engineering for Process Improvement (Cano EL, Moguerza JM and Redchuk A, 2012).</p>
+</blockquote>
+<p><br></br>
+<br></br></p>
+<div id="r-packages" class="section level1">
+<h1>R packages</h1>
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
+library(SixSigma)
+library(DiagrammeR)
+library(nomnoml)</code></pre>
+</div>
+<div id="sigma" class="section level1">
+<h1>6 Sigma</h1>
+<p>6 sigma is framework for process improvement and is not limited to process control. It consists of a cycle of several stages all of which are employing the <strong>scientific method</strong>:</p>
+<p><strong>DMAIC cycle:</strong></p>
+<ol style="list-style-type: decimal">
+<li><strong>D</strong>efine</li>
+<li><strong>M</strong>easure</li>
+<li><strong>A</strong>nalyse</li>
+<li><strong>I</strong>mprove</li>
+<li><strong>C</strong>ontrol</li>
+</ol>
+</div>
+<div id="define" class="section level1">
+<h1>Define</h1>
+<div id="process-charts" class="section level2">
+<h2>Process Charts</h2>
+<div id="high-level" class="section level3">
+<h3>High Level:</h3>
+<ul>
+<li>Process fits onto one power point slide</li>
+<li>Onboarding new people</li>
+<li><a href="https://en.wikipedia.org/wiki/SIPOC">SIPOC</a>, <a href="https://en.wikipedia.org/wiki/Value-stream_mapping">VSM</a> are commonly used in six sigma</li>
+</ul>
+<p>six sigma focuses on the inputs and the output of a process.</p>
+<p><strong>Inputs</strong> are the 6 Ms:</p>
+<ul>
+<li>Manpower</li>
+<li>Materials</li>
+<li>Machines</li>
+<li>Methods</li>
+<li>Measurements</li>
+<li>Mother Nature (Environment)</li>
+</ul>
+<p><strong>Output</strong>:</p>
+<ul>
+<li>CTQ (Crtitical to Quality Characteristics)</li>
+<li>key measurable characteristics of a product or process whose performance standards or specification limits must be met</li>
+</ul>
+<p>For example the processing of Individual Case Safety Reports for submission to the Health Authorities.</p>
+<p><a href="https://www.nomnoml.com/"><code>nomnoml</code> webtool</a></p>
+<pre class="r"><code>nomnoml::nomnoml(
+&quot;#direction: right
+#padding: 20
+#spacing: 100
+
+[Input 6M&#39;s|ICSR; IT System; Legislation; Process Owner; PV Associate]
+
+[Input 6M&#39;s]-&gt;[Output CTQs|Recipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk]&quot;
+)</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="nomnoml html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"code":"\n#fill: #FEFEFF\n#lineWidth: 1\n#zoom: 4\n#direction: right\n\n#direction: right\n#padding: 20\n#spacing: 100\n\n[Input 6M's|ICSR; IT System; Legislation; Process Owner; PV Associate]\n\n[Input 6M's]->[Output CTQs|Recipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk]","svg":false},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="low-level" class="section level3">
+<h3>Low Level:</h3>
+<ul>
+<li>more elaborate flow charts</li>
+<li><a href="https://en.wikipedia.org/wiki/Activity_diagram">UML activity diagram</a> provides some standards.</li>
+<li><a href="https://en.wikipedia.org/wiki/Swim_lane">BMPN Swim Lanes</a></li>
+</ul>
+<p>UML/BMPN process maps do not focus on 6 Ms and CTQs. We can continue the simplified input output diagram ba adding more steps to the process.
+The input for each individual consists of elements of the initial 6M input (X) or the output produced by one of the previous steps. Each Step can have parameters (x) that influence the quality of the output. Each step output has quality features (y). Which can be included in the final output CTQs (Y).</p>
+<pre class="r"><code>nomnoml::nomnoml(
+&quot;#title: ICSR Processing
+#direction: right
+#padding: 20
+#spacing: 100
+
+
+[Input 6M&#39;s (X)|ICSR; IT System; Legislation; Process Owner; PV Associate; Product]
+[Input 6M&#39;s (X)]-&gt;[&lt;table&gt; Ensure Completeness|
+    Input| ICSR; IT System; PV Associate||
+    Substeps/Methods| follow_up()||
+    Parameters(x); influence Quality|ICSR Source||
+    Quality Features(y)|ICSR Completeness; Time
+]
+[Ensure Completeness]-&gt;[Medical Review|
+  ICSR Complete; IT System; PV Associate|
+  review(); follow_up()|
+  ICSR Complexity;Source Accessibility; Privacy Laws|
+  Medical Risk; Causality;Severity; Labelling; Product Approval; Time
+]
+[Medical Review]-&gt;[Apply Submission Legislation|
+  ICSR Reviewed; Legislation; IT System; Process Owner|
+  encode_legislation(); qc_submission_status(); submit()|
+  Legislation Complexity; Number Cases to Review|
+  Compliance Risk; Submission Status; Recipients; Time; QC Status
+]
+[Apply Submission Legislation]-&gt;[Output CTQs (Y)|
+    Recipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk; QC Status
+]&quot;)</code></pre>
+<div id="htmlwidget-2" style="width:1152px;height:768px;" class="nomnoml html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"code":"\n#fill: #FEFEFF\n#lineWidth: 1\n#zoom: 4\n#direction: right\n\n#title: ICSR Processing\n#direction: right\n#padding: 20\n#spacing: 100\n\n\n[Input 6M's (X)|ICSR; IT System; Legislation; Process Owner; PV Associate; Product]\n[Input 6M's (X)]->[<table> Ensure Completeness|\n\tInput| ICSR; IT System; PV Associate||\n    Substeps/Methods| follow_up()||\n    Parameters(x); influence Quality|ICSR Source||\n    Quality Features(y)|ICSR Completeness; Time\n]\n[Ensure Completeness]->[Medical Review|\n  ICSR Complete; IT System; PV Associate|\n  review(); follow_up()|\n  ICSR Complexity;Source Accessibility; Privacy Laws|\n  Medical Risk; Causality;Severity; Labelling; Product Approval; Time\n]\n[Medical Review]->[Apply Submission Legislation|\n  ICSR Reviewed; Legislation; IT System; Process Owner|\n  encode_legislation(); qc_submission_status(); submit()|\n  Legislation Complexity; Number Cases to Review|\n  Compliance Risk; Submission Status; Recipients; Time; QC Status\n]\n[Apply Submission Legislation]->[Output CTQs (Y)|\n\tRecipients; Submission Status; Processing Time; Compliance Status; Medical Risk; Compliance Risk; QC Status\n]","svg":false},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+<div id="analyse" class="section level1">
+<h1>Analyse</h1>
+<div id="loss-function-analysis" class="section level2">
+<h2>Loss Function Analysis</h2>
+<p>Loss functioncan be used during the DMAIC measure phase by calculating expected loss as a product of average loss per item by number of items.
+It can also be used to set the <a href="https://www.datisticsblog.com/2021/08/qcwithr/#capabilityperformance-indices">upper and lower specification limits (USL/LSL)</a>.</p>
+<p>In six sigma loss increases quadratically when deviating from the process target not only after crossing a threshold.</p>
+<p><strong>Loss = k(Y-Y0)^2</strong></p>
+<pre class="r"><code>df &lt;- SixSigma::ss.data.bolts
+head(df)</code></pre>
+<pre><code>##   diameter
+## 1  10.4042
+## 2  10.2584
+## 3   9.9478
+## 4  10.2678
+## 5  10.1144
+## 6   9.9830</code></pre>
+<pre class="r"><code>lfa &lt;- SixSigma::ss.lfa(
+  lfa.data = df,
+  lfa.ctq = &quot;diameter&quot;,
+  lfa.Delta = 0.5, #process tolerance,
+  lfa.Y0 = 10, #process target
+  lfa.L0 = 0.001, #cost at tolerance limit
+  lfa.size = 1e5
+)</code></pre>
+<p><img src="/post/2021-09-01-sixsigmawithr_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>lfa</code></pre>
+<pre><code>## $lfa.k
+## [1] 0.004
+## 
+## $lfa.lf
+## expression(bold(L == 0.004 %.% (Y - 10)^2))
+## 
+## $lfa.MSD
+## [1] 0.03372065
+## 
+## $lfa.avLoss
+## [1] 0.0001348826
+## 
+## $lfa.Loss
+## [1] 13.48826</code></pre>
+<pre class="r"><code>loss_at_10.25 &lt;- lfa$lfa.k * (10.25 - 10)^2
+loss_at_10.25</code></pre>
+<pre><code>## [1] 0.00025</code></pre>
+</div>
+<div id="measurement-system-analysis" class="section level2">
+<h2>Measurement System Analysis</h2>
+<p>Measurement system analysis (MSA) is also known as gage R&amp;R study identifies and quantifies the sources of variation that influence the measurement system.</p>
+<p>In a good measurement the only variability is random and stems from the difference in the parts that are measured and not from the so called appraisers (operator, measurement machines, time of the day). MSA uses ANOVA to compare the ratio of between-groups variability to within-groups variability. If this ratio is large, we conclude that the groups are significantly different.</p>
+<ul>
+<li>G R&amp;R (appraisal) contribution to variation must be low and is the sum of Repeatability (appraisers) and Reproducibility (interactions)</li>
+<li>part to part contribution to variation must be high</li>
+<li>total variation = R&amp;R + part to part</li>
+</ul>
+<pre class="r"><code>df &lt;- SixSigma::ss.data.rr
+head(df)</code></pre>
+<pre><code>##   prototype operator    run time1 time2
+## 1   prot #1    op #1 run #1  1.27  1.15
+## 2   prot #1    op #1 run #2  0.90  1.31
+## 3   prot #1    op #1 run #3  1.09  1.25
+## 4   prot #2    op #1 run #1  1.12  1.36
+## 5   prot #2    op #1 run #2  1.09  1.41
+## 6   prot #2    op #1 run #3  1.15  1.37</code></pre>
+<pre class="r"><code>rr &lt;- SixSigma::ss.rr(
+  var = time1,
+  part = prototype,
+  appr = operator,
+  data = df,
+  alphaLim = 0.05,
+  errorTerm = &quot;Interaction&quot;,
+  lsl = 0.7,
+  usl = 1.8,
+  method = &quot;crossed&quot; #crossed uses all possible combinations of parts and appraisals
+  # https://blog.minitab.com/en/a-simple-guide-to-gage-randr-for-destructive-testing
+)</code></pre>
+<pre><code>## Complete model (with interaction):
+## 
+##                    Df Sum Sq Mean Sq F value   Pr(&gt;F)
+## prototype           2 1.2007  0.6004  28.040 2.95e-06
+## operator            2 0.0529  0.0265   1.236    0.314
+## prototype:operator  4 0.0834  0.0208   0.974    0.446
+## Repeatability      18 0.3854  0.0214                 
+## Total              26 1.7225                         
+## 
+## alpha for removing interaction: 0.05 
+## 
+## 
+## Reduced model (without interaction):
+## 
+##               Df Sum Sq Mean Sq F value   Pr(&gt;F)
+## prototype      2 1.2007  0.6004  28.174 8.56e-07
+## operator       2 0.0529  0.0265   1.242    0.308
+## Repeatability 22 0.4688  0.0213                 
+## Total         26 1.7225                         
+## 
+## Gage R&amp;R
+## 
+##                        VarComp %Contrib
+## Total Gage R&amp;R    0.0218822671    25.38
+##   Repeatability   0.0213087542    24.71
+##   Reproducibility 0.0005735129     0.67
+##     operator      0.0005735129     0.67
+## Part-To-Part      0.0643389450    74.62
+## Total Variation   0.0862212121   100.00
+## 
+##                        VarComp     StdDev  StudyVar %StudyVar %Tolerance
+## Total Gage R&amp;R    0.0218822671 0.14792656 0.8875594     50.38      80.69
+##   Repeatability   0.0213087542 0.14597518 0.8758511     49.71      79.62
+##   Reproducibility 0.0005735129 0.02394813 0.1436888      8.16      13.06
+##     operator      0.0005735129 0.02394813 0.1436888      8.16      13.06
+## Part-To-Part      0.0643389450 0.25365123 1.5219074     86.38     138.36
+## Total Variation   0.0862212121 0.29363449 1.7618069    100.00     160.16
+## 
+## Number of Distinct Categories = 2</code></pre>
+<p><img src="/post/2021-09-01-sixsigmawithr_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<ul>
+<li>% Contribution is the total contribution to variability (range)</li>
+<li>% Study Var is the within group variance as percent of the total variance</li>
+<li>% Tolerance should be below 100 for R&amp;R</li>
+</ul>
+</div>
+<div id="capability-analysis" class="section level2">
+<h2>Capability Analysis</h2>
+<p><a href="https://www.datisticsblog.com/2021/08/qcwithr/#capabilityperformance-indices">see capability performance indeces from previous blogpost</a>.</p>
+<pre class="r"><code>ss.study.ca(
+  xST = ss.data.ca$Volume, # short-term process data,
+  xLT = rnorm(40, 753, 3), # long-term process data
+    LSL = 740,
+  USL = 760,
+  Target = 750,
+  alpha = 0.05,
+)</code></pre>
+<p><img src="/post/2021-09-01-sixsigmawithr_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Cpk: min(left right capability index)
+CI: Confidence Interval of capability index</p>
+</div>
+</div>
+<div id="improve" class="section level1">
+<h1>Improve</h1>
+<div id="experimental-design" class="section level2">
+<h2>Experimental Design</h2>
+<p>When optimizing a process it is not enough to vary one variable and keep all other variables constant, because we are missing out on interactions. It is best to use a factorial design (binning continuous variables into two) and try all possible combinations in several repeats. Use ANOVA or pairwise t-test to get best result. Include uncontrollable factors in experimental design to find which controllable variables give most robust results when uncontrollable variables vary. Example: Best frozen Pizza recipe for varying baking time and temperature.</p>
+</div>
+</div>
+<div id="control" class="section level1">
+<h1>Control</h1>
+<div id="control-charts" class="section level2">
+<h2>Control Charts</h2>
+<p><a href="https://www.datisticsblog.com/2021/08/qcwithr/#control-charts">see controil charts in a previous blog post</a></p>
+</div>
+</div>
