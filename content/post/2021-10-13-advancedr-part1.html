@@ -1,0 +1,1632 @@
+---
+title: Advanced R - Notes (part1)
+author: Björn Koneswarakantha
+date: '2021-10-13'
+slug: advancedr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Notes when going through advanced R
+thumbnailImagePosition : left
+thumbnailImage: advancedr.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#functions">Functions</a>
+<ul>
+<li><a href="#conventions-for-arguments-that-come-from-a-set-of-strings">Conventions for arguments that come from a set of strings</a></li>
+<li><a href="#functions-to-investigate-functions">Functions to Investigate Functions</a></li>
+<li><a href="#get-all-functions-from-package">Get all Functions from package</a></li>
+<li><a href="#function-with-the-most-arguments">Function with the most arguments</a></li>
+</ul></li>
+<li><a href="#scoping">Scoping</a>
+<ul>
+<li><a href="#search-environment">Search Environment</a></li>
+<li><a href="#list-unbound-global-variables">List unbound global variables</a></li>
+<li><a href="#lazy-evaluation-of-arguments">Lazy Evaluation of Arguments</a></li>
+<li><a href="#default-or-user-supplied-argument">Default or User Supplied argument</a></li>
+<li><a href="#capture-dot-dot-dot">Capture dot dot dot</a></li>
+<li><a href="#exit-handler-on.exit">Exit Handler <code>on.exit()</code></a></li>
+<li><a href="#capture-output-capture.output">Capture output <code>capture.output()</code></a></li>
+<li><a href="#everything-that-happens-in-r-is-a-function-call">Everything that happens in R is a function call</a></li>
+<li><a href="#replacement-functions">Replacement Functions</a></li>
+</ul></li>
+<li><a href="#environments">Environments</a>
+<ul>
+<li><a href="#create-a-parent-environment">Create a parent environment</a></li>
+<li><a href="#packages">Packages</a></li>
+<li><a href="#package-functions">Package Functions</a></li>
+<li><a href="#callstacks">Callstacks</a></li>
+</ul></li>
+<li><a href="#conditions">Conditions</a>
+<ul>
+<li><a href="#warnings">Warnings</a></li>
+<li><a href="#condition-objects">Condition Objects</a></li>
+<li><a href="#trycatch">tryCatch</a></li>
+<li><a href="#withcallinghandlers">withCallingHandlers</a></li>
+<li><a href="#custom-errors">Custom Errors</a></li>
+</ul></li>
+<li><a href="#functional-programming">Functional Programming</a>
+<ul>
+<li><a href="#functionals">Functionals</a>
+<ul>
+<li><a href="#purrrreduce">purrr::reduce</a></li>
+<li><a href="#purrraccumulate">purrr::accumulate</a></li>
+<li><a href="#predicate-functional">predicate functional</a></li>
+<li><a href="#apply-and-friends">apply() and friends</a></li>
+</ul></li>
+<li><a href="#function-factories">Function Factories</a>
+<ul>
+<li><a href="#force">force()</a></li>
+<li><a href="#closures-stateful-functions">Closures (Stateful functions)</a></li>
+<li><a href="#applications">Applications</a></li>
+<li><a href="#geom_histogram">geom_histogram</a></li>
+<li><a href="#geom_function-and-stat_function">geom_function() and stat_function()</a></li>
+<li><a href="#boxcox-transformation">Boxcox Transformation</a></li>
+<li><a href="#bootstraping">Bootstraping</a></li>
+<li><a href="#maximum-likelihod-estimation">Maximum Likelihod Estimation</a></li>
+</ul></li>
+<li><a href="#function-operators">Function Operators</a>
+<ul>
+<li><a href="#memoisememoise">memoise::memoise()</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#oop">OOP</a>
+<ul>
+<li><a href="#s3">S3</a>
+<ul>
+<li><a href="#simaerep-example">simaerep example</a></li>
+</ul></li>
+<li><a href="#r6">R6</a></li>
+<li><a href="#s4">S4</a>
+<ul>
+<li><a href="#slots">Slots</a></li>
+<li><a href="#conventions">Conventions</a></li>
+<li><a href="#multiple-inheritence">Multiple Inheritence</a></li>
+<li><a href="#multiple-dispatch">Multiple dispatch</a></li>
+</ul></li>
+<li><a href="#s4-vs-s3">S4 vs S3</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p><br></br>
+<br></br></p>
+<p>{{% image classes="center" src="https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png" thumbnail="https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png" thumbnail-width="400px" thumbnail-height="600px" target="https://adv-r.hadley.nz/index.html" %}}</p>
+<blockquote>
+<p>Advanced R (Hadley Wickham).</p>
+</blockquote>
+<p><br></br>
+<br></br></p>
+<pre class="r"><code>knitr::opts_chunk$set(error = TRUE)</code></pre>
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(rlang))
+suppressPackageStartupMessages(library(lobstr))
+suppressPackageStartupMessages(library(withr))
+suppressPackageStartupMessages(library(glue))
+# devtools::install_github(&quot;openpharma/simaerep@v0.3.1&quot;)
+suppressPackageStartupMessages(library(simaerep))</code></pre>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
+<div id="conventions-for-arguments-that-come-from-a-set-of-strings" class="section level3">
+<h3>Conventions for arguments that come from a set of strings</h3>
+<pre class="r"><code>center &lt;- function(x, type = c(&quot;mean&quot;, &quot;median&quot;, &quot;trimmed&quot;)) {
+  type &lt;- match.arg(type)
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}</code></pre>
+</div>
+<div id="functions-to-investigate-functions" class="section level3">
+<h3>Functions to Investigate Functions</h3>
+<pre class="r"><code>.f &lt;- function(x,y){
+  # Comment
+  x + y
+}
+formals(.f) # returns arguments</code></pre>
+<pre><code>## $x
+## 
+## 
+## $y</code></pre>
+<pre class="r"><code>body(.f) # returns body without comments</code></pre>
+<pre><code>## {
+##     x + y
+## }</code></pre>
+<pre class="r"><code>environment(.f) </code></pre>
+<pre><code>## &lt;environment: R_GlobalEnv&gt;</code></pre>
+<pre class="r"><code>attributes(.f)$srcref # returns body with commments</code></pre>
+<pre><code>## function(x,y){
+##   # Comment
+##   x + y
+## }</code></pre>
+</div>
+<div id="get-all-functions-from-package" class="section level3">
+<h3>Get all Functions from package</h3>
+<pre class="r"><code>objs &lt;- mget(ls(&quot;package:base&quot;, all = TRUE), inherits = TRUE)
+funs &lt;- Filter(is.function, objs)</code></pre>
+</div>
+<div id="function-with-the-most-arguments" class="section level3">
+<h3>Function with the most arguments</h3>
+<p>primitive base functions written in C are either of type “builtin” or “special”. <code>formals()</code>, <code>body()</code>and <code>environment()</code> will return NULL for those functions.</p>
+<pre class="r"><code>df_funs &lt;- tibble(funs = funs,
+       names = names(funs) ) %&gt;%
+  mutate(formals = map(funs, formals),
+         n_args = map_int(formals, length),
+         type = map_chr(funs, typeof)) %&gt;%
+  arrange(desc(n_args))
+
+df_funs</code></pre>
+<pre><code>## # A tibble: 1,323 × 5
+##    funs         names            formals      n_args type   
+##    &lt;named list&gt; &lt;chr&gt;            &lt;named list&gt;  &lt;int&gt; &lt;chr&gt;  
+##  1 &lt;fn&gt;         scan             &lt;pairlist&gt;       22 closure
+##  2 &lt;fn&gt;         format.default   &lt;pairlist&gt;       16 closure
+##  3 &lt;fn&gt;         source           &lt;pairlist&gt;       16 closure
+##  4 &lt;fn&gt;         formatC          &lt;pairlist&gt;       15 closure
+##  5 &lt;fn&gt;         library          &lt;pairlist&gt;       13 closure
+##  6 &lt;fn&gt;         merge.data.frame &lt;pairlist&gt;       13 closure
+##  7 &lt;fn&gt;         prettyNum        &lt;pairlist&gt;       13 closure
+##  8 &lt;fn&gt;         system2          &lt;pairlist&gt;       11 closure
+##  9 &lt;fn&gt;         print.default    &lt;pairlist&gt;       10 closure
+## 10 &lt;fn&gt;         save             &lt;pairlist&gt;       10 closure
+## # … with 1,313 more rows</code></pre>
+<pre class="r"><code>df_funs %&gt;%
+  group_by(type, n_args == 0) %&gt;%
+  count()</code></pre>
+<pre><code>## # A tibble: 4 × 3
+## # Groups:   type, n_args == 0 [4]
+##   type    `n_args == 0`     n
+##   &lt;chr&gt;   &lt;lgl&gt;         &lt;int&gt;
+## 1 builtin TRUE            165
+## 2 closure FALSE          1072
+## 3 closure TRUE             47
+## 4 special TRUE             39</code></pre>
+</div>
+</div>
+<div id="scoping" class="section level2">
+<h2>Scoping</h2>
+<div id="search-environment" class="section level3">
+<h3>Search Environment</h3>
+<pre class="r"><code>my_string &lt;- &quot;hello world&quot;
+
+exists(&quot;my_string&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>exists(&quot;my_string_2&quot;)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>get0(&quot;my_string&quot;)</code></pre>
+<pre><code>## [1] &quot;hello world&quot;</code></pre>
+<pre class="r"><code>get0(&quot;my_string_2&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>ls() # get all variable names</code></pre>
+<pre><code>## [1] &quot;center&quot;    &quot;df_funs&quot;   &quot;funs&quot;      &quot;my_string&quot; &quot;objs&quot;</code></pre>
+</div>
+<div id="list-unbound-global-variables" class="section level3">
+<h3>List unbound global variables</h3>
+<pre class="r"><code>g12 &lt;- function() x + 1
+codetools::findGlobals(g12)</code></pre>
+<pre><code>## [1] &quot;+&quot; &quot;x&quot;</code></pre>
+<pre class="r"><code>g13 &lt;- function(x) x + 1
+codetools::findGlobals(g13)</code></pre>
+<pre><code>## [1] &quot;+&quot;</code></pre>
+</div>
+<div id="lazy-evaluation-of-arguments" class="section level3">
+<h3>Lazy Evaluation of Arguments</h3>
+<p>arguments even when given as expressions will only be evaluated when called in the function, these structures are called promises. So this works, surprisingly:</p>
+<pre class="r"><code>h04 &lt;- function(x = 1, y = x * 2, z = a + b) {
+  a &lt;- 10
+  b &lt;- 100
+  
+  c(x, y, z)
+}</code></pre>
+<p>But only when supplied as default arguments not when user-supplied</p>
+<pre class="r"><code>h04(1, x * 2, a + b)</code></pre>
+<pre><code>## Error in h04(1, x * 2, a + b): object &#39;x&#39; not found</code></pre>
+<p>User-Supplied arguments are evaluated before they are passed to the function, that is why infix functions and operators such as <code>+</code> and <code>%%</code>are working.</p>
+<p>Default arguments are evaluated as promises only when they are called within the function.</p>
+<p>Reminder infix functions take two arguments, code that comes directly before and right after. User defined infix functions need to be defined like this with `<code>%name%</code> &lt;- function(lhs, rhs)`</p>
+<pre class="r"><code>x &lt;- 1
+
+!is.null(x) &amp;&amp; length(x) == 1 &amp;&amp; x &gt; 0</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code># in python we would need to put brackets around the logic statements
+(!is.null(x)) &amp;&amp; (length(x) == 1) &amp;&amp; (x &gt; 0)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>c(TRUE, FALSE) &amp;&amp; c(TRUE, FALSE) # evaluation stops at first element</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>c(TRUE, FALSE) &amp; c(TRUE, FALSE) # all elements are pair-wise evaluated</code></pre>
+<pre><code>## [1]  TRUE FALSE</code></pre>
+<pre class="r"><code>FALSE &amp;&amp; NULL # evaluation stops after result is determined by first argument FALSE</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>FALSE || NULL # gives error because NULL needs to be evaluated for OR condition</code></pre>
+<pre><code>## Error in FALSE || NULL: invalid &#39;y&#39; type in &#39;x || y&#39;</code></pre>
+<pre class="r"><code>FALSE &amp; NULL # I would expect this to error too</code></pre>
+<pre><code>## logical(0)</code></pre>
+<pre class="r"><code>FALSE | NULL # this as well mmh</code></pre>
+<pre><code>## logical(0)</code></pre>
+</div>
+<div id="default-or-user-supplied-argument" class="section level3">
+<h3>Default or User Supplied argument</h3>
+<pre class="r"><code>h06 &lt;- function(x = 10) {
+  is_default &lt;- missing(x)
+  return(is_default)
+}
+
+h06()</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>h06(10)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+</div>
+<div id="capture-dot-dot-dot" class="section level3">
+<h3>Capture dot dot dot</h3>
+<pre class="r"><code>i03 &lt;- function(...) {
+  list(first = ..1, third = ..3)
+}
+str(i03(1, 2, 3))</code></pre>
+<pre><code>## List of 2
+##  $ first: num 1
+##  $ third: num 3</code></pre>
+<pre class="r"><code>i04 &lt;- function(...) {
+  list(...)
+}
+str(i04(a = 1, b = 2))</code></pre>
+<pre><code>## List of 2
+##  $ a: num 1
+##  $ b: num 2</code></pre>
+</div>
+<div id="exit-handler-on.exit" class="section level3">
+<h3>Exit Handler <code>on.exit()</code></h3>
+<p>Always set add = TRUE when using on.exit(). If you don’t, each call to on.exit() will overwrite the previous exit handler. Even when only registering a single handler, it’s good practice to set add = TRUE so that you won’t get any unpleasant surprises if you later add more exit handlers.</p>
+<pre class="r"><code>j06 &lt;- function(x) {
+  cat(&quot;Hello\n&quot;)
+  on.exit(cat(&quot;Goodbye!\n&quot;), add = TRUE)
+  
+  if (x) {
+    return(10)
+  } else {
+    stop(&quot;Error&quot;)
+  }
+}
+
+j06(TRUE)</code></pre>
+<pre><code>## Hello
+## Goodbye!</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="r"><code>j06(FALSE)</code></pre>
+<pre><code>## Hello</code></pre>
+<pre><code>## Error in j06(FALSE): Error</code></pre>
+<pre><code>## Goodbye!</code></pre>
+<p>Better than using <code>on.exit</code> is actually to use functions of the <code>withr</code> package that automatically provide cleanups for files and directories</p>
+</div>
+<div id="capture-output-capture.output" class="section level3">
+<h3>Capture output <code>capture.output()</code></h3>
+<p>also captures error messages</p>
+</div>
+<div id="everything-that-happens-in-r-is-a-function-call" class="section level3">
+<h3>Everything that happens in R is a function call</h3>
+<p>Almost everything can be rewritten as a function call</p>
+<pre class="r"><code>x + y</code></pre>
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;y&#39; not found</code></pre>
+<pre class="r"><code>`+`(x, y)</code></pre>
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;y&#39; not found</code></pre>
+<pre class="r"><code>names(df) &lt;- c(&quot;x&quot;, &quot;y&quot;, &quot;z&quot;)</code></pre>
+<pre><code>## Error in names(df) &lt;- c(&quot;x&quot;, &quot;y&quot;, &quot;z&quot;): names() applied to a non-vector</code></pre>
+<pre class="r"><code>`names&lt;-`(df, c(&quot;x&quot;, &quot;y&quot;, &quot;z&quot;))</code></pre>
+<pre><code>## Error in eval(expr, envir, enclos): names() applied to a non-vector</code></pre>
+<pre class="r"><code>for(i in 1:10) print(i)</code></pre>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+## [1] 10</code></pre>
+<pre class="r"><code>`for`(i, 1:10, print(i))</code></pre>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+## [1] 10</code></pre>
+</div>
+<div id="replacement-functions" class="section level3">
+<h3>Replacement Functions</h3>
+<pre class="r"><code>`second&lt;-` &lt;- function(x, value) {
+  x[2] &lt;- value
+  x
+}
+
+x &lt;- 1:10
+second(x) &lt;- 5
+
+x</code></pre>
+<pre><code>##  [1]  1  5  3  4  5  6  7  8  9 10</code></pre>
+</div>
+</div>
+<div id="environments" class="section level2">
+<h2>Environments</h2>
+<p>Generally, an environment is similar to a named list, with four important exceptions:</p>
+<ul>
+<li>Every name must be unique.</li>
+<li>The names in an environment are not ordered.</li>
+<li>An environment has a parent.</li>
+<li>Environments are not copied when modified.</li>
+</ul>
+<pre class="r"><code>e1 &lt;- env(
+  a = FALSE,
+  b = &quot;a&quot;,
+  c = 2.3,
+  d = 1:3,
+)
+
+rlang::env_print(e1)</code></pre>
+<pre><code>## &lt;environment: 0x7fd2d346bac0&gt;
+## parent: &lt;environment: global&gt;
+## bindings:
+##  * a: &lt;lgl&gt;
+##  * b: &lt;chr&gt;
+##  * c: &lt;dbl&gt;
+##  * d: &lt;int&gt;</code></pre>
+<pre class="r"><code>rlang::env_names(e1)</code></pre>
+<pre><code>## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot;</code></pre>
+<div id="create-a-parent-environment" class="section level3">
+<h3>Create a parent environment</h3>
+<pre class="r"><code>e2 &lt;- env(e1, letters = LETTERS)
+
+rlang::env_parent(e2)</code></pre>
+<pre><code>## &lt;environment: 0x7fd2d346bac0&gt;</code></pre>
+<pre class="r"><code>rlang::env_parents(e2)</code></pre>
+<pre><code>## [[1]]   &lt;env: 0x7fd2d346bac0&gt;
+## [[2]] $ &lt;env: global&gt;</code></pre>
+</div>
+<div id="packages" class="section level3">
+<h3>Packages</h3>
+<p>Composition of the global environment</p>
+<pre class="r"><code>search()</code></pre>
+<pre><code>##  [1] &quot;.GlobalEnv&quot;        &quot;package:simaerep&quot;  &quot;package:glue&quot;     
+##  [4] &quot;package:withr&quot;     &quot;package:lobstr&quot;    &quot;package:rlang&quot;    
+##  [7] &quot;package:forcats&quot;   &quot;package:stringr&quot;   &quot;package:dplyr&quot;    
+## [10] &quot;package:purrr&quot;     &quot;package:readr&quot;     &quot;package:tidyr&quot;    
+## [13] &quot;package:tibble&quot;    &quot;package:ggplot2&quot;   &quot;package:tidyverse&quot;
+## [16] &quot;package:stats&quot;     &quot;package:graphics&quot;  &quot;package:grDevices&quot;
+## [19] &quot;package:utils&quot;     &quot;package:datasets&quot;  &quot;package:methods&quot;  
+## [22] &quot;Autoloads&quot;         &quot;package:base&quot;</code></pre>
+<pre class="r"><code>rlang::search_envs()</code></pre>
+<pre><code>##  [[1]] $ &lt;env: global&gt;
+##  [[2]] $ &lt;env: package:simaerep&gt;
+##  [[3]] $ &lt;env: package:glue&gt;
+##  [[4]] $ &lt;env: package:withr&gt;
+##  [[5]] $ &lt;env: package:lobstr&gt;
+##  [[6]] $ &lt;env: package:rlang&gt;
+##  [[7]] $ &lt;env: package:forcats&gt;
+##  [[8]] $ &lt;env: package:stringr&gt;
+##  [[9]] $ &lt;env: package:dplyr&gt;
+## [[10]] $ &lt;env: package:purrr&gt;
+## [[11]] $ &lt;env: package:readr&gt;
+## [[12]] $ &lt;env: package:tidyr&gt;
+## [[13]] $ &lt;env: package:tibble&gt;
+## [[14]] $ &lt;env: package:ggplot2&gt;
+## [[15]] $ &lt;env: package:tidyverse&gt;
+## [[16]] $ &lt;env: package:stats&gt;
+## [[17]] $ &lt;env: package:graphics&gt;
+## [[18]] $ &lt;env: package:grDevices&gt;
+## [[19]] $ &lt;env: package:utils&gt;
+## [[20]] $ &lt;env: package:datasets&gt;
+## ... and 3 more environments</code></pre>
+</div>
+<div id="package-functions" class="section level3">
+<h3>Package Functions</h3>
+<ul>
+<li>passively bound by one environment (where they can be called from)</li>
+<li>actively bind one environment (which they use to make their calls)</li>
+</ul>
+<p>for regular functions both environments are the same. For functions loaded from packages the bind environment is defined by the package namespace created from the package NAMESPACE file. Like this they are not affected by overrides in the execution environment.</p>
+</div>
+<div id="callstacks" class="section level3">
+<h3>Callstacks</h3>
+<p>use <code>lobstr::cst()</code> in a similar way to <code>traceback()</code> to visualise the callstack.</p>
+<pre class="r"><code>f &lt;- function(x) {
+  g(x = 2)
+}
+g &lt;- function(x) {
+  h(x = 3)
+}
+h &lt;- function(x) {
+  stop()
+}
+
+f(x = 1)</code></pre>
+<pre><code>## Error in h(x = 3):</code></pre>
+<pre class="r"><code>traceback()</code></pre>
+<pre><code>## No traceback available</code></pre>
+<pre class="r"><code>h &lt;- function(x) {
+  lobstr::cst()
+  print(&quot;do I get executed =&quot;)
+}
+
+f(x = 1)</code></pre>
+<pre><code>##     █
+##  1. └─global::f(x = 1)
+##  2.   └─global::g(x = 2)
+##  3.     └─global::h(x = 3)
+##  4.       └─lobstr::cst()
+## [1] &quot;do I get executed =&quot;</code></pre>
+</div>
+</div>
+<div id="conditions" class="section level2">
+<h2>Conditions</h2>
+<div id="warnings" class="section level3">
+<h3>Warnings</h3>
+<pre class="r"><code>give_warning &lt;- function() {
+  warning(&quot;You have been warned&quot;)
+}
+
+withr::with_options(list(warn = 1), give_warning()) # causes warning to appear immediately</code></pre>
+<pre><code>## Warning in give_warning(): You have been warned</code></pre>
+<pre class="r"><code>withr::with_options(list(warn = 2), give_warning()) # convert warning to error</code></pre>
+<pre><code>## Error in give_warning(): (converted from warning) You have been warned</code></pre>
+</div>
+<div id="condition-objects" class="section level3">
+<h3>Condition Objects</h3>
+<p>conditions such as messages, warnings and errors are objects</p>
+<pre class="r"><code>cnd &lt;- rlang::catch_cnd(stop(&quot;An error&quot;))
+str(cnd)</code></pre>
+<pre><code>## List of 2
+##  $ message: chr &quot;An error&quot;
+##  $ call   : language force(expr)
+##  - attr(*, &quot;class&quot;)= chr [1:3] &quot;simpleError&quot; &quot;error&quot; &quot;condition&quot;</code></pre>
+</div>
+<div id="trycatch" class="section level3">
+<h3>tryCatch</h3>
+<p><code>tryCatch</code> executes code and has arguments for different types of condition objects. Each arguments takes a function with a single condition object argument.</p>
+<pre class="r"><code>try_me &lt;- function(expr) {
+    tryCatch(
+      error = function(cnd) print(&quot;error&quot;),
+      warning = function(cnd) print(&quot;warning&quot;),
+      message = function(cnd) print(&quot;message&quot;),
+      finally = print(&quot;finished&quot;),
+      expr
+  )
+}
+
+try_me(stop(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;error&quot;
+## [1] &quot;finished&quot;</code></pre>
+<pre class="r"><code>try_me(warning(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;warning&quot;
+## [1] &quot;finished&quot;</code></pre>
+<pre class="r"><code>try_me(message(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;message&quot;
+## [1] &quot;finished&quot;</code></pre>
+<p>variable assignments within trycatch are not passed to parent env</p>
+<pre class="r"><code>if(exists(&quot;res&quot;)) remove(res)
+tryCatch(
+  warning = function(cnd) res &lt;- 0,
+  res &lt;- log(-1)
+)
+exists(&quot;res&quot;)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>this does not work because user-defined arguments are evaluated on the spot, so alternative expression always gets evaluated</p>
+<pre class="r"><code>try_me3 &lt;- function(expr, expr_alt) {
+    tryCatch(
+      warning = function(cnd) expr_alt,
+      expr
+  )
+}
+
+try_me3(res &lt;- log(-1), res &lt;- 0)
+res</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>try_me3(res &lt;- log(1), res &lt;- 0)
+res</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>tryCatch returns last value which can be assigned inside the active env</p>
+<pre class="r"><code>if(exists(&quot;res&quot;)) remove(res)
+res &lt;- tryCatch(
+  warning = function(cnd) 0,
+  log(-1)
+)
+
+res</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="withcallinghandlers" class="section level3">
+<h3>withCallingHandlers</h3>
+<p><code>withCallingHandlers</code> still executes the condition, while <code>tryCatch</code> muffles them.</p>
+<pre class="r"><code>try_me &lt;- function(expr) {
+    withCallingHandlers(
+      error = function(cnd) print(&quot;error&quot;),
+      warning = function(cnd) print(&quot;warning&quot;),
+      message = function(cnd) print(&quot;message&quot;),
+      finally = print(&quot;finished&quot;),
+      expr
+  )
+}
+
+try_me(stop(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;finished&quot;
+## [1] &quot;error&quot;</code></pre>
+<pre><code>## Error in withCallingHandlers(error = function(cnd) print(&quot;error&quot;), warning = function(cnd) print(&quot;warning&quot;), : hello</code></pre>
+<pre class="r"><code>try_me(warning(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;finished&quot;
+## [1] &quot;warning&quot;</code></pre>
+<pre><code>## Warning in withCallingHandlers(error = function(cnd) print(&quot;error&quot;), warning =
+## function(cnd) print(&quot;warning&quot;), : hello</code></pre>
+<pre class="r"><code>try_me(message(&quot;hello&quot;))</code></pre>
+<pre><code>## [1] &quot;finished&quot;
+## [1] &quot;message&quot;</code></pre>
+<pre><code>## hello</code></pre>
+</div>
+<div id="custom-errors" class="section level3">
+<h3>Custom Errors</h3>
+<ul>
+<li>reuse check function to supply consistent error messages</li>
+<li>catch and handle different types of errors</li>
+</ul>
+<p>We start by defining a custom error Class</p>
+<p>We cannot execute the code chunk below because Rmarkdown is not compatible with custom errors</p>
+<pre class="r"><code>stop_custom &lt;- function(.subclass, message, ...) {
+  err &lt;- structure(
+    list(
+      message = message,
+      call = call,
+      ...
+    ),
+    class = c(.subclass, &quot;error&quot;, &quot;condition&quot;)
+  )
+  stop(err)
+}
+
+stop_custom(&quot;error_new&quot;, &quot;This is a custom error&quot;, x = 10)
+
+err &lt;- rlang::catch_cnd(
+  stop_custom(&quot;error_new&quot;, &quot;This is a custom error&quot;, x = 10)
+)
+
+class(err)
+# we can supply additional arguments that will be attached as attributes
+err$x
+str(err)</code></pre>
+<p>We can then use this new class for creating customized errors</p>
+<pre class="r"><code>abort_bad_argument &lt;- function(arg, must, not = NULL) {
+  msg &lt;- glue::glue(&quot;`{arg}` must be {must}&quot;)
+  if (!is.null(not)) {
+    not &lt;- typeof(not)
+    msg &lt;- glue::glue(&quot;{msg}; not {not}.&quot;)
+  }
+  
+  stop_custom(&quot;error_bad_argument&quot;, 
+    message = msg, 
+    arg = arg, 
+    must = must, 
+    not = not
+  )
+}
+
+abort_bad_argument(&quot;key&quot;, &quot;numeric&quot;, &quot;ABC&quot;)</code></pre>
+<pre><code>## Error in stop_custom(&quot;error_bad_argument&quot;, message = msg, arg = arg, must = must, : could not find function &quot;stop_custom&quot;</code></pre>
+<p>We can then chose to handle those errors specifically</p>
+<pre class="r"><code>mylog &lt;- function(x) {
+  if(! is.numeric(x)) abort_bad_argument(&quot;x&quot;, &quot;numeric&quot;, x)
+  return(log(x))
+}
+
+mylog(1)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>mylog(&quot;A&quot;)</code></pre>
+<pre><code>## Error in stop_custom(&quot;error_bad_argument&quot;, message = msg, arg = arg, must = must, : could not find function &quot;stop_custom&quot;</code></pre>
+<pre class="r"><code>tryCatch(
+  error_bad_argument = function(cnd) NULL,
+  mylog(&quot;A&quot;)
+)</code></pre>
+<pre><code>## Error in stop_custom(&quot;error_bad_argument&quot;, message = msg, arg = arg, must = must, : could not find function &quot;stop_custom&quot;</code></pre>
+<pre class="r"><code>tryCatch(
+  error_bad_argument = function(cnd) NULL,
+  stop()
+)</code></pre>
+<pre><code>## Error in doTryCatch(return(expr), name, parentenv, handler):</code></pre>
+</div>
+</div>
+<div id="functional-programming" class="section level1">
+<h1>Functional Programming</h1>
+<div id="functionals" class="section level2">
+<h2>Functionals</h2>
+<div id="purrrreduce" class="section level3">
+<h3>purrr::reduce</h3>
+<p>used to apply a function with two arguments to a stack o items by executing on the first to items and saving the result for the next function call to apply with the next item in line.</p>
+<pre class="r"><code>purrr::reduce(LETTERS, paste0)</code></pre>
+<pre><code>## [1] &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</code></pre>
+<p>finding an intersection or union</p>
+<pre class="r"><code>l &lt;- purrr::map(1:4, ~ sample(1:10, 15, replace = T))
+str(l)</code></pre>
+<pre><code>## List of 4
+##  $ : int [1:15] 5 5 1 9 6 9 1 8 4 4 ...
+##  $ : int [1:15] 7 3 4 5 2 6 5 9 9 8 ...
+##  $ : int [1:15] 1 3 3 7 1 8 10 1 4 10 ...
+##  $ : int [1:15] 8 7 7 7 5 6 5 8 5 7 ...</code></pre>
+<pre class="r"><code>purrr::reduce(l, intersect)</code></pre>
+<pre><code>## [1] 8 4 2</code></pre>
+<pre class="r"><code>purrr::reduce(l, union)</code></pre>
+<pre><code>##  [1]  5  1  9  6  8  4  2  7  3 10</code></pre>
+<p>adding up numbers</p>
+<pre class="r"><code>purrr::reduce(c(1, 2, 3), `+`)</code></pre>
+<pre><code>## [1] 6</code></pre>
+</div>
+<div id="purrraccumulate" class="section level3">
+<h3>purrr::accumulate</h3>
+<pre class="r"><code>purrr::accumulate(LETTERS, paste0)</code></pre>
+<pre><code>##  [1] &quot;A&quot;                          &quot;AB&quot;                        
+##  [3] &quot;ABC&quot;                        &quot;ABCD&quot;                      
+##  [5] &quot;ABCDE&quot;                      &quot;ABCDEF&quot;                    
+##  [7] &quot;ABCDEFG&quot;                    &quot;ABCDEFGH&quot;                  
+##  [9] &quot;ABCDEFGHI&quot;                  &quot;ABCDEFGHIJ&quot;                
+## [11] &quot;ABCDEFGHIJK&quot;                &quot;ABCDEFGHIJKL&quot;              
+## [13] &quot;ABCDEFGHIJKLM&quot;              &quot;ABCDEFGHIJKLMN&quot;            
+## [15] &quot;ABCDEFGHIJKLMNO&quot;            &quot;ABCDEFGHIJKLMNOP&quot;          
+## [17] &quot;ABCDEFGHIJKLMNOPQ&quot;          &quot;ABCDEFGHIJKLMNOPQR&quot;        
+## [19] &quot;ABCDEFGHIJKLMNOPQRS&quot;        &quot;ABCDEFGHIJKLMNOPQRST&quot;      
+## [21] &quot;ABCDEFGHIJKLMNOPQRSTU&quot;      &quot;ABCDEFGHIJKLMNOPQRSTUV&quot;    
+## [23] &quot;ABCDEFGHIJKLMNOPQRSTUVW&quot;    &quot;ABCDEFGHIJKLMNOPQRSTUVWX&quot;  
+## [25] &quot;ABCDEFGHIJKLMNOPQRSTUVWXY&quot;  &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</code></pre>
+</div>
+<div id="predicate-functional" class="section level3">
+<h3>predicate functional</h3>
+<p>purr has only some of those</p>
+<pre class="r"><code>any(LETTERS == &quot;A&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>any(as.list(LETTERS) == &quot;A&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>purrr::some(LETTERS, ~ . == &quot;A&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<div id="is.na" class="section level4">
+<h4>is.na</h4>
+<p><code>is.na()</code> is not a predicate function because it is vectorized while <code>anyNA</code> is.</p>
+<pre class="r"><code>is.na(c(NA, 1))</code></pre>
+<pre><code>## [1]  TRUE FALSE</code></pre>
+<pre class="r"><code>anyNA(c(NA, 1))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+</div>
+</div>
+<div id="apply-and-friends" class="section level3">
+<h3>apply() and friends</h3>
+<ul>
+<li><code>vapply()</code> uses and returns vectors</li>
+<li><code>sapply()</code></li>
+</ul>
+<pre class="r"><code>ls &lt;- list(a = c(1, 2, 3), b = c(TRUE, FALSE, TRUE, FALSE))
+vs &lt;- c(&quot;do&quot;, &quot;not&quot;, &quot;leak&quot;)
+cl &lt;- structure(ls, class = &quot;apply_test&quot;)</code></pre>
+<p><code>purrr::map()</code> is similar to <code>base::lapply()</code> which uses lists as in and output.</p>
+<pre class="r"><code>purrr::map(ls, sum)</code></pre>
+<pre><code>## $a
+## [1] 6
+## 
+## $b
+## [1] 2</code></pre>
+<pre class="r"><code>purrr::map(vs, str_length)</code></pre>
+<pre><code>## [[1]]
+## [1] 2
+## 
+## [[2]]
+## [1] 3
+## 
+## [[3]]
+## [1] 4</code></pre>
+<pre class="r"><code>purrr::map(ls, sum)</code></pre>
+<pre><code>## $a
+## [1] 6
+## 
+## $b
+## [1] 2</code></pre>
+<pre class="r"><code>lapply(ls, sum)</code></pre>
+<pre><code>## $a
+## [1] 6
+## 
+## $b
+## [1] 2</code></pre>
+<pre class="r"><code>lapply(vs, str_length)</code></pre>
+<pre><code>## [[1]]
+## [1] 2
+## 
+## [[2]]
+## [1] 3
+## 
+## [[3]]
+## [1] 4</code></pre>
+<pre class="r"><code>lapply(cl, sum)</code></pre>
+<pre><code>## $a
+## [1] 6
+## 
+## $b
+## [1] 2</code></pre>
+<p><code>sapply()</code> is more flexible and returns vectors if possible</p>
+<pre class="r"><code>sapply(ls, sum)</code></pre>
+<pre><code>## a b 
+## 6 2</code></pre>
+<pre class="r"><code>sapply(vs, str_length)</code></pre>
+<pre><code>##   do  not leak 
+##    2    3    4</code></pre>
+<pre class="r"><code>sapply(cl, sum)</code></pre>
+<pre><code>## a b 
+## 6 2</code></pre>
+<p><code>vapply()</code> is similar to <code>sapply()</code> requires a FUN.Value argument to set requirements for the output.</p>
+<p>It compares the length and type of the FUN.Value argument with the output.</p>
+<pre class="r"><code>vapply(ls, sum)</code></pre>
+<pre><code>## Error in vapply(ls, sum): argument &quot;FUN.VALUE&quot; is missing, with no default</code></pre>
+<pre class="r"><code>vapply(ls, sum, FUN.VALUE = integer(1))</code></pre>
+<pre><code>## Error in vapply(ls, sum, FUN.VALUE = integer(1)): values must be type &#39;integer&#39;,
+##  but FUN(X[[1]]) result is type &#39;double&#39;</code></pre>
+<pre class="r"><code>vapply(ls, sum, FUN.VALUE = double(1))</code></pre>
+<pre><code>## a b 
+## 6 2</code></pre>
+<pre class="r"><code>vapply(ls, sum, FUN.VALUE = double(2))</code></pre>
+<pre><code>## Error in vapply(ls, sum, FUN.VALUE = double(2)): values must be length 2,
+##  but FUN(X[[1]]) result is length 1</code></pre>
+<pre class="r"><code>vapply(ls, sum, FUN.VALUE = c(c = 8))</code></pre>
+<pre><code>## a b 
+## 6 2</code></pre>
+<pre class="r"><code>vapply(ls, sum, FUN.VALUE = &quot;hello&quot;)</code></pre>
+<pre><code>## Error in vapply(ls, sum, FUN.VALUE = &quot;hello&quot;): values must be type &#39;character&#39;,
+##  but FUN(X[[1]]) result is type &#39;double&#39;</code></pre>
+<pre class="r"><code>vapply(vs, str_length, 9999)</code></pre>
+<pre><code>##   do  not leak 
+##    2    3    4</code></pre>
+<pre class="r"><code>vapply(cl, sum, 1)</code></pre>
+<pre><code>## a b 
+## 6 2</code></pre>
+<p><code>sapply()</code> can also return a matrix</p>
+<pre class="r"><code>i39 &lt;- sapply(3:9, seq)
+i39</code></pre>
+<pre><code>## [[1]]
+## [1] 1 2 3
+## 
+## [[2]]
+## [1] 1 2 3 4
+## 
+## [[3]]
+## [1] 1 2 3 4 5
+## 
+## [[4]]
+## [1] 1 2 3 4 5 6
+## 
+## [[5]]
+## [1] 1 2 3 4 5 6 7
+## 
+## [[6]]
+## [1] 1 2 3 4 5 6 7 8
+## 
+## [[7]]
+## [1] 1 2 3 4 5 6 7 8 9</code></pre>
+<pre class="r"><code># fivenum returns boxcox stats
+x &lt;- fivenum(i39[[1]])
+
+vapply(vs, str_length)</code></pre>
+<pre><code>## Error in vapply(vs, str_length): argument &quot;FUN.VALUE&quot; is missing, with no default</code></pre>
+<pre class="r"><code>vapply(cl, sum)</code></pre>
+<pre><code>## Error in vapply(cl, sum): argument &quot;FUN.VALUE&quot; is missing, with no default</code></pre>
+<pre class="r"><code>lapply(i39, fivenum)</code></pre>
+<pre><code>## [[1]]
+## [1] 1.0 1.5 2.0 2.5 3.0
+## 
+## [[2]]
+## [1] 1.0 1.5 2.5 3.5 4.0
+## 
+## [[3]]
+## [1] 1 2 3 4 5
+## 
+## [[4]]
+## [1] 1.0 2.0 3.5 5.0 6.0
+## 
+## [[5]]
+## [1] 1.0 2.5 4.0 5.5 7.0
+## 
+## [[6]]
+## [1] 1.0 2.5 4.5 6.5 8.0
+## 
+## [[7]]
+## [1] 1 3 5 7 9</code></pre>
+<pre class="r"><code>sapply(i39, fivenum)</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+## [1,]  1.0  1.0    1  1.0  1.0  1.0    1
+## [2,]  1.5  1.5    2  2.0  2.5  2.5    3
+## [3,]  2.0  2.5    3  3.5  4.0  4.5    5
+## [4,]  2.5  3.5    4  5.0  5.5  6.5    7
+## [5,]  3.0  4.0    5  6.0  7.0  8.0    9</code></pre>
+<p><code>vapply()</code> can add row_names</p>
+<pre class="r"><code>vapply(i39, fivenum,
+       c(Min. = 0, &quot;1st Qu.&quot; = 0, Median = 0, &quot;3rd Qu.&quot; = 0, Max. = 0))</code></pre>
+<pre><code>##         [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+## Min.     1.0  1.0    1  1.0  1.0  1.0    1
+## 1st Qu.  1.5  1.5    2  2.0  2.5  2.5    3
+## Median   2.0  2.5    3  3.5  4.0  4.5    5
+## 3rd Qu.  2.5  3.5    4  5.0  5.5  6.5    7
+## Max.     3.0  4.0    5  6.0  7.0  8.0    9</code></pre>
+<pre class="r"><code>vapply(i39, fivenum,
+       c(Min. = 0, &quot;1st Qu.&quot; = 0, Median = 0, &quot;3rd Qu.&quot; = 0))</code></pre>
+<pre><code>## Error in vapply(i39, fivenum, c(Min. = 0, `1st Qu.` = 0, Median = 0, `3rd Qu.` = 0)): values must be length 4,
+##  but FUN(X[[1]]) result is length 5</code></pre>
+</div>
+</div>
+<div id="function-factories" class="section level2">
+<h2>Function Factories</h2>
+<p>Functions that return other functions. Those functions are not garbage collectd and need to be deleted manually.</p>
+<div id="force" class="section level3">
+<h3>force()</h3>
+<p>The expression are evaluated lazily thus when x changes the function does not behave as expected.</p>
+<pre class="r"><code>power &lt;- function(exp) {
+  function(x) {
+    x ^ exp
+  }
+}
+
+x &lt;- 2
+square &lt;- power(x)
+x &lt;- 3
+square(2)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>always use <code>force()</code> when creating function factories</p>
+<pre class="r"><code>power2 &lt;- function(exp) {
+  force(exp)
+  function(x) {
+    x ^ exp
+  }
+}
+
+x &lt;- 2
+square &lt;- power2(x)
+x &lt;- 3
+square(2)</code></pre>
+<pre><code>## [1] 4</code></pre>
+</div>
+<div id="closures-stateful-functions" class="section level3">
+<h3>Closures (Stateful functions)</h3>
+<p>not recommended in R</p>
+<pre class="r"><code>storer &lt;- function(){
+  store_var &lt;- 5
+  function() store_var
+}
+storage &lt;- storer()
+storage()</code></pre>
+<pre><code>## [1] 5</code></pre>
+<pre class="r"><code>exists(&quot;store_var&quot;, envir = rlang::current_env())</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>exists(&quot;store_var&quot;, envir = environment(storage))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>make_counter &lt;- function(){
+  count_var &lt;- 0
+  function() {
+    count_var &lt;&lt;- count_var + 1 # &lt;&lt;- passes the assignment to parent environment where it is preserved via the binding
+    count_var
+  }
+}
+counter &lt;- make_counter()
+exists(&quot;count_var&quot;, envir = rlang::current_env())</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>exists(&quot;count_var&quot;, envir = environment(counter))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>counter()</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>counter()</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code>counter()</code></pre>
+<pre><code>## [1] 3</code></pre>
+<pre class="r"><code>counter()</code></pre>
+<pre><code>## [1] 4</code></pre>
+</div>
+<div id="applications" class="section level3">
+<h3>Applications</h3>
+<ul>
+<li><code>stats::approxfun()</code></li>
+<li><code>stats::ecdf()</code></li>
+<li><code>scales::comma_format()</code> and other <code>scales</code> functions</li>
+<li><code>geom_histogram()</code> binwidth argument (see below)</li>
+<li><a href="https://adv-r.hadley.nz/function-factories.html#ggsave">harmonising input arguments of similar functions</a></li>
+<li>Box-Cox Transformation (see below)</li>
+<li>Bootstrap Resampling (see below)</li>
+<li>Maximum Likelihood Estimation (see below)</li>
+</ul>
+</div>
+<div id="geom_histogram" class="section level3">
+<h3>geom_histogram</h3>
+<p>same number of observations with different sd will give a different number of bins in each facet.</p>
+<pre class="r"><code>sd &lt;- c(1, 5, 15)
+n &lt;- 100
+
+df &lt;- data.frame(x = rnorm(3 * n, sd = sd), sd = rep(sd, n))
+
+head(df)</code></pre>
+<pre><code>##            x sd
+## 1  0.8702774  1
+## 2  4.2134232  5
+## 3 -9.6693749 15
+## 4 -0.5572895  1
+## 5 -2.0192570  5
+## 6 10.4718642 15</code></pre>
+<pre class="r"><code>ggplot(df, aes(x)) + 
+  geom_histogram(binwidth = 2) + 
+  facet_wrap(~ sd, scales = &quot;free_x&quot;) + 
+  labs(x = NULL)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
+<p>In order to fix the number of bins per facet we can pass a function instead.</p>
+<pre class="r"><code>binwidth_bins &lt;- function(n) {
+  force(n)
+  
+  function(x) {
+    (max(x) - min(x)) / n
+  }
+}
+
+ggplot(df, aes(x)) + 
+  geom_histogram(binwidth = binwidth_bins(20)) + 
+  facet_wrap(~ sd, scales = &quot;free_x&quot;) + 
+  labs(x = NULL)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+</div>
+<div id="geom_function-and-stat_function" class="section level3">
+<h3>geom_function() and stat_function()</h3>
+<p>in ggplot2 <code>stat_function()</code> and <code>geom_function()</code> allow you to plot a function that returns y of a given x values.</p>
+<p>Here the density derived from 100 samples from a normal distribution vs the actual normal density function.</p>
+<pre class="r"><code>ggplot(data.frame(x = rnorm(100)), aes(x)) +
+  geom_density() +
+  geom_function(fun = dnorm, colour = &quot;red&quot;)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-48-1.png" width="672" /></p>
+<p>or using <code>statfunction()</code></p>
+<pre class="r"><code>ggplot(data.frame(x = rnorm(100)), aes(x)) +
+  geom_density() +
+  stat_function(fun = dnorm, geom = &quot;line&quot;, colour = &quot;red&quot;)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
+<p>function only</p>
+<pre class="r"><code>ggplot() +
+  stat_function(fun = dnorm, geom = &quot;line&quot;, colour = &quot;red&quot;) +
+  lims(x = c(-3, +3))</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-50-1.png" width="672" /></p>
+</div>
+<div id="boxcox-transformation" class="section level3">
+<h3>Boxcox Transformation</h3>
+<p>boxcox transformation is a power transformation that is used to convert non normal distributed values to a normal distribution. The degree of the transformation is defined by an unspecified lambda. For lambda == 0 it results in a log(x) transformation.</p>
+<pre class="r"><code>boxcox1 &lt;- function(x, lambda) {
+  if (lambda == 0) {
+    log(x)
+  } else {
+    (x ^ lambda - 1) / lambda
+  }
+}</code></pre>
+<p>in order to plot boxcox transformations for different lambdas we need to generate a function that takes only one x argument.</p>
+<pre class="r"><code>boxcox2 &lt;- function(lambda) {
+  if (lambda == 0) {
+    function(x) log(x)
+  } else {
+    function(x) (x ^ lambda - 1) / lambda
+  }
+}
+
+ggplot() +
+  geom_function(aes(colour = 0), fun = boxcox2(0)) +
+  geom_function(aes(colour = 1), fun = boxcox2(1)) +
+  geom_function(aes(colour = 1.5), fun = boxcox2(1.5)) +
+  lims(x = c(0, 10))</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-52-1.png" width="672" /></p>
+<p>we can wrap the geom calls into another function and use <code>lapply()</code></p>
+<pre class="r"><code>geoms_boxcox &lt;- function(lambda, ...) {
+  geom_function(aes(colour = lambda), fun = boxcox2(lambda), ...)
+}
+
+ggplot() +
+  lapply(c(0, 1, 1.5), geoms_boxcox) +
+  lims(x = c(0, 10))</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+</div>
+<div id="bootstraping" class="section level3">
+<h3>Bootstraping</h3>
+<p>bootstrap resampling to permute columns in a dataframe</p>
+<pre class="r"><code>boot_permute &lt;- function(df, var) {
+  n &lt;- nrow(df)
+  force(var)
+  
+  function() {
+    col &lt;- df[[var]]
+    col[sample(n, replace = TRUE)]
+  }
+}
+
+boot_mtcars1 &lt;- boot_permute(mtcars, &quot;mpg&quot;)
+head(boot_mtcars1())</code></pre>
+<pre><code>## [1] 32.4 32.4 24.4 33.9 21.4 21.5</code></pre>
+<pre class="r"><code>head(boot_mtcars1())</code></pre>
+<pre><code>## [1] 26.0 13.3 15.0 17.3 15.2 15.5</code></pre>
+<p>Imagine we would want to resample residuals of a model in order to bootstrap error statistics</p>
+<pre class="r"><code>mod &lt;- lm(mpg ~ wt + disp, data = mtcars)
+# fitted returns fitted values, same as predict without newdata argument
+fitted &lt;- unname(fitted(mod))
+pred &lt;- unname(predict(mod))
+stopifnot(identical(round(fitted, 6), round(pred, 6)))
+
+resid &lt;- unname(resid(mod))
+head(resid)</code></pre>
+<pre><code>## [1] -2.345433 -1.490972 -2.472367  1.785333  1.647193 -1.278631</code></pre>
+<pre class="r"><code>boot_resid &lt;- boot_permute(tibble(resid = resid), &quot;resid&quot;)
+head(boot_resid())</code></pre>
+<pre><code>## [1] -2.472367 -3.408680  6.348440  2.192792 -2.862147 -2.317052</code></pre>
+<pre class="r"><code>head(boot_resid())</code></pre>
+<pre><code>## [1]  1.3973583 -2.1005656  0.8901898 -0.2734911 -2.4723669 -2.0291802</code></pre>
+<p>we can refactor, and remove the model fitting into the factory.</p>
+<pre class="r"><code>boot_model &lt;- function(df, formula) {
+  mod &lt;- lm(formula, data = df)
+  resid &lt;- unname(resid(mod))
+  # remove the model to save memory
+  rm(mod)
+
+  function() {
+    sample(resid, size = length(resid), replace = TRUE)
+  }
+} 
+
+boot_mtcars2 &lt;- boot_model(mtcars, mpg ~ wt + disp)
+head(boot_mtcars2())</code></pre>
+<pre><code>## [1]  2.728799  2.192792  2.728799  6.348440 -2.317200 -1.278631</code></pre>
+<pre class="r"><code>head(boot_mtcars2())</code></pre>
+<pre><code>## [1] -2.47236688 -0.03421046  0.89018976  2.19486787 -2.31719966  0.22354778</code></pre>
+</div>
+<div id="maximum-likelihod-estimation" class="section level3">
+<h3>Maximum Likelihod Estimation</h3>
+<p>find the parameter of a distribution that fits some observed values</p>
+<pre class="r"><code>lprob_poisson &lt;- function(lambda, x) {
+  n &lt;- length(x)
+  (log(lambda) * sum(x)) - (n * lambda) - sum(lfactorial(x))
+}
+
+obs &lt;- c(41, 30, 31, 38, 29, 24, 30, 29, 31, 38)
+
+lprob_poisson(10, obs)</code></pre>
+<pre><code>## [1] -183.6405</code></pre>
+<pre class="r"><code>lprob_poisson(20, obs)</code></pre>
+<pre><code>## [1] -61.14028</code></pre>
+<pre class="r"><code>lprob_poisson(30, obs)</code></pre>
+<pre><code>## [1] -30.98598</code></pre>
+<p>the term <code>sum(lfactorial(x)</code> is independent of lambda and can be precomputed to optimise the calculation</p>
+<pre class="r"><code>c &lt;- sum(lfactorial(x))
+
+lprob_poisson1 &lt;- function(lambda, x, c) {
+  n &lt;- length(x)
+  (log(lambda) * sum(x)) - (n * lambda) - c
+}
+
+lprob_poisson(10, obs)</code></pre>
+<pre><code>## [1] -183.6405</code></pre>
+<p>we can also move x and c into the function</p>
+<pre class="r"><code>lprob_poisson2 &lt;- function(x) {
+  
+  # we do not need to force(x)
+  # since it is not used by the 
+  # returned function
+  n &lt;-length(x)
+  c &lt;- sum(lfactorial(x))
+  sum_x &lt;- sum(x)
+  
+  function(lambda) {
+    (log(lambda) * sum_x) - (n * lambda) - c
+  }
+}
+
+ll1 &lt;- lprob_poisson2(obs)
+ll1(10)</code></pre>
+<pre><code>## [1] -183.6405</code></pre>
+<p>we can use <code>optimise</code> to find the best value</p>
+<pre class="r"><code>optimise(f = ll1, interval = c(0, 100), maximum = TRUE)</code></pre>
+<pre><code>## $maximum
+## [1] 32.09999
+## 
+## $objective
+## [1] -30.26755</code></pre>
+</div>
+</div>
+<div id="function-operators" class="section level2">
+<h2>Function Operators</h2>
+<p>Functions that take a function as an argument and return a modfified function.
+Are called decorators in python.</p>
+<ul>
+<li><code>purrr::safely()</code> and friends</li>
+<li><code>memoise::memoise()</code> (see below)</li>
+<li>any reusable wrapper, for example one that automatically retries a give function on failure</li>
+</ul>
+<div id="memoisememoise" class="section level3">
+<h3>memoise::memoise()</h3>
+<p>caching the results of a slow function when executed again with the same arguments</p>
+<pre class="r"><code>slow_function &lt;- function(x) {
+  Sys.sleep(1)
+  x * 10 * runif(1)
+}
+
+# different results
+system.time(print(slow_function(1)))</code></pre>
+<pre><code>## [1] 3.095154</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.001   0.000   1.004</code></pre>
+<pre class="r"><code>system.time(print(slow_function(1)))</code></pre>
+<pre><code>## [1] 9.585923</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.004   0.000   1.008</code></pre>
+<pre class="r"><code>fast_function &lt;- memoise::memoise(slow_function)
+
+# same results because cached result is returned
+system.time(print(fast_function(1)))</code></pre>
+<pre><code>## [1] 1.817053</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.001   0.000   1.003</code></pre>
+<pre class="r"><code>system.time(print(fast_function(1)))</code></pre>
+<pre><code>## [1] 1.817053</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.022   0.000   0.022</code></pre>
+<pre class="r"><code># different result because argument has changed
+system.time(print(fast_function(2)))</code></pre>
+<pre><code>## [1] 6.450071</code></pre>
+<pre><code>##    user  system elapsed 
+##       0       0       1</code></pre>
+<div id="recursion" class="section level4">
+<h4>Recursion</h4>
+<p>a classical example for recursive functions is the fibinacci sequence</p>
+<pre class="r"><code>fib &lt;- function(n) {
+  if (n &lt; 2) return(1)
+  fib(n - 2) + fib(n - 1)
+}
+system.time(print(fib(23)))</code></pre>
+<pre><code>## [1] 46368</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.050   0.002   0.052</code></pre>
+<pre class="r"><code>system.time(print(fib(33)))</code></pre>
+<pre><code>## [1] 5702887</code></pre>
+<pre><code>##    user  system elapsed 
+##   5.056   0.050   5.138</code></pre>
+<p>memoise::memoise() will cache the results</p>
+<pre class="r"><code>fib2 &lt;- memoise::memoise(function(n) {
+  if (n &lt; 2) return(1)
+  fib2(n - 2) + fib2(n - 1)
+})
+
+system.time(fib2(23))</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.009   0.000   0.010</code></pre>
+<pre class="r"><code>system.time(fib2(33))</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.003   0.000   0.003</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div id="oop" class="section level1">
+<h1>OOP</h1>
+<ul>
+<li><strong>encapsulated</strong> OOP <code>object.method(arg1, arg2)</code><br />
+</li>
+<li><strong>functional</strong> OOP <code>generic(object, arg1, arg2)</code></li>
+</ul>
+<div id="s3" class="section level2">
+<h2>S3</h2>
+<p>Functional OOP framework that is most commonly used in R.</p>
+<p>There are very few constrictions for creating S3 classes but some conventions.</p>
+<ul>
+<li>create a low-level constructor that creates objects with the right structure called <code>new_myclass()</code><br />
+</li>
+<li>a validator that performs computationally expensive checks, called <code>validate_myclass()</code><br />
+</li>
+<li>a user-friendly helper called <code>myclass()</code></li>
+</ul>
+<div id="simaerep-example" class="section level3">
+<h3>simaerep example</h3>
+<p>the <code>simaerep v0.3.1</code> package currently performs a sequence of operations on a dataframe. Each operations requires a different function that takes a data.frame and returns a modified version. We could simplify the interface for the users by grouping all those operations using S3 classes.</p>
+<p>There is no function wrapping the entire workflow because we want intermediary results to be accessible and visible. By convention a function returns only one object which would then only return the final dataframe df_eval. Then we would loose df_site and df_sim_sites for plotting and inspection.</p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>simplified user interface<br />
+</li>
+<li>input checks only need to run once<br />
+</li>
+<li>preserve intermediary results as class attributes</li>
+</ul>
+<pre class="r"><code># devtools::install_github(&quot;openpharma/simaerep@v0.3.1&quot;)
+
+suppressPackageStartupMessages(library(&quot;simaerep&quot;))
+
+set.seed(1)
+
+df_visit &lt;- sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id &lt;- &quot;A&quot;
+
+df_site &lt;- site_aggr(df_visit)
+
+df_sim_sites &lt;- sim_sites(df_site, df_visit, r = 1000)
+
+df_eval &lt;- eval_sites(df_sim_sites)
+
+plot_study(df_visit, df_site, df_eval, study = &quot;A&quot;) </code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-64-1.png" width="672" /></p>
+<p>constructor</p>
+<pre class="r"><code>new_simaerep &lt;- function(df_site,
+                           df_sim_sites,
+                           df_eval,
+                           r) {
+  
+  structure(
+    list(
+      df_site = df_site,
+      df_sim_sites = df_sim_sites,
+      df_eval = df_eval,
+      r = r
+    ),
+    class = &quot;simaerep&quot;
+  )
+}</code></pre>
+<p>validator</p>
+<pre class="r"><code>validate_simaerep &lt;- function(obj) {
+  comp &lt;- sort(attributes(obj)$names) ==  sort(c(&quot;df_site&quot;, &quot;df_sim_sites&quot;, &quot;df_eval&quot;, &quot;r&quot;))
+  stopifnot(all(comp))
+  return(obj)
+}</code></pre>
+<p>user-friendly constructor</p>
+<pre class="r"><code>simaerep &lt;- function(df_visit, r = 1000) {
+  
+  df_site &lt;- site_aggr(df_visit)
+  
+  df_sim_sites &lt;- sim_sites(df_site, df_visit, r = 1000)
+  
+  df_eval &lt;- eval_sites(df_sim_sites)
+  
+  validate_simaerep(
+    new_simaerep(
+      df_site,
+      df_sim_sites,
+      df_eval,
+      r
+    )
+  )
+}
+
+simaerep_studyA &lt;- simaerep(df_visit)
+
+str(simaerep_studyA)</code></pre>
+<pre><code>## List of 4
+##  $ df_site     : tibble [100 × 6] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id          : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number       : chr [1:100] &quot;S0001&quot; &quot;S0002&quot; &quot;S0003&quot; &quot;S0004&quot; ...
+##   ..$ n_pat             : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75  : int [1:100] 9 8 9 9 7 8 10 7 10 8 ...
+##   ..$ visit_med75       : Named num [1:100] 15 19 14 16 18 19 17 16 16 16 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75: num [1:100] 4 5.12 4.22 4.67 6.29 ...
+##  $ df_sim_sites: tibble [100 × 9] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id           : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number        : chr [1:100] &quot;S0001&quot; &quot;S0002&quot; &quot;S0003&quot; &quot;S0004&quot; ...
+##   ..$ n_pat              : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75   : int [1:100] 9 8 9 9 7 8 10 7 10 8 ...
+##   ..$ visit_med75        : Named num [1:100] 15 19 14 16 18 19 17 16 16 16 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75 : num [1:100] 4 5.12 4.22 4.67 6.29 ...
+##   ..$ mean_ae_study_med75: num [1:100] 7.38 9.33 6.92 7.91 8.84 ...
+##   ..$ pval               : num [1:100] 7.14e-05 3.15e-05 1.38e-03 2.60e-04 2.11e-02 ...
+##   ..$ prob_low           : num [1:100] 0 0 0 0 0.012 0.431 0.04 1 1 0.395 ...
+##  $ df_eval     : tibble [100 × 13] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id           : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number        : chr [1:100] &quot;S0002&quot; &quot;S0001&quot; &quot;S0004&quot; &quot;S0003&quot; ...
+##   ..$ n_pat              : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75   : int [1:100] 8 9 9 9 10 7 9 9 9 10 ...
+##   ..$ visit_med75        : Named num [1:100] 19 15 16 14 15 18 17 15 16 17 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75 : num [1:100] 5.12 4 4.67 4.22 5.4 ...
+##   ..$ mean_ae_study_med75: num [1:100] 9.33 7.38 7.91 6.92 7.37 ...
+##   ..$ pval               : num [1:100] 3.15e-05 7.14e-05 2.60e-04 1.38e-03 2.19e-02 ...
+##   ..$ prob_low           : num [1:100] 0 0 0 0 0.009 0.012 0.017 0.036 0.038 0.04 ...
+##   ..$ pval_adj           : num [1:100] 0.00315 0.00357 0.00867 0.03444 0.36483 ...
+##   ..$ pval_prob_ur       : num [1:100] 0.997 0.996 0.991 0.966 0.635 ...
+##   ..$ prob_low_adj       : num [1:100] 0 0 0 0 0.18 ...
+##   ..$ prob_low_prob_ur   : num [1:100] 1 1 1 1 0.82 ...
+##  $ r           : num 1000
+##  - attr(*, &quot;class&quot;)= chr &quot;simaerep&quot;</code></pre>
+<p>adding some class methods for common generic functions like <code>print()</code>, <code>plot()</code></p>
+<pre class="r"><code>print.simaerep &lt;- function(obj) {
+  studies &lt;- unique(obj$df_site$study_id)
+  print(paste(&quot;AE underreporting for studies:&quot;, studies))
+}
+
+print(simaerep_studyA)</code></pre>
+<pre><code>## [1] &quot;AE underreporting for studies: A&quot;</code></pre>
+<pre class="r"><code>plot.simaerep &lt;- function(obj, df_visit, study, what = c(&quot;study&quot;, &quot;med75&quot;)) {
+  
+  stopifnot(study %in% unique(df_visit$study_id))
+  
+  what &lt;- match.arg(what)
+  .f &lt;- switch(
+     what,
+     study = function(...) simaerep::plot_study(..., df_eval = obj$df_eval, study = study),
+     med75 = function(...) simaerep::plot_visit_med75(..., study_id_str = study)
+  )
+  
+  .f(df_visit = df_visit, df_site = obj$df_site)
+}
+
+plot(simaerep_studyA, df_visit, study = &quot;A&quot;, what = &quot;study&quot;)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-69-1.png" width="672" /></p>
+<pre class="r"><code>plot(simaerep_studyA, df_visit, study = &quot;A&quot;, what = &quot;med75&quot;)</code></pre>
+<pre><code>## purple line:          mean site ae of patients with visit_med75
+## grey line:            patient included
+## black dashed line:    patient excluded
+## dotted vertical line: visit_med75, 0.75 x median of maximum patient visits of site 
+## solid vertical line:  visit_med75 adjusted, increased to minimum maximum patient visit of included patients
+## dashed vertical line: maximum value for visit_med75 adjusted, 80% quantile of maximum patient visits of study</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-69-2.png" width="672" /></p>
+<p>to this point we have not:</p>
+<ul>
+<li>created new generic functions<br />
+</li>
+<li>used class inheritance</li>
+</ul>
+<p>A class that inherits from another class mus carry all its parents attributes, we can implement this by modifying the parent constructor as below and by calling the parent constructor from within the child constructor.</p>
+<p>Here we will create two classes one for initiating a simaerep object and the initial df_site aggregation step and one for the simulation.</p>
+<pre class="r"><code>new_simaerep &lt;- function(df_site, ..., class = character()) {
+  structure(
+    list(
+      df_site = df_site,
+      ...
+    ),
+    class = c(class, &quot;simaerep&quot;)
+  )
+}
+
+validate_simaerep &lt;- function(obj) {
+  comp &lt;- attributes(obj)$names ==  &quot;df_site&quot;
+  stopifnot(all(comp))
+  return(obj)
+}
+
+simaerep &lt;- function(df_visit) {
+  
+  df_site &lt;- site_aggr(df_visit)
+  
+  validate_simaerep(
+    new_simaerep(
+      df_site
+    )
+  )
+}
+
+simaerep_studyA &lt;- simaerep(df_visit)
+
+str(simaerep_studyA)</code></pre>
+<pre><code>## List of 1
+##  $ df_site: tibble [100 × 6] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id          : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number       : chr [1:100] &quot;S0001&quot; &quot;S0002&quot; &quot;S0003&quot; &quot;S0004&quot; ...
+##   ..$ n_pat             : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75  : int [1:100] 9 8 9 9 7 8 10 7 10 8 ...
+##   ..$ visit_med75       : Named num [1:100] 15 19 14 16 18 19 17 16 16 16 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75: num [1:100] 4 5.12 4.22 4.67 6.29 ...
+##  - attr(*, &quot;class&quot;)= chr &quot;simaerep&quot;</code></pre>
+<pre class="r"><code>new_simaerep_sim &lt;- function(df_site, df_sim_sites, df_eval, r) {
+  
+  new_simaerep(
+    df_site = df_site,
+    df_sim_sites = df_sim_sites,
+    df_eval = df_eval,
+    r = r,
+    class = &quot;simaerep_sim&quot;
+  )
+
+}
+
+validate_simaerep_sim &lt;- function(obj) {
+  
+  comp &lt;- sort(attributes(obj)$names) ==  sort(c(&quot;df_site&quot;, &quot;df_sim_sites&quot;, &quot;df_eval&quot;, &quot;r&quot;))
+  stopifnot(all(comp))
+  return(obj)
+}</code></pre>
+<p>next we define a new generic method called <code>sim</code> that starts the simulation which returns the new class <code>simaerep_sim</code>. The process that finds the right method to call for an object called with a generic function is called method dispatching.</p>
+<pre class="r"><code># define generic function
+sim &lt;- function(obj, ...) {
+  UseMethod(&quot;sim&quot;)
+}
+
+sim.simaerep &lt;- function(obj, df_visit, r = 1000) {
+  
+  df_sim_sites &lt;- sim_sites(obj$df_site, df_visit, r = r)
+  
+  df_eval &lt;- eval_sites(df_sim_sites)
+  
+  validate_simaerep_sim(
+    new_simaerep_sim(
+      df_site,
+      df_sim_sites,
+      df_eval,
+      r
+    )
+  )
+}
+
+simaerep_studyA_sim &lt;- sim(simaerep_studyA, df_visit)
+
+str(simaerep_studyA_sim)</code></pre>
+<pre><code>## List of 4
+##  $ df_site     : tibble [100 × 6] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id          : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number       : chr [1:100] &quot;S0001&quot; &quot;S0002&quot; &quot;S0003&quot; &quot;S0004&quot; ...
+##   ..$ n_pat             : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75  : int [1:100] 9 8 9 9 7 8 10 7 10 8 ...
+##   ..$ visit_med75       : Named num [1:100] 15 19 14 16 18 19 17 16 16 16 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75: num [1:100] 4 5.12 4.22 4.67 6.29 ...
+##  $ df_sim_sites: tibble [100 × 9] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id           : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number        : chr [1:100] &quot;S0001&quot; &quot;S0002&quot; &quot;S0003&quot; &quot;S0004&quot; ...
+##   ..$ n_pat              : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75   : int [1:100] 9 8 9 9 7 8 10 7 10 8 ...
+##   ..$ visit_med75        : Named num [1:100] 15 19 14 16 18 19 17 16 16 16 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75 : num [1:100] 4 5.12 4.22 4.67 6.29 ...
+##   ..$ mean_ae_study_med75: num [1:100] 7.38 9.33 6.92 7.91 8.84 ...
+##   ..$ pval               : num [1:100] 7.14e-05 3.15e-05 1.38e-03 2.60e-04 2.11e-02 ...
+##   ..$ prob_low           : num [1:100] 0 0 0 0 0.012 0.431 0.04 1 1 0.395 ...
+##  $ df_eval     : tibble [100 × 13] (S3: tbl_df/tbl/data.frame)
+##   ..$ study_id           : chr [1:100] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##   ..$ site_number        : chr [1:100] &quot;S0002&quot; &quot;S0001&quot; &quot;S0004&quot; &quot;S0003&quot; ...
+##   ..$ n_pat              : int [1:100] 10 10 10 10 10 10 10 10 10 10 ...
+##   ..$ n_pat_with_med75   : int [1:100] 8 9 9 9 10 7 9 9 9 10 ...
+##   ..$ visit_med75        : Named num [1:100] 19 15 16 14 15 18 17 15 16 17 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:100] &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; &quot;80%&quot; ...
+##   ..$ mean_ae_site_med75 : num [1:100] 5.12 4 4.67 4.22 5.4 ...
+##   ..$ mean_ae_study_med75: num [1:100] 9.33 7.38 7.91 6.92 7.37 ...
+##   ..$ pval               : num [1:100] 3.15e-05 7.14e-05 2.60e-04 1.38e-03 2.19e-02 ...
+##   ..$ prob_low           : num [1:100] 0 0 0 0 0.009 0.012 0.017 0.036 0.038 0.04 ...
+##   ..$ pval_adj           : num [1:100] 0.00315 0.00357 0.00867 0.03444 0.36483 ...
+##   ..$ pval_prob_ur       : num [1:100] 0.997 0.996 0.991 0.966 0.635 ...
+##   ..$ prob_low_adj       : num [1:100] 0 0 0 0 0.18 ...
+##   ..$ prob_low_prob_ur   : num [1:100] 1 1 1 1 0.82 ...
+##  $ r           : num 1000
+##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;simaerep_sim&quot; &quot;simaerep&quot;</code></pre>
+<pre class="r"><code>class(simaerep_studyA_sim)</code></pre>
+<pre><code>## [1] &quot;simaerep_sim&quot; &quot;simaerep&quot;</code></pre>
+<pre class="r"><code>plot.simaerep &lt;- function(obj, df_visit, study,
+                          ... # we need ... to ignore additional arguments when called with NextMethod()
+                          ) {
+  simaerep::plot_visit_med75(df_visit, obj$df_site, study_id_str = study)
+}</code></pre>
+<p>override plot method of parent class, and use user-supplied argument to switch back to parent class method using <code>NextMethod()</code></p>
+<pre class="r"><code>plot.simaerep_sim &lt;- function(obj, df_visit, study, what = c(&quot;study&quot;, &quot;med75&quot;)) {
+  what &lt;- match.arg(what)
+  if (what == &quot;study&quot;) {
+    simaerep::plot_study(df_visit, obj$df_site, obj$df_eval, study = study)
+  } else {
+    # calls parent class method using all original arguments
+    NextMethod()
+  }
+}
+
+
+plot(simaerep_studyA_sim, df_visit, study = &quot;A&quot;, what = &quot;study&quot;)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-73-1.png" width="672" /></p>
+<pre class="r"><code>plot(simaerep_studyA_sim, df_visit, study = &quot;A&quot;, what = &quot;med75&quot;)</code></pre>
+<pre><code>## purple line:          mean site ae of patients with visit_med75
+## grey line:            patient included
+## black dashed line:    patient excluded
+## dotted vertical line: visit_med75, 0.75 x median of maximum patient visits of site 
+## solid vertical line:  visit_med75 adjusted, increased to minimum maximum patient visit of included patients
+## dashed vertical line: maximum value for visit_med75 adjusted, 80% quantile of maximum patient visits of study</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-73-2.png" width="672" /></p>
+<pre class="r"><code>plot(simaerep_studyA_sim, df_visit, study = &quot;A&quot;, what = &quot;XXX&quot;)</code></pre>
+<pre><code>## Error in match.arg(what): &#39;arg&#39; should be one of &quot;study&quot;, &quot;med75&quot;</code></pre>
+<pre class="r"><code>plot(simaerep_studyA, df_visit, study = &quot;A&quot;)</code></pre>
+<pre><code>## purple line:          mean site ae of patients with visit_med75
+## grey line:            patient included
+## black dashed line:    patient excluded
+## dotted vertical line: visit_med75, 0.75 x median of maximum patient visits of site 
+## solid vertical line:  visit_med75 adjusted, increased to minimum maximum patient visit of included patients
+## dashed vertical line: maximum value for visit_med75 adjusted, 80% quantile of maximum patient visits of study</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part1_files/figure-html/unnamed-chunk-73-3.png" width="672" /></p>
+<p>sloop provides some function to investigate S3 class behavior.</p>
+<pre class="r"><code>sloop::s3_methods_class(&quot;simaerep&quot;)</code></pre>
+<pre><code>## # A tibble: 3 × 4
+##   generic class    visible source    
+##   &lt;chr&gt;   &lt;chr&gt;    &lt;lgl&gt;   &lt;chr&gt;     
+## 1 plot    simaerep TRUE    .GlobalEnv
+## 2 print   simaerep TRUE    .GlobalEnv
+## 3 sim     simaerep TRUE    .GlobalEnv</code></pre>
+<pre class="r"><code>sloop::s3_methods_class(&quot;simaerep_sim&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##   generic class        visible source    
+##   &lt;chr&gt;   &lt;chr&gt;        &lt;lgl&gt;   &lt;chr&gt;     
+## 1 plot    simaerep_sim TRUE    .GlobalEnv</code></pre>
+<pre class="r"><code>sloop::s3_methods_generic(&quot;sim&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##   generic class    visible source    
+##   &lt;chr&gt;   &lt;chr&gt;    &lt;lgl&gt;   &lt;chr&gt;     
+## 1 sim     simaerep TRUE    .GlobalEnv</code></pre>
+<pre class="r"><code>sloop::s3_dispatch(plot(simaerep_studyA_sim, df_visit, study = &quot;A&quot;))</code></pre>
+<pre><code>## =&gt; plot.simaerep_sim
+## -&gt; plot.simaerep
+##  * plot.default</code></pre>
+<pre class="r"><code>sloop::s3_dispatch(plot(simaerep_studyA, df_visit, study = &quot;A&quot;))</code></pre>
+<pre><code>## =&gt; plot.simaerep
+##  * plot.default</code></pre>
+</div>
+</div>
+<div id="r6" class="section level2">
+<h2>R6</h2>
+<p>R6 uses the encapsulated OOP framework, commonly used in shiny. Works like object in python.</p>
+<ul>
+<li>Use <code>R6::R6Class()</code> to construct classes</li>
+<li>Pass a list with attributes (static values) and methods (functions)</li>
+<li>Within methods refer to the class as <code>self</code> and subset with <code>$</code> (<code>self$attribute</code>, <code>self.method()</code>)</li>
+<li>Instantiate objects by calling <code>x &lt;- Class$new()</code></li>
+<li>methods can be chained <code>x$add(1)$sub(1)</code></li>
+<li><code>initialize()</code> method overrise <code>new()</code> and works like <code>__init()</code> in python</li>
+<li>inherit by using the <code>inherit</code> argument of <code>R6::R6Class()</code></li>
+<li>pass private and public attributes and classes using the <code>privat</code> and <code>public</code> arguments of <code>R6::R6Class()</code></li>
+<li>active fields look like attributes but are methods, can run additional checks</li>
+<li>instantiated R6 classes behave like python objects modifying one object will also modify all of its copies</li>
+<li>always put randomized default values that you do not want to share across instances into the initialize function</li>
+</ul>
+</div>
+<div id="s4" class="section level2">
+<h2>S4</h2>
+<p>Mostly used for bioconductor packages uses functional OOP framework. A well-known package that uses S4 is <code>ROCR</code> and <code>lubridate</code></p>
+<ul>
+<li>much stricter framework than S3</li>
+<li>makes use of specialized functions like <code>setClass()</code>, <code>setGeneric()</code>, <code>setMethod()</code></li>
+<li>all functions are distributed with R in the <code>methods</code> package (which should be explicitly loaded so show S4 framework is used and to avoid problems when running non-interactive mode)</li>
+<li>attributes are <em>slots</em> which can be subset using <code>@</code></li>
+<li>supports multiple inheritance and multiple dispatch (which should be avoided because its complicated)</li>
+</ul>
+<div id="slots" class="section level3">
+<h3>Slots</h3>
+<ul>
+<li>when instantiated objects slot’s are automatically checked if they contain the correct data types</li>
+<li><code>setValidity()</code>, <code>validObject()</code> can be used to extend checks and to validate existing objects</li>
+</ul>
+</div>
+<div id="conventions" class="section level3">
+<h3>Conventions</h3>
+<ul>
+<li>CamelCase</li>
+<li>provide constructor with same name as class</li>
+<li>write generics that call and set slot values</li>
+</ul>
+</div>
+<div id="multiple-inheritence" class="section level3">
+<h3>Multiple Inheritence</h3>
+<p>in case a class inherits from multiple classes the method that is closest to the class is chosen. If two methods are matching the method for the class which has a higher lexical order is chosen.</p>
+</div>
+<div id="multiple-dispatch" class="section level3">
+<h3>Multiple dispatch</h3>
+<p>If a generic uses two classes as input both classes are searched for methods.</p>
+</div>
+</div>
+<div id="s4-vs-s3" class="section level2">
+<h2>S4 vs S3</h2>
+<ul>
+<li>S4 more suitable for larger teams</li>
+<li>S4 is better with many inter related objects (for example provide methods via generics for combinations of different types of sparse matrices)</li>
+</ul>
+</div>
+</div>

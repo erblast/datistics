@@ -1,0 +1,1373 @@
+---
+title: Advanced R - Notes (part1)
+author: Björn Koneswarakantha
+date: '2021-10-13'
+slug: advancedr
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Notes when going through advanced R
+thumbnailImagePosition : left
+thumbnailImage: advancedr.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<br></br>
+<br></br>
+
+```{r, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png'
+                    , thumbnail = 'https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png'
+                    , `thumbnail-width` = '400px'
+                    , `thumbnail-height` = '600px'
+                    , target = 'https://adv-r.hadley.nz/index.html'
+                    )
+
+```
+
+
+> Advanced R (Hadley Wickham).
+
+<br></br>
+<br></br>
+
+
+```{r}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+
+
+```{r load, error = FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(rlang))
+suppressPackageStartupMessages(library(lobstr))
+suppressPackageStartupMessages(library(withr))
+suppressPackageStartupMessages(library(glue))
+# devtools::install_github("openpharma/simaerep@v0.3.1")
+suppressPackageStartupMessages(library(simaerep))
+```
+
+
+## Functions
+
+### Conventions for arguments that come from a set of strings
+
+```{r}
+center <- function(x, type = c("mean", "median", "trimmed")) {
+  type <- match.arg(type)
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}
+```
+
+
+### Functions to Investigate Functions
+
+```{r}
+.f <- function(x,y){
+  # Comment
+  x + y
+}
+formals(.f) # returns arguments
+body(.f) # returns body without comments
+environment(.f) 
+attributes(.f)$srcref # returns body with commments
+```
+
+### Get all Functions from package
+
+```{r}
+objs <- mget(ls("package:base", all = TRUE), inherits = TRUE)
+funs <- Filter(is.function, objs)
+```
+
+### Function with the most arguments
+
+primitive base functions written in C are either of type "builtin" or "special". `formals()`, `body()`and `environment()` will return NULL for those functions.
+
+```{r}
+df_funs <- tibble(funs = funs,
+       names = names(funs) ) %>%
+  mutate(formals = map(funs, formals),
+         n_args = map_int(formals, length),
+         type = map_chr(funs, typeof)) %>%
+  arrange(desc(n_args))
+
+df_funs
+
+df_funs %>%
+  group_by(type, n_args == 0) %>%
+  count()
+```
+
+## Scoping
+
+### Search Environment
+
+```{r}
+
+my_string <- "hello world"
+
+exists("my_string")
+exists("my_string_2")
+get0("my_string")
+get0("my_string_2")
+
+ls() # get all variable names
+```
+
+
+### List unbound global variables
+
+```{r}
+g12 <- function() x + 1
+codetools::findGlobals(g12)
+
+g13 <- function(x) x + 1
+codetools::findGlobals(g13)
+```
+
+
+### Lazy Evaluation of Arguments
+
+arguments even when given as expressions will only be evaluated when called in the function, these structures are called promises. So this works, surprisingly:
+
+```{r}
+h04 <- function(x = 1, y = x * 2, z = a + b) {
+  a <- 10
+  b <- 100
+  
+  c(x, y, z)
+}
+
+```
+
+But only when supplied as default arguments not when user-supplied
+
+```{r error= TRUE}
+h04(1, x * 2, a + b)
+```
+
+User-Supplied arguments are evaluated before they are passed to the function, that is why infix functions and operators such as `+` and `%%`are working. 
+
+Default arguments are evaluated as promises only when they are called within the function.
+
+Reminder infix functions take two arguments, code that comes directly before and right after. User defined infix functions need to be defined like this with ``%name%` <- function(lhs, rhs)`
+
+```{r}
+x <- 1
+
+!is.null(x) && length(x) == 1 && x > 0
+
+# in python we would need to put brackets around the logic statements
+(!is.null(x)) && (length(x) == 1) && (x > 0)
+
+
+c(TRUE, FALSE) && c(TRUE, FALSE) # evaluation stops at first element
+c(TRUE, FALSE) & c(TRUE, FALSE) # all elements are pair-wise evaluated
+
+FALSE && NULL # evaluation stops after result is determined by first argument FALSE
+FALSE || NULL # gives error because NULL needs to be evaluated for OR condition
+FALSE & NULL # I would expect this to error too
+FALSE | NULL # this as well mmh
+```
+
+
+
+### Default or User Supplied argument
+
+```{r}
+h06 <- function(x = 10) {
+  is_default <- missing(x)
+  return(is_default)
+}
+
+h06()
+h06(10)
+```
+
+### Capture dot dot dot
+
+```{r}
+i03 <- function(...) {
+  list(first = ..1, third = ..3)
+}
+str(i03(1, 2, 3))
+
+i04 <- function(...) {
+  list(...)
+}
+str(i04(a = 1, b = 2))
+```
+
+### Exit Handler `on.exit()`
+
+Always set add = TRUE when using on.exit(). If you don’t, each call to on.exit() will overwrite the previous exit handler. Even when only registering a single handler, it’s good practice to set add = TRUE so that you won’t get any unpleasant surprises if you later add more exit handlers.
+
+```{r error=TRUE}
+j06 <- function(x) {
+  cat("Hello\n")
+  on.exit(cat("Goodbye!\n"), add = TRUE)
+  
+  if (x) {
+    return(10)
+  } else {
+    stop("Error")
+  }
+}
+
+j06(TRUE)
+
+j06(FALSE)
+```
+
+Better than using `on.exit` is actually to use functions of the `withr` package that automatically provide cleanups for files and directories
+
+### Capture output `capture.output()`
+
+also captures error messages
+
+### Everything that happens in R is a function call
+
+Almost everything can be rewritten as a function call
+
+```{r}
+x + y
+`+`(x, y)
+
+names(df) <- c("x", "y", "z")
+`names<-`(df, c("x", "y", "z"))
+
+for(i in 1:10) print(i)
+`for`(i, 1:10, print(i))
+```
+
+
+### Replacement Functions
+
+```{r}
+`second<-` <- function(x, value) {
+  x[2] <- value
+  x
+}
+
+x <- 1:10
+second(x) <- 5
+
+x
+```
+
+## Environments
+
+Generally, an environment is similar to a named list, with four important exceptions:
+
+- Every name must be unique.
+- The names in an environment are not ordered.
+- An environment has a parent.
+- Environments are not copied when modified.
+
+```{r}
+e1 <- env(
+  a = FALSE,
+  b = "a",
+  c = 2.3,
+  d = 1:3,
+)
+
+rlang::env_print(e1)
+rlang::env_names(e1)
+
+```
+
+### Create a parent environment
+
+```{r}
+e2 <- env(e1, letters = LETTERS)
+
+rlang::env_parent(e2)
+rlang::env_parents(e2)
+```
+
+### Packages
+
+Composition of the global environment
+
+```{r}
+search()
+rlang::search_envs()
+```
+
+### Package Functions
+- passively bound by one environment (where they can be called from)
+- actively bind one environment (which they use to make their calls)
+
+for regular functions both environments are the same. For functions loaded from packages the bind environment is defined by the package namespace created from the package NAMESPACE file. Like this they are not affected by overrides in the execution environment.
+
+
+
+### Callstacks
+
+use `lobstr::cst()` in a similar way to `traceback()` to visualise the callstack.
+
+```{r error=TRUE}
+f <- function(x) {
+  g(x = 2)
+}
+g <- function(x) {
+  h(x = 3)
+}
+h <- function(x) {
+  stop()
+}
+
+f(x = 1)
+
+traceback()
+
+h <- function(x) {
+  lobstr::cst()
+  print("do I get executed =")
+}
+
+f(x = 1)
+```
+
+
+## Conditions
+
+### Warnings
+
+```{r error=TRUE}
+give_warning <- function() {
+  warning("You have been warned")
+}
+
+withr::with_options(list(warn = 1), give_warning()) # causes warning to appear immediately
+withr::with_options(list(warn = 2), give_warning()) # convert warning to error
+
+```
+
+### Condition Objects
+
+conditions such as messages, warnings and errors are objects
+
+```{r}
+cnd <- rlang::catch_cnd(stop("An error"))
+str(cnd)
+```
+
+### tryCatch
+
+`tryCatch` executes code and has arguments for different types of condition objects. Each arguments takes a function with a single condition object argument.
+
+```{r}
+try_me <- function(expr) {
+    tryCatch(
+      error = function(cnd) print("error"),
+      warning = function(cnd) print("warning"),
+      message = function(cnd) print("message"),
+      finally = print("finished"),
+      expr
+  )
+}
+
+try_me(stop("hello"))
+try_me(warning("hello"))
+try_me(message("hello"))
+```
+
+variable assignments within trycatch are not passed to parent env
+
+```{r}
+if(exists("res")) remove(res)
+tryCatch(
+  warning = function(cnd) res <- 0,
+  res <- log(-1)
+)
+exists("res")
+```
+
+this does not work because user-defined arguments are evaluated on the spot, so alternative expression always gets evaluated
+
+```{r}
+try_me3 <- function(expr, expr_alt) {
+    tryCatch(
+      warning = function(cnd) expr_alt,
+      expr
+  )
+}
+
+try_me3(res <- log(-1), res <- 0)
+res
+
+try_me3(res <- log(1), res <- 0)
+res
+
+
+```
+
+tryCatch returns last value which can be assigned inside the active env
+
+```{r}
+if(exists("res")) remove(res)
+res <- tryCatch(
+  warning = function(cnd) 0,
+  log(-1)
+)
+
+res
+
+```
+
+### withCallingHandlers
+
+`withCallingHandlers` still executes the condition, while `tryCatch` muffles them.
+
+```{r}
+try_me <- function(expr) {
+    withCallingHandlers(
+      error = function(cnd) print("error"),
+      warning = function(cnd) print("warning"),
+      message = function(cnd) print("message"),
+      finally = print("finished"),
+      expr
+  )
+}
+
+try_me(stop("hello"))
+try_me(warning("hello"))
+try_me(message("hello"))
+
+```
+
+
+### Custom Errors
+
+- reuse check function to supply consistent error messages
+- catch and handle different types of errors
+
+We start by defining a custom error Class
+
+We cannot execute the code chunk below because Rmarkdown is not compatible with custom errors
+
+```{r eval = FALSE}
+
+stop_custom <- function(.subclass, message, ...) {
+  err <- structure(
+    list(
+      message = message,
+      call = call,
+      ...
+    ),
+    class = c(.subclass, "error", "condition")
+  )
+  stop(err)
+}
+
+stop_custom("error_new", "This is a custom error", x = 10)
+
+err <- rlang::catch_cnd(
+  stop_custom("error_new", "This is a custom error", x = 10)
+)
+
+class(err)
+# we can supply additional arguments that will be attached as attributes
+err$x
+str(err)
+```
+
+We can then use this new class for creating customized errors
+
+```{r}
+abort_bad_argument <- function(arg, must, not = NULL) {
+  msg <- glue::glue("`{arg}` must be {must}")
+  if (!is.null(not)) {
+    not <- typeof(not)
+    msg <- glue::glue("{msg}; not {not}.")
+  }
+  
+  stop_custom("error_bad_argument", 
+    message = msg, 
+    arg = arg, 
+    must = must, 
+    not = not
+  )
+}
+
+abort_bad_argument("key", "numeric", "ABC")
+
+```
+
+We can then chose to handle those errors specifically
+
+```{r}
+
+mylog <- function(x) {
+  if(! is.numeric(x)) abort_bad_argument("x", "numeric", x)
+  return(log(x))
+}
+
+mylog(1)
+mylog("A")
+
+tryCatch(
+  error_bad_argument = function(cnd) NULL,
+  mylog("A")
+)
+
+tryCatch(
+  error_bad_argument = function(cnd) NULL,
+  stop()
+)
+
+```
+
+# Functional Programming
+
+
+## Functionals
+
+### purrr::reduce
+
+used to apply a function with two arguments to a stack o items by executing on the first to items and saving the result for the next function call to apply with the next item in line.
+
+```{r}
+purrr::reduce(LETTERS, paste0)
+```
+
+finding an intersection or union
+
+```{r}
+l <- purrr::map(1:4, ~ sample(1:10, 15, replace = T))
+str(l)
+
+purrr::reduce(l, intersect)
+
+purrr::reduce(l, union)
+```
+
+adding up numbers
+
+```{r}
+purrr::reduce(c(1, 2, 3), `+`)
+```
+
+
+### purrr::accumulate
+
+```{r}
+purrr::accumulate(LETTERS, paste0)
+```
+
+### predicate functional
+
+purr has only some of those
+
+```{r}
+any(LETTERS == "A")
+any(as.list(LETTERS) == "A")
+purrr::some(LETTERS, ~ . == "A")
+```
+
+#### is.na
+
+`is.na()` is not a predicate function because it is vectorized while `anyNA` is.
+
+```{r}
+is.na(c(NA, 1))
+anyNA(c(NA, 1))
+```
+
+### apply() and friends
+
+
+- `vapply()` uses and returns vectors
+- `sapply()` 
+
+
+```{r}
+ls <- list(a = c(1, 2, 3), b = c(TRUE, FALSE, TRUE, FALSE))
+vs <- c("do", "not", "leak")
+cl <- structure(ls, class = "apply_test")
+```
+
+`purrr::map()` is similar to `base::lapply()` which uses lists as in and output.
+
+
+```{r}
+purrr::map(ls, sum)
+purrr::map(vs, str_length)
+purrr::map(ls, sum)
+
+lapply(ls, sum)
+lapply(vs, str_length)
+lapply(cl, sum)
+```
+
+`sapply()` is more flexible and returns vectors if possible
+
+```{r}
+sapply(ls, sum)
+sapply(vs, str_length)
+sapply(cl, sum)
+```
+
+`vapply()` is similar to `sapply()` requires a FUN.Value argument to set requirements for the output. 
+
+It compares the length and type of the FUN.Value argument with the output.
+
+```{r}
+vapply(ls, sum)
+vapply(ls, sum, FUN.VALUE = integer(1))
+vapply(ls, sum, FUN.VALUE = double(1))
+vapply(ls, sum, FUN.VALUE = double(2))
+vapply(ls, sum, FUN.VALUE = c(c = 8))
+vapply(ls, sum, FUN.VALUE = "hello")
+
+vapply(vs, str_length, 9999)
+
+vapply(cl, sum, 1)
+```
+
+`sapply()` can also return a matrix
+
+```{r}
+i39 <- sapply(3:9, seq)
+i39
+
+# fivenum returns boxcox stats
+x <- fivenum(i39[[1]])
+
+vapply(vs, str_length)
+vapply(cl, sum)
+lapply(i39, fivenum)
+sapply(i39, fivenum)
+```
+
+`vapply()` can add row_names
+
+```{r}
+vapply(i39, fivenum,
+       c(Min. = 0, "1st Qu." = 0, Median = 0, "3rd Qu." = 0, Max. = 0))
+
+vapply(i39, fivenum,
+       c(Min. = 0, "1st Qu." = 0, Median = 0, "3rd Qu." = 0))
+```
+
+
+## Function Factories
+
+Functions that return other functions. Those functions are not garbage collectd and need to be deleted manually.
+
+### force()
+
+The expression are evaluated lazily thus when x changes the function does not behave as expected.
+
+```{r}
+power <- function(exp) {
+  function(x) {
+    x ^ exp
+  }
+}
+
+x <- 2
+square <- power(x)
+x <- 3
+square(2)
+```
+
+always use `force()` when creating function factories
+
+```{r}
+power2 <- function(exp) {
+  force(exp)
+  function(x) {
+    x ^ exp
+  }
+}
+
+x <- 2
+square <- power2(x)
+x <- 3
+square(2)
+
+```
+
+
+### Closures (Stateful functions)
+
+not recommended in R
+
+```{r}
+storer <- function(){
+  store_var <- 5
+  function() store_var
+}
+storage <- storer()
+storage()
+exists("store_var", envir = rlang::current_env())
+exists("store_var", envir = environment(storage))
+
+
+make_counter <- function(){
+  count_var <- 0
+  function() {
+    count_var <<- count_var + 1 # <<- passes the assignment to parent environment where it is preserved via the binding
+    count_var
+  }
+}
+counter <- make_counter()
+exists("count_var", envir = rlang::current_env())
+exists("count_var", envir = environment(counter))
+counter()
+counter()
+counter()
+counter()
+```
+
+### Applications
+
+- `stats::approxfun()`
+- `stats::ecdf()`
+- `scales::comma_format()` and other `scales` functions
+- `geom_histogram()` binwidth argument (see below)
+- [harmonising input arguments of similar functions](https://adv-r.hadley.nz/function-factories.html#ggsave)
+- Box-Cox Transformation (see below)
+- Bootstrap Resampling (see below)
+- Maximum Likelihood Estimation (see below)
+
+### geom_histogram
+
+same number of observations with different sd will give a different number of bins in each facet.
+
+```{r}
+sd <- c(1, 5, 15)
+n <- 100
+
+df <- data.frame(x = rnorm(3 * n, sd = sd), sd = rep(sd, n))
+
+head(df)
+
+ggplot(df, aes(x)) + 
+  geom_histogram(binwidth = 2) + 
+  facet_wrap(~ sd, scales = "free_x") + 
+  labs(x = NULL)
+```
+
+In order to fix the number of bins per facet we can pass a function instead.
+
+```{r}
+binwidth_bins <- function(n) {
+  force(n)
+  
+  function(x) {
+    (max(x) - min(x)) / n
+  }
+}
+
+ggplot(df, aes(x)) + 
+  geom_histogram(binwidth = binwidth_bins(20)) + 
+  facet_wrap(~ sd, scales = "free_x") + 
+  labs(x = NULL)
+```
+
+### geom_function() and stat_function()
+
+in ggplot2 `stat_function()` and `geom_function()` allow you to plot a function that returns y of a given x values.
+
+Here the density derived from 100 samples from a normal distribution vs the actual normal density function.
+
+```{r}
+ggplot(data.frame(x = rnorm(100)), aes(x)) +
+  geom_density() +
+  geom_function(fun = dnorm, colour = "red")
+```
+
+or using `statfunction()`
+
+```{r}
+ggplot(data.frame(x = rnorm(100)), aes(x)) +
+  geom_density() +
+  stat_function(fun = dnorm, geom = "line", colour = "red")
+```
+
+function only
+
+```{r}
+ggplot() +
+  stat_function(fun = dnorm, geom = "line", colour = "red") +
+  lims(x = c(-3, +3))
+
+```
+
+
+### Boxcox Transformation
+
+boxcox transformation is a power transformation that is used to convert non normal distributed values to a normal distribution. The degree of the transformation is defined by an unspecified lambda. For lambda == 0 it results in a log(x) transformation.
+
+```{r}
+boxcox1 <- function(x, lambda) {
+  if (lambda == 0) {
+    log(x)
+  } else {
+    (x ^ lambda - 1) / lambda
+  }
+}
+```
+
+in order to plot boxcox transformations for different lambdas we need to generate a function that takes only one x argument.
+
+```{r}
+boxcox2 <- function(lambda) {
+  if (lambda == 0) {
+    function(x) log(x)
+  } else {
+    function(x) (x ^ lambda - 1) / lambda
+  }
+}
+
+ggplot() +
+  geom_function(aes(colour = 0), fun = boxcox2(0)) +
+  geom_function(aes(colour = 1), fun = boxcox2(1)) +
+  geom_function(aes(colour = 1.5), fun = boxcox2(1.5)) +
+  lims(x = c(0, 10))
+```
+
+we can wrap the geom calls into another function and use `lapply()`
+
+```{r}
+geoms_boxcox <- function(lambda, ...) {
+  geom_function(aes(colour = lambda), fun = boxcox2(lambda), ...)
+}
+
+ggplot() +
+  lapply(c(0, 1, 1.5), geoms_boxcox) +
+  lims(x = c(0, 10))
+```
+
+### Bootstraping
+
+bootstrap resampling to permute columns in a dataframe
+
+```{r}
+boot_permute <- function(df, var) {
+  n <- nrow(df)
+  force(var)
+  
+  function() {
+    col <- df[[var]]
+    col[sample(n, replace = TRUE)]
+  }
+}
+
+boot_mtcars1 <- boot_permute(mtcars, "mpg")
+head(boot_mtcars1())
+head(boot_mtcars1())
+```
+
+Imagine we would want to resample residuals of a model in order to bootstrap error statistics
+
+```{r}
+mod <- lm(mpg ~ wt + disp, data = mtcars)
+# fitted returns fitted values, same as predict without newdata argument
+fitted <- unname(fitted(mod))
+pred <- unname(predict(mod))
+stopifnot(identical(round(fitted, 6), round(pred, 6)))
+
+resid <- unname(resid(mod))
+head(resid)
+
+
+boot_resid <- boot_permute(tibble(resid = resid), "resid")
+head(boot_resid())
+head(boot_resid())
+```
+
+we can refactor, and remove the model fitting into the factory.
+
+```{r}
+boot_model <- function(df, formula) {
+  mod <- lm(formula, data = df)
+  resid <- unname(resid(mod))
+  # remove the model to save memory
+  rm(mod)
+
+  function() {
+    sample(resid, size = length(resid), replace = TRUE)
+  }
+} 
+
+boot_mtcars2 <- boot_model(mtcars, mpg ~ wt + disp)
+head(boot_mtcars2())
+head(boot_mtcars2())
+
+```
+
+### Maximum Likelihod Estimation
+
+find the parameter of a distribution that fits some observed values
+
+```{r}
+lprob_poisson <- function(lambda, x) {
+  n <- length(x)
+  (log(lambda) * sum(x)) - (n * lambda) - sum(lfactorial(x))
+}
+
+obs <- c(41, 30, 31, 38, 29, 24, 30, 29, 31, 38)
+
+lprob_poisson(10, obs)
+lprob_poisson(20, obs)
+lprob_poisson(30, obs)
+
+```
+
+the term `sum(lfactorial(x)` is independent of lambda and can be precomputed to optimise the calculation
+
+```{r}
+c <- sum(lfactorial(x))
+
+lprob_poisson1 <- function(lambda, x, c) {
+  n <- length(x)
+  (log(lambda) * sum(x)) - (n * lambda) - c
+}
+
+lprob_poisson(10, obs)
+
+```
+
+we can also move x and c into the function
+
+```{r}
+lprob_poisson2 <- function(x) {
+  
+  # we do not need to force(x)
+  # since it is not used by the 
+  # returned function
+  n <-length(x)
+  c <- sum(lfactorial(x))
+  sum_x <- sum(x)
+  
+  function(lambda) {
+    (log(lambda) * sum_x) - (n * lambda) - c
+  }
+}
+
+ll1 <- lprob_poisson2(obs)
+ll1(10)
+```
+
+we can use `optimise` to find the best value
+
+```{r}
+optimise(f = ll1, interval = c(0, 100), maximum = TRUE)
+```
+
+
+## Function Operators
+
+Functions that take a function as an argument and return a modfified function.
+Are called decorators in python.
+
+- `purrr::safely()` and friends
+- `memoise::memoise()` (see below)
+- any reusable wrapper, for example one that automatically retries a give function on failure
+
+### memoise::memoise()
+
+caching the results of a slow function when executed again with the same arguments
+
+```{r}
+slow_function <- function(x) {
+  Sys.sleep(1)
+  x * 10 * runif(1)
+}
+
+# different results
+system.time(print(slow_function(1)))
+system.time(print(slow_function(1)))
+
+fast_function <- memoise::memoise(slow_function)
+
+# same results because cached result is returned
+system.time(print(fast_function(1)))
+system.time(print(fast_function(1)))
+
+# different result because argument has changed
+system.time(print(fast_function(2)))
+```
+
+#### Recursion
+
+a classical example for recursive functions is the fibinacci sequence
+
+```{r}
+fib <- function(n) {
+  if (n < 2) return(1)
+  fib(n - 2) + fib(n - 1)
+}
+system.time(print(fib(23)))
+system.time(print(fib(33)))
+
+```
+
+memoise::memoise() will cache the results
+
+```{r}
+fib2 <- memoise::memoise(function(n) {
+  if (n < 2) return(1)
+  fib2(n - 2) + fib2(n - 1)
+})
+
+system.time(fib2(23))
+system.time(fib2(33))
+
+```
+
+# OOP
+  
+  
+- **encapsulated** OOP `object.method(arg1, arg2)`  
+- **functional** OOP `generic(object, arg1, arg2)`
+
+
+## S3
+
+Functional OOP framework that is most commonly used in R.
+
+There are very few constrictions for creating S3 classes but some conventions.
+
+
+- create a low-level constructor that creates objects with the right structure called `new_myclass()`  
+- a validator that performs computationally expensive checks, called `validate_myclass()`  
+- a user-friendly helper called `myclass()`  
+
+
+
+### simaerep example
+
+the `simaerep v0.3.1` package currently performs a sequence of operations on a dataframe. Each operations requires a different function that takes a data.frame and returns a modified version. We could simplify the interface for the users by grouping all those operations using S3 classes.
+
+There is no function wrapping the entire workflow because we want intermediary results to be accessible and visible. By convention a function returns only one object which would then only return the final dataframe df_eval. Then we would loose df_site and df_sim_sites for plotting and inspection. 
+
+**Advantages:**
+
+
+- simplified user interface  
+- input checks only need to run once  
+- preserve intermediary results as class attributes  
+
+```{r}
+# devtools::install_github("openpharma/simaerep@v0.3.1")
+
+suppressPackageStartupMessages(library("simaerep"))
+
+set.seed(1)
+
+df_visit <- sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id <- "A"
+
+df_site <- site_aggr(df_visit)
+
+df_sim_sites <- sim_sites(df_site, df_visit, r = 1000)
+
+df_eval <- eval_sites(df_sim_sites)
+
+plot_study(df_visit, df_site, df_eval, study = "A") 
+```
+
+constructor
+
+```{r}
+new_simaerep <- function(df_site,
+                           df_sim_sites,
+                           df_eval,
+                           r) {
+  
+  structure(
+    list(
+      df_site = df_site,
+      df_sim_sites = df_sim_sites,
+      df_eval = df_eval,
+      r = r
+    ),
+    class = "simaerep"
+  )
+}
+```
+
+validator
+
+```{r}
+validate_simaerep <- function(obj) {
+  comp <- sort(attributes(obj)$names) ==  sort(c("df_site", "df_sim_sites", "df_eval", "r"))
+  stopifnot(all(comp))
+  return(obj)
+}
+```
+
+user-friendly constructor
+
+```{r}
+simaerep <- function(df_visit, r = 1000) {
+  
+  df_site <- site_aggr(df_visit)
+  
+  df_sim_sites <- sim_sites(df_site, df_visit, r = 1000)
+  
+  df_eval <- eval_sites(df_sim_sites)
+  
+  validate_simaerep(
+    new_simaerep(
+      df_site,
+      df_sim_sites,
+      df_eval,
+      r
+    )
+  )
+}
+
+simaerep_studyA <- simaerep(df_visit)
+
+str(simaerep_studyA)
+```
+
+adding some class methods for common generic functions like `print()`, `plot()`
+
+```{r}
+print.simaerep <- function(obj) {
+  studies <- unique(obj$df_site$study_id)
+  print(paste("AE underreporting for studies:", studies))
+}
+
+print(simaerep_studyA)
+```
+
+```{r}
+plot.simaerep <- function(obj, df_visit, study, what = c("study", "med75")) {
+  
+  stopifnot(study %in% unique(df_visit$study_id))
+  
+  what <- match.arg(what)
+  .f <- switch(
+     what,
+     study = function(...) simaerep::plot_study(..., df_eval = obj$df_eval, study = study),
+     med75 = function(...) simaerep::plot_visit_med75(..., study_id_str = study)
+  )
+  
+  .f(df_visit = df_visit, df_site = obj$df_site)
+}
+
+plot(simaerep_studyA, df_visit, study = "A", what = "study")
+plot(simaerep_studyA, df_visit, study = "A", what = "med75")
+
+```
+
+to this point we have not:
+
+
+- created new generic functions  
+- used class inheritance  
+
+A class that inherits from another class mus carry all its parents attributes, we can implement this by modifying the parent constructor as below and by calling the parent constructor from within the child constructor.
+
+Here we will create two classes one for initiating a simaerep object and the initial df_site aggregation step and one for the simulation.
+
+```{r}
+new_simaerep <- function(df_site, ..., class = character()) {
+  structure(
+    list(
+      df_site = df_site,
+      ...
+    ),
+    class = c(class, "simaerep")
+  )
+}
+
+validate_simaerep <- function(obj) {
+  comp <- attributes(obj)$names ==  "df_site"
+  stopifnot(all(comp))
+  return(obj)
+}
+
+simaerep <- function(df_visit) {
+  
+  df_site <- site_aggr(df_visit)
+  
+  validate_simaerep(
+    new_simaerep(
+      df_site
+    )
+  )
+}
+
+simaerep_studyA <- simaerep(df_visit)
+
+str(simaerep_studyA)
+
+
+new_simaerep_sim <- function(df_site, df_sim_sites, df_eval, r) {
+  
+  new_simaerep(
+    df_site = df_site,
+    df_sim_sites = df_sim_sites,
+    df_eval = df_eval,
+    r = r,
+    class = "simaerep_sim"
+  )
+
+}
+
+validate_simaerep_sim <- function(obj) {
+  
+  comp <- sort(attributes(obj)$names) ==  sort(c("df_site", "df_sim_sites", "df_eval", "r"))
+  stopifnot(all(comp))
+  return(obj)
+}
+
+```
+
+next we define a new generic method called `sim` that starts the simulation which returns the new class `simaerep_sim`. The process that finds the right method to call for an object called with a generic function is called method dispatching.
+
+```{r}
+# define generic function
+sim <- function(obj, ...) {
+  UseMethod("sim")
+}
+
+sim.simaerep <- function(obj, df_visit, r = 1000) {
+  
+  df_sim_sites <- sim_sites(obj$df_site, df_visit, r = r)
+  
+  df_eval <- eval_sites(df_sim_sites)
+  
+  validate_simaerep_sim(
+    new_simaerep_sim(
+      df_site,
+      df_sim_sites,
+      df_eval,
+      r
+    )
+  )
+}
+
+simaerep_studyA_sim <- sim(simaerep_studyA, df_visit)
+
+str(simaerep_studyA_sim)
+
+class(simaerep_studyA_sim)
+```
+
+
+
+```{r}
+plot.simaerep <- function(obj, df_visit, study,
+                          ... # we need ... to ignore additional arguments when called with NextMethod()
+                          ) {
+  simaerep::plot_visit_med75(df_visit, obj$df_site, study_id_str = study)
+}
+```
+
+override plot method of parent class, and use user-supplied argument to switch back to parent class method using `NextMethod()`
+
+```{r}
+plot.simaerep_sim <- function(obj, df_visit, study, what = c("study", "med75")) {
+  what <- match.arg(what)
+  if (what == "study") {
+    simaerep::plot_study(df_visit, obj$df_site, obj$df_eval, study = study)
+  } else {
+    # calls parent class method using all original arguments
+    NextMethod()
+  }
+}
+
+
+plot(simaerep_studyA_sim, df_visit, study = "A", what = "study")
+plot(simaerep_studyA_sim, df_visit, study = "A", what = "med75")
+plot(simaerep_studyA_sim, df_visit, study = "A", what = "XXX")
+plot(simaerep_studyA, df_visit, study = "A")
+```
+
+sloop provides some function to investigate S3 class behavior.
+
+```{r}
+sloop::s3_methods_class("simaerep")
+sloop::s3_methods_class("simaerep_sim")
+sloop::s3_methods_generic("sim")
+sloop::s3_dispatch(plot(simaerep_studyA_sim, df_visit, study = "A"))
+sloop::s3_dispatch(plot(simaerep_studyA, df_visit, study = "A"))
+
+```
+
+## R6
+
+R6 uses the encapsulated OOP framework, commonly used in shiny. Works like object in python.
+
+- Use `R6::R6Class()` to construct classes
+- Pass a list with attributes (static values) and methods (functions)
+- Within methods refer to the class as `self` and subset with `$` (`self$attribute`, `self.method()`)
+- Instantiate objects by calling `x <- Class$new()`
+- methods can be chained `x$add(1)$sub(1)`
+- `initialize()` method overrise `new()` and works like `__init()` in python
+- inherit by using the `inherit` argument of `R6::R6Class()`
+- pass private and public attributes and classes using the `privat` and `public` arguments of `R6::R6Class()`
+- active fields look like attributes but are methods, can run additional checks
+- instantiated R6 classes behave like python objects modifying one object will also modify all of its copies
+- always put randomized default values that you do not want to share across instances into the initialize function
+
+## S4
+
+Mostly used for bioconductor packages uses functional OOP framework. A well-known package that uses S4 is `ROCR` and `lubridate`
+
+
+- much stricter framework than S3
+- makes use of specialized functions like `setClass()`, `setGeneric()`, `setMethod()`
+- all functions are distributed with R in the `methods` package (which should be explicitly loaded so show S4 framework is used and to avoid problems when running non-interactive mode)
+- attributes are *slots* which can be subset using `@`
+- supports multiple inheritance and multiple dispatch (which should be avoided because its complicated)
+
+
+### Slots
+
+- when instantiated objects slot's are automatically checked if they contain the correct data types
+- `setValidity()`, `validObject()` can be used to extend checks and to validate existing objects
+
+
+### Conventions
+- CamelCase
+- provide constructor with same name as class
+- write generics that call and set slot values
+
+
+### Multiple Inheritence
+
+in case a class inherits from multiple classes the method that is closest to the class is chosen. If two methods are matching the method for the class which has a higher lexical order is chosen.
+
+### Multiple dispatch
+
+If a generic uses two classes as input both classes are searched for methods.
+
+
+
+## S4 vs S3
+- S4 more suitable for larger teams
+- S4 is better with many inter related objects (for example provide methods via generics for combinations of different types of sparse matrices)
+
+
