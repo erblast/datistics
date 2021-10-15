@@ -1,0 +1,706 @@
+---
+title: Advanced R - Notes (part2)
+author: Björn Koneswarakantha
+date: '2021-10-14'
+slug: advancedrmeta
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Notes when going through advanced R - Metaprogramming
+thumbnailImagePosition : left
+thumbnailImage: advancedr.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<br></br>
+<br></br>
+
+```{r, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png'
+                    , thumbnail = 'https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png'
+                    , `thumbnail-width` = '400px'
+                    , `thumbnail-height` = '600px'
+                    , target = 'https://adv-r.hadley.nz/index.html'
+                    )
+
+```
+
+
+> Advanced R (Hadley Wickham).
+
+<br></br>
+<br></br>
+
+
+```{r}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+
+```{r load, error = FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(rlang))
+suppressPackageStartupMessages(library(lobstr))
+suppressPackageStartupMessages(library(withr))
+suppressPackageStartupMessages(library(glue))
+# devtools::install_github("openpharma/simaerep@v0.3.1")
+suppressPackageStartupMessages(library(simaerep))
+```
+
+# Metaprogramming
+
+## Basics
+
+We are ignoring environments for now.
+
+### Capturing/Quoting an Expression or many expression
+
+```{r}
+ex1 <- rlang::expr(mean(mtcars$disp))
+ex1
+ex2 <- quote(mean(mtcars$disp))
+ex2
+
+exs1 <- rlang::exprs(mean(mtcars$disp), median(mtcars$disp))
+exs1
+
+exs2 <- alist(mean(mtcars$disp), median(mtcars$disp))
+exs2
+```
+
+### Evaluating/Unquoting an Expression
+
+```{r}
+eval(ex1)
+
+lapply(exs1, eval)
+```
+
+### Capturing an Expression as a String - Deparsing
+
+```{r}
+str_ex1 <- deparse(ex1)
+str_ex1
+
+rlang::expr_text(ex1)
+```
+
+### Parsing Strings and Evaluating Code from Strings
+
+```{r}
+parse(text = str_ex1)
+eval(parse(text = str_ex1))
+
+rlang::parse_expr(str_ex1)
+eval(rlang::parse_expr(str_ex1))
+```
+
+### Converting Strings to Symbols
+
+```{r}
+rlang::sym("foo")
+as.name("foo")
+```
+
+### Symbols to Strings
+
+```{r}
+deparse(rlang::sym("foo"))
+rlang::expr_text(as.name("foo"))
+```
+
+
+## Code is a tree
+
+Code can be displayed as an *abstract synthax tree (AST)* with functions/expressions/symbols as nodes and literals/constants as leaves.
+
+```{r}
+lobstr::ast(f(a, "b"))
+lobstr::ast(f1(f2(a, b), f3(1, f4(2))))
+lobstr::ast(1 + 2 * 3)
+```
+
+## Subsetting and modifiyng Expressions
+
+```{r}
+length(ex1)
+ex1[[1]]
+ex1[[2]]
+
+ex1[[1]] <- quote(median)
+ex1[[1]]
+ex1
+
+eval(ex1)
+```
+
+## Quoting/Unquoting in Functions
+
+here we want to capture the user-supplied expression
+
+```{r}
+capture1 <- function(x) {
+  quote(x)
+}
+
+capture1(mean(mtcars$disp))
+
+capture2 <- function(x) {
+  rlang::enexpr(x)
+}
+
+capture2(mean(mtcars$disp))
+
+capture3 <- function(x) {
+  substitute(x)
+}
+
+capture3(mean(mtcars$disp))
+```
+
+substitute() can also be used to alter expressions
+
+```{r}
+substitute(mean(mtcars$disp), list(mean = quote(median), disp = quote(vs)))
+```
+
+## bang bang !!
+
+In `rlang` when constructing expression we can chose to selectively unquote parts of the expression using `!!` bang bang. 
+
+```{r}
+x <- rlang::expr(-1)
+
+rlang::expr(f(!!x, y))
+
+a <- rlang::sym("foo")
+b <- 1
+rlang::expr(f(!!a, !!b))
+```
+
+## bang bang bang !!!
+
+selectively unquote lists of expressions using `!!!` bang bang bang. 
+
+```{r}
+xs <- rlang::exprs(1, a, -b)
+rlang::expr(f(!!!xs, y))
+
+# Or with names
+ys <- rlang::set_names(xs, c("a", "b", "c"))
+rlang::expr(f(!!!ys, d = 4))
+```
+
+## Dynamic Dots ...
+
+`rlang::list2()` allows a function to use `!!!` and `:=` with its `...` argument, which unpacks the list. 
+
+```{r}
+f <- function(...) {
+  out <- rlang::list2(...)
+  rev(out)
+}
+
+x <- list(alpha = "first", omega = "last")
+
+f(!!!x)
+
+f(x)
+
+nm <- "foo"
+f(!!nm := "bar")
+```
+
+## Provide lists as function arguments
+
+use `rlang::exec()` which uses dynamic dots
+
+```{r}
+# Directly
+exec(mean, x = 1:10, na.rm = TRUE, trim = 0.1)
+
+# Indirectly
+args <- list(x = 1:10, na.rm = TRUE, trim = 0.1)
+exec(mean, !!!args)
+
+# Mixed
+params <- list(na.rm = TRUE, trim = 0.1)
+exec(mean, x = 1:10, !!!params)
+```
+
+- use `do.Call`
+
+```{r}
+do.call(mean, list(x = 1:10, na.rm = TRUE, trim = 0.1))
+```
+
+## Quosures
+
+When evaluating an expression we can control the environment. Quosures consist of an expression and an environment.
+
+They are similar to formulas in base R
+
+### Formulas
+
+we can extract environment and formula expressions using `rlang` functions and evaluate both.
+
+```{r}
+construct_formula <- function() {
+  env_x <- 3
+  ~runif(env_x)
+}
+
+f <- construct_formula()
+
+f
+
+eval(rlang::f_rhs(f), envir = rlang::f_env(f))
+```
+
+### rlang
+
+- `rlang::quo` and `rlang::quos` match `rlang::expr()` and `rlang::exprs()`
+- `rlang::eval_tidy()` evaluates quosures
+
+```{r}
+foo <- function(x) enquo(x)
+foo(a + b)
+
+q1 <- new_quosure(expr(x + y), env(x = 1, y = 10))
+eval_tidy(q1)
+```
+
+## Data Masks
+
+Call variables from a data frame using expressions. `eval_tidy()` excepts a dataframe in addition to the environment in the closure which it unpacks and makes available to the evaluation of the expression.  
+
+`eval()` excepts a dataframe as an environment
+
+```{r}
+with2 <- function(data, expr) {
+  expr <- enquo(expr)
+  eval_tidy(expr, data = data)
+}
+
+df <- data.frame(y = 1:10)
+x <- 100
+
+with2(df, x * y)
+
+with3 <- function(data, expr) {
+  expr <- substitute(expr)
+  eval(expr, envir = data)
+}
+
+with3(df, x * y)
+```
+
+for `rlang` quosures we can solve ambiguity between the dataframe and the environment using `.data` and `.env`
+
+```{r}
+df <- data.frame(y = 1:10, x = 11:20)
+x <- 100
+
+with2(df, .data$x + .data$y)
+with2(df, .env$x + .data$y)
+
+# does  not work with the base version
+with3(df, .data$x)
+```
+
+## Base Function Using Datamasks
+
+### subset
+
+similar to `dplyr::filter`
+
+```{r}
+subset2 <- function(df, expr) {
+  qu <- enquo(expr)
+  bool <- eval_tidy(qu, df)
+  browser
+  stopifnot(is.logical(bool))
+  df[bool,]
+}
+
+subset2(mtcars, cyl == 6)
+```
+
+### transform
+
+similar to `dplyr::mutate`
+
+```{r}
+transform2 <- function(df, ...) {
+  dots <- enquos(...)
+  
+  for (i in seq_along(dots)) {
+    col <- names(dots)[i]
+    df[[col]] <- eval_tidy(dots[[i]], df)
+  }
+  
+  return(df)
+}
+
+df <- data.frame(x = 1:10, y = 11: 10)
+
+transform2(df, z = x * y, z0 = z + 1)
+```
+
+
+### select
+
+rewrite of dplyr::select()
+
+```{r}
+select2 <- function(data, ...) {
+  dots <- enquos(...)
+  vars <- as.list(set_names(seq_along(data), names(data)))
+  cols <- unlist(map(dots, eval_tidy, vars))
+
+  data[, cols, drop = FALSE]
+}
+
+df <- data.frame(a = 1, b = 2, c = 3, d = 4, e = 5)
+
+select2(df, b:d, a)
+```
+
+## Programming with rlang/dplyr
+
+### Pass expressions onto functions using expression
+
+We cannot pass them directly. We need to quote and selectively unquote
+
+#### We can use quosures and bangs
+
+```{r}
+sample_col <- function(df, col, n = 5) {
+  qu_col <- enquo(col)
+  head(select2(df, !! qu_col), n)
+}
+
+sample_col(mtcars, disp)
+
+sample_cols <- function(df, ..., n = 5) {
+  qu_cols <- enquos(...)
+  head(select2(df, !!! qu_cols), n)
+}
+
+sample_cols(mtcars, disp, cyl)
+```
+
+#### Or expressions
+
+```{r}
+sample_col <- function(df, col, n = 5) {
+  qu_col <- enexpr(col)
+  head(select(df, !! qu_col), n)
+}
+
+sample_col(mtcars, disp)
+
+sample_cols <- function(df, ..., n = 5) {
+  qu_cols <- enexprs(...)
+  head(select2(df, !!! qu_cols), n)
+}
+
+sample_cols(mtcars, disp, cyl)
+```
+
+#### Or Curly Curl
+
+**new standard as of `rlang 0.4.0`
+
+```{r}
+sample_col <- function(df, col, n = 5) {
+  head(select2(df, {{col}}), n)
+}
+
+sample_col(mtcars, disp)
+
+
+sample_cols <- function(df, ..., n = 5) {
+  head(select2(df, ...), n)
+}
+
+sample_cols(mtcars, disp, cyl)
+
+```
+
+### Pass strings onto functions using expression
+
+use `.data`
+
+## Applications
+
+### Fetching Model Training Data from Global Environment
+
+save the call using match.call()
+
+```{r}
+slope_model <- function(data, form) {
+  m <- lm(form, data)
+  structure(
+    list(
+      slope = m$coefficients[[2]],
+      intercept = m$coefficients[[1]],
+      call = match.call()
+    ),
+    class = "slope_model"
+  )
+}
+
+plot.slope_model <- function(m) {
+  stopifnot(inherits(m, "slope_model"))
+  
+  data_expr <- m$call[["data"]]
+  stopifnot(exists(deparse(data_expr)))
+  cols <- colnames(eval(data_expr))
+  
+  
+  form <- m$call[["form"]]
+  y_expr <- rlang::f_lhs(form)
+  x_expr <- rlang::f_rhs(form)
+  y_str <- deparse(y_expr)
+  x_str <- deparse(x_expr)
+  stopifnot(c(y_str, y_str) %in% cols)
+  
+  eval(data_expr) %>%
+    select({{y_expr}}, {{x_expr}}) %>%
+    ggplot(aes({{x_expr}}, {{y_expr}})) +
+      geom_point() +
+      geom_abline(slope = m$slope, intercept = m$intercept) +
+      theme_minimal()
+  
+}
+
+m <- slope_model(mtcars, disp ~ hp)
+m
+
+plot(m)
+
+```
+
+```{r}
+pryr::object_size(m)
+pryr::object_size({m$data <- mtcars})
+```
+
+
+### Correcting Calls for Wrapped Modelling Functions
+
+when we write a wrapper the saved call cannot be used to reconstruct the actual call. And methods relying on it will not work
+
+```{r}
+wr_slope <- function(data, form) {
+  slope_model(data, form)
+}
+
+m <- wr_slope(mtcars, disp ~ hp)
+m
+
+plot(m)
+```
+
+we need to reconstruct a new call inside the wrapper and pass it to the modelling function.
+
+```{r}
+wr_slope <- function(data, form) {
+  data <- enexpr(data)
+  form <- enexpr(form)
+  
+  new_call <- expr(slope_model(!!data, !!form))
+  eval(new_call)
+}
+
+m <- wr_slope(mtcars, disp ~ hp)
+m
+
+plot(m)
+
+```
+
+attaching the call to the model object is risky because if the modeling function is used by `do.call` or `purr::map` we risk attaching the entire data to the call.
+
+```{r}
+do.call(slope_model, list(mtcars, disp ~ hp))
+do.call(wr_slope, list(mtcars, disp ~ hp))
+do.call(lm, list(disp ~ hp, mtcars))
+```
+
+This is  why a size check for the saving the call is required in the [tidymodels convention guide](https://tidymodels.github.io/model-implementation-principles/the-model-object.html)
+
+```{r}
+df_m <- mtcars %>%
+  group_by(cyl) %>%
+  nest() %>%
+  mutate(m = map(data, wr_slope, disp ~ hp))
+
+map(df_m$m, ~ .$call)
+map(df_m$m, plot)
+```
+
+instead attach arguments individually
+
+```{r}
+training_data <- function(name, df) {
+  structure(
+    list(
+      name = stringr::str_trunc(name, width = 120)[[1]],
+      cols = colnames(df),
+      dim = dim(df)
+    ),
+    class = "train_data"
+  )
+}
+
+match_training_data <- function(df, train_data) {
+  
+  stopifnot(is.data.frame(df))
+  
+  stopifnot(all(train_data$cols %in% colnames(df)))
+  
+  df <- df[, train_data$cols]
+  
+  stopifnot(all(dim(df) == train_data$dim))
+  
+  return(TRUE)
+}
+
+slope_model2 <- function(data, form) {
+  
+  y <- deparse(rlang::f_lhs(form))
+  x <- deparse(rlang::f_rhs(form))
+  data_name <- deparse(rlang::enexpr(data))
+  
+  train_data <- training_data(data_name, data[, c(x, y)])
+  
+  m <- lm(form, data)
+  
+  
+  structure(
+    list(
+      slope = m$coefficients[[2]],
+      intercept = m$coefficients[[1]],
+      train_data = train_data,
+      x = x,
+      y = y
+    ),
+    class = "slope_model"
+  )
+}
+
+plot.slope_model <- function(m, data = NULL) {
+  stopifnot(inherits(m, "slope_model"))
+  
+  if (is.null(data) & exists(m$train_data$name)) {
+    df_train <- eval(parse(text = m$train_data$name))
+    match_training_data(df_train, m$train_data)
+  } else if (! is.null(data)) {
+    df_train <- data 
+    match_training_data(df_train, m$train_data)
+  } else {
+    stop("training data not found")
+  }
+  
+  ggplot(df_train, aes_string(m$x, m$y)) +
+      geom_point() +
+      geom_abline(slope = m$slope, intercept = m$intercept) +
+      theme_minimal()
+  
+}
+
+
+m <- slope_model2(mtcars, disp ~ hp)
+str(m)
+plot(m)
+
+```
+
+check wrapper compatibility
+
+```{r}
+wr_slope <- function(data, form) {
+  slope_model2(data, form)
+}
+
+m <- wr_slope(mtcars, disp ~ hp)
+str(m)
+
+plot(m)
+plot(m, mtcars)
+
+```
+
+still need it
+
+```{r}
+wr_slope2 <- function(data, form) {
+  data <- enexpr(data)
+  form <- enexpr(form)
+  
+  new_call <- expr(slope_model2(!!data, !!form))
+  eval(new_call)
+}
+
+m <- wr_slope2(mtcars, disp ~ hp)
+str(m)
+
+plot(m)
+```
+
+do.call
+
+```{r}
+m <- do.call(slope_model2, list(mtcars, disp ~ hp))
+str(m)
+plot(m)
+plot(m, mtcars)
+```
+
+
+### Printing R Code for ggplots Plots
+
+we want to display the r code necessary to render a plot
+
+```{r}
+
+plot_vars <- function(df, x, y, smooth = FALSE) {
+    df <- enexpr(df)
+    x <- enexpr(x)
+    y <- enexpr(y)
+    
+    ex <- expr(
+      ggplot(!!df, aes(!! x, !!y)) +
+        geom_point()
+    )
+    
+    if(smooth){
+      ex <- expr(!! ex + geom_smooth())
+    }
+    
+    return(ex)
+}
+
+ex <- plot_vars(mtcars, disp, hp)
+cat(deparse(ex))
+eval(plot_vars(mtcars, disp, hp))
+
+ex_smooth <- plot_vars(mtcars, disp, hp, smooth = TRUE)
+
+cat(deparse(ex_smooth))
+
+eval(ex_smooth)
+
+```
+
+

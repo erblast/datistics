@@ -1,0 +1,1065 @@
+---
+title: Advanced R - Notes (part2)
+author: Björn Koneswarakantha
+date: '2021-10-14'
+slug: advancedrmeta
+categories:
+  - Rtraining
+tags:
+  - R
+  - Rtraining
+summary: Notes when going through advanced R - Metaprogramming
+thumbnailImagePosition : left
+thumbnailImage: advancedr.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: true
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#metaprogramming">Metaprogramming</a>
+<ul>
+<li><a href="#basics">Basics</a>
+<ul>
+<li><a href="#capturingquoting-an-expression-or-many-expression">Capturing/Quoting an Expression or many expression</a></li>
+<li><a href="#evaluatingunquoting-an-expression">Evaluating/Unquoting an Expression</a></li>
+<li><a href="#capturing-an-expression-as-a-string---deparsing">Capturing an Expression as a String - Deparsing</a></li>
+<li><a href="#parsing-strings-and-evaluating-code-from-strings">Parsing Strings and Evaluating Code from Strings</a></li>
+<li><a href="#converting-strings-to-symbols">Converting Strings to Symbols</a></li>
+<li><a href="#symbols-to-strings">Symbols to Strings</a></li>
+</ul></li>
+<li><a href="#code-is-a-tree">Code is a tree</a></li>
+<li><a href="#subsetting-and-modifiyng-expressions">Subsetting and modifiyng Expressions</a></li>
+<li><a href="#quotingunquoting-in-functions">Quoting/Unquoting in Functions</a></li>
+<li><a href="#bang-bang">bang bang !!</a></li>
+<li><a href="#bang-bang-bang">bang bang bang !!!</a></li>
+<li><a href="#dynamic-dots">Dynamic Dots …</a></li>
+<li><a href="#provide-lists-as-function-arguments">Provide lists as function arguments</a></li>
+<li><a href="#quosures">Quosures</a>
+<ul>
+<li><a href="#formulas">Formulas</a></li>
+<li><a href="#rlang">rlang</a></li>
+</ul></li>
+<li><a href="#data-masks">Data Masks</a></li>
+<li><a href="#base-function-using-datamasks">Base Function Using Datamasks</a>
+<ul>
+<li><a href="#subset">subset</a></li>
+<li><a href="#transform">transform</a></li>
+<li><a href="#select">select</a></li>
+</ul></li>
+<li><a href="#programming-with-rlangdplyr">Programming with rlang/dplyr</a>
+<ul>
+<li><a href="#pass-expressions-onto-functions-using-expression">Pass expressions onto functions using expression</a></li>
+<li><a href="#pass-strings-onto-functions-using-expression">Pass strings onto functions using expression</a></li>
+</ul></li>
+<li><a href="#applications">Applications</a>
+<ul>
+<li><a href="#fetching-model-training-data-from-global-environment">Fetching Model Training Data from Global Environment</a></li>
+<li><a href="#correcting-calls-for-wrapped-modelling-functions">Correcting Calls for Wrapped Modelling Functions</a></li>
+<li><a href="#printing-r-code-for-ggplots-plots">Printing R Code for ggplots Plots</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+
+<p><br></br>
+<br></br></p>
+<p>{{% image classes="center" src="https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png" thumbnail="https://d33wubrfki0l68.cloudfront.net/565916198b0be51bf88b36f94b80c7ea67cafe7c/7f70b/cover.png" thumbnail-width="400px" thumbnail-height="600px" target="https://adv-r.hadley.nz/index.html" %}}</p>
+<blockquote>
+<p>Advanced R (Hadley Wickham).</p>
+</blockquote>
+<p><br></br>
+<br></br></p>
+<pre class="r"><code>knitr::opts_chunk$set(error = TRUE)</code></pre>
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(rlang))
+suppressPackageStartupMessages(library(lobstr))
+suppressPackageStartupMessages(library(withr))
+suppressPackageStartupMessages(library(glue))
+# devtools::install_github(&quot;openpharma/simaerep@v0.3.1&quot;)
+suppressPackageStartupMessages(library(simaerep))</code></pre>
+<div id="metaprogramming" class="section level1">
+<h1>Metaprogramming</h1>
+<div id="basics" class="section level2">
+<h2>Basics</h2>
+<p>We are ignoring environments for now.</p>
+<div id="capturingquoting-an-expression-or-many-expression" class="section level3">
+<h3>Capturing/Quoting an Expression or many expression</h3>
+<pre class="r"><code>ex1 &lt;- rlang::expr(mean(mtcars$disp))
+ex1</code></pre>
+<pre><code>## mean(mtcars$disp)</code></pre>
+<pre class="r"><code>ex2 &lt;- quote(mean(mtcars$disp))
+ex2</code></pre>
+<pre><code>## mean(mtcars$disp)</code></pre>
+<pre class="r"><code>exs1 &lt;- rlang::exprs(mean(mtcars$disp), median(mtcars$disp))
+exs1</code></pre>
+<pre><code>## [[1]]
+## mean(mtcars$disp)
+## 
+## [[2]]
+## median(mtcars$disp)</code></pre>
+<pre class="r"><code>exs2 &lt;- alist(mean(mtcars$disp), median(mtcars$disp))
+exs2</code></pre>
+<pre><code>## [[1]]
+## mean(mtcars$disp)
+## 
+## [[2]]
+## median(mtcars$disp)</code></pre>
+</div>
+<div id="evaluatingunquoting-an-expression" class="section level3">
+<h3>Evaluating/Unquoting an Expression</h3>
+<pre class="r"><code>eval(ex1)</code></pre>
+<pre><code>## [1] 230.7219</code></pre>
+<pre class="r"><code>lapply(exs1, eval)</code></pre>
+<pre><code>## [[1]]
+## [1] 230.7219
+## 
+## [[2]]
+## [1] 196.3</code></pre>
+</div>
+<div id="capturing-an-expression-as-a-string---deparsing" class="section level3">
+<h3>Capturing an Expression as a String - Deparsing</h3>
+<pre class="r"><code>str_ex1 &lt;- deparse(ex1)
+str_ex1</code></pre>
+<pre><code>## [1] &quot;mean(mtcars$disp)&quot;</code></pre>
+<pre class="r"><code>rlang::expr_text(ex1)</code></pre>
+<pre><code>## [1] &quot;mean(mtcars$disp)&quot;</code></pre>
+</div>
+<div id="parsing-strings-and-evaluating-code-from-strings" class="section level3">
+<h3>Parsing Strings and Evaluating Code from Strings</h3>
+<pre class="r"><code>parse(text = str_ex1)</code></pre>
+<pre><code>## expression(mean(mtcars$disp))</code></pre>
+<pre class="r"><code>eval(parse(text = str_ex1))</code></pre>
+<pre><code>## [1] 230.7219</code></pre>
+<pre class="r"><code>rlang::parse_expr(str_ex1)</code></pre>
+<pre><code>## mean(mtcars$disp)</code></pre>
+<pre class="r"><code>eval(rlang::parse_expr(str_ex1))</code></pre>
+<pre><code>## [1] 230.7219</code></pre>
+</div>
+<div id="converting-strings-to-symbols" class="section level3">
+<h3>Converting Strings to Symbols</h3>
+<pre class="r"><code>rlang::sym(&quot;foo&quot;)</code></pre>
+<pre><code>## foo</code></pre>
+<pre class="r"><code>as.name(&quot;foo&quot;)</code></pre>
+<pre><code>## foo</code></pre>
+</div>
+<div id="symbols-to-strings" class="section level3">
+<h3>Symbols to Strings</h3>
+<pre class="r"><code>deparse(rlang::sym(&quot;foo&quot;))</code></pre>
+<pre><code>## [1] &quot;foo&quot;</code></pre>
+<pre class="r"><code>rlang::expr_text(as.name(&quot;foo&quot;))</code></pre>
+<pre><code>## [1] &quot;foo&quot;</code></pre>
+</div>
+</div>
+<div id="code-is-a-tree" class="section level2">
+<h2>Code is a tree</h2>
+<p>Code can be displayed as an <em>abstract synthax tree (AST)</em> with functions/expressions/symbols as nodes and literals/constants as leaves.</p>
+<pre class="r"><code>lobstr::ast(f(a, &quot;b&quot;))</code></pre>
+<pre><code>## █─f 
+## ├─a 
+## └─&quot;b&quot;</code></pre>
+<pre class="r"><code>lobstr::ast(f1(f2(a, b), f3(1, f4(2))))</code></pre>
+<pre><code>## █─f1 
+## ├─█─f2 
+## │ ├─a 
+## │ └─b 
+## └─█─f3 
+##   ├─1 
+##   └─█─f4 
+##     └─2</code></pre>
+<pre class="r"><code>lobstr::ast(1 + 2 * 3)</code></pre>
+<pre><code>## █─`+` 
+## ├─1 
+## └─█─`*` 
+##   ├─2 
+##   └─3</code></pre>
+</div>
+<div id="subsetting-and-modifiyng-expressions" class="section level2">
+<h2>Subsetting and modifiyng Expressions</h2>
+<pre class="r"><code>length(ex1)</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code>ex1[[1]]</code></pre>
+<pre><code>## mean</code></pre>
+<pre class="r"><code>ex1[[2]]</code></pre>
+<pre><code>## mtcars$disp</code></pre>
+<pre class="r"><code>ex1[[1]] &lt;- quote(median)
+ex1[[1]]</code></pre>
+<pre><code>## median</code></pre>
+<pre class="r"><code>ex1</code></pre>
+<pre><code>## median(mtcars$disp)</code></pre>
+<pre class="r"><code>eval(ex1)</code></pre>
+<pre><code>## [1] 196.3</code></pre>
+</div>
+<div id="quotingunquoting-in-functions" class="section level2">
+<h2>Quoting/Unquoting in Functions</h2>
+<p>here we want to capture the user-supplied expression</p>
+<pre class="r"><code>capture1 &lt;- function(x) {
+  quote(x)
+}
+
+capture1(mean(mtcars$disp))</code></pre>
+<pre><code>## x</code></pre>
+<pre class="r"><code>capture2 &lt;- function(x) {
+  rlang::enexpr(x)
+}
+
+capture2(mean(mtcars$disp))</code></pre>
+<pre><code>## mean(mtcars$disp)</code></pre>
+<pre class="r"><code>capture3 &lt;- function(x) {
+  substitute(x)
+}
+
+capture3(mean(mtcars$disp))</code></pre>
+<pre><code>## mean(mtcars$disp)</code></pre>
+<p>substitute() can also be used to alter expressions</p>
+<pre class="r"><code>substitute(mean(mtcars$disp), list(mean = quote(median), disp = quote(vs)))</code></pre>
+<pre><code>## median(mtcars$vs)</code></pre>
+</div>
+<div id="bang-bang" class="section level2">
+<h2>bang bang !!</h2>
+<p>In <code>rlang</code> when constructing expression we can chose to selectively unquote parts of the expression using <code>!!</code> bang bang.</p>
+<pre class="r"><code>x &lt;- rlang::expr(-1)
+
+rlang::expr(f(!!x, y))</code></pre>
+<pre><code>## f(-1, y)</code></pre>
+<pre class="r"><code>a &lt;- rlang::sym(&quot;foo&quot;)
+b &lt;- 1
+rlang::expr(f(!!a, !!b))</code></pre>
+<pre><code>## f(foo, 1)</code></pre>
+</div>
+<div id="bang-bang-bang" class="section level2">
+<h2>bang bang bang !!!</h2>
+<p>selectively unquote lists of expressions using <code>!!!</code> bang bang bang.</p>
+<pre class="r"><code>xs &lt;- rlang::exprs(1, a, -b)
+rlang::expr(f(!!!xs, y))</code></pre>
+<pre><code>## f(1, a, -b, y)</code></pre>
+<pre class="r"><code># Or with names
+ys &lt;- rlang::set_names(xs, c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;))
+rlang::expr(f(!!!ys, d = 4))</code></pre>
+<pre><code>## f(a = 1, b = a, c = -b, d = 4)</code></pre>
+</div>
+<div id="dynamic-dots" class="section level2">
+<h2>Dynamic Dots …</h2>
+<p><code>rlang::list2()</code> allows a function to use <code>!!!</code> and <code>:=</code> with its <code>...</code> argument, which unpacks the list.</p>
+<pre class="r"><code>f &lt;- function(...) {
+  out &lt;- rlang::list2(...)
+  rev(out)
+}
+
+x &lt;- list(alpha = &quot;first&quot;, omega = &quot;last&quot;)
+
+f(!!!x)</code></pre>
+<pre><code>## $omega
+## [1] &quot;last&quot;
+## 
+## $alpha
+## [1] &quot;first&quot;</code></pre>
+<pre class="r"><code>f(x)</code></pre>
+<pre><code>## [[1]]
+## [[1]]$alpha
+## [1] &quot;first&quot;
+## 
+## [[1]]$omega
+## [1] &quot;last&quot;</code></pre>
+<pre class="r"><code>nm &lt;- &quot;foo&quot;
+f(!!nm := &quot;bar&quot;)</code></pre>
+<pre><code>## $foo
+## [1] &quot;bar&quot;</code></pre>
+</div>
+<div id="provide-lists-as-function-arguments" class="section level2">
+<h2>Provide lists as function arguments</h2>
+<p>use <code>rlang::exec()</code> which uses dynamic dots</p>
+<pre class="r"><code># Directly
+exec(mean, x = 1:10, na.rm = TRUE, trim = 0.1)</code></pre>
+<pre><code>## [1] 5.5</code></pre>
+<pre class="r"><code># Indirectly
+args &lt;- list(x = 1:10, na.rm = TRUE, trim = 0.1)
+exec(mean, !!!args)</code></pre>
+<pre><code>## [1] 5.5</code></pre>
+<pre class="r"><code># Mixed
+params &lt;- list(na.rm = TRUE, trim = 0.1)
+exec(mean, x = 1:10, !!!params)</code></pre>
+<pre><code>## [1] 5.5</code></pre>
+<ul>
+<li>use <code>do.Call</code></li>
+</ul>
+<pre class="r"><code>do.call(mean, list(x = 1:10, na.rm = TRUE, trim = 0.1))</code></pre>
+<pre><code>## [1] 5.5</code></pre>
+</div>
+<div id="quosures" class="section level2">
+<h2>Quosures</h2>
+<p>When evaluating an expression we can control the environment. Quosures consist of an expression and an environment.</p>
+<p>They are similar to formulas in base R</p>
+<div id="formulas" class="section level3">
+<h3>Formulas</h3>
+<p>we can extract environment and formula expressions using <code>rlang</code> functions and evaluate both.</p>
+<pre class="r"><code>construct_formula &lt;- function() {
+  env_x &lt;- 3
+  ~runif(env_x)
+}
+
+f &lt;- construct_formula()
+
+f</code></pre>
+<pre><code>## ~runif(env_x)
+## &lt;environment: 0x7fe60b693388&gt;</code></pre>
+<pre class="r"><code>eval(rlang::f_rhs(f), envir = rlang::f_env(f))</code></pre>
+<pre><code>## [1] 0.4454028 0.3837579 0.3728023</code></pre>
+</div>
+<div id="rlang" class="section level3">
+<h3>rlang</h3>
+<ul>
+<li><code>rlang::quo</code> and <code>rlang::quos</code> match <code>rlang::expr()</code> and <code>rlang::exprs()</code></li>
+<li><code>rlang::eval_tidy()</code> evaluates quosures</li>
+</ul>
+<pre class="r"><code>foo &lt;- function(x) enquo(x)
+foo(a + b)</code></pre>
+<pre><code>## &lt;quosure&gt;
+## expr: ^a + b
+## env:  global</code></pre>
+<pre class="r"><code>q1 &lt;- new_quosure(expr(x + y), env(x = 1, y = 10))
+eval_tidy(q1)</code></pre>
+<pre><code>## [1] 11</code></pre>
+</div>
+</div>
+<div id="data-masks" class="section level2">
+<h2>Data Masks</h2>
+<p>Call variables from a data frame using expressions. <code>eval_tidy()</code> excepts a dataframe in addition to the environment in the closure which it unpacks and makes available to the evaluation of the expression.</p>
+<p><code>eval()</code> excepts a dataframe as an environment</p>
+<pre class="r"><code>with2 &lt;- function(data, expr) {
+  expr &lt;- enquo(expr)
+  eval_tidy(expr, data = data)
+}
+
+df &lt;- data.frame(y = 1:10)
+x &lt;- 100
+
+with2(df, x * y)</code></pre>
+<pre><code>##  [1]  100  200  300  400  500  600  700  800  900 1000</code></pre>
+<pre class="r"><code>with3 &lt;- function(data, expr) {
+  expr &lt;- substitute(expr)
+  eval(expr, envir = data)
+}
+
+with3(df, x * y)</code></pre>
+<pre><code>##  [1]  100  200  300  400  500  600  700  800  900 1000</code></pre>
+<p>for <code>rlang</code> quosures we can solve ambiguity between the dataframe and the environment using <code>.data</code> and <code>.env</code></p>
+<pre class="r"><code>df &lt;- data.frame(y = 1:10, x = 11:20)
+x &lt;- 100
+
+with2(df, .data$x + .data$y)</code></pre>
+<pre><code>##  [1] 12 14 16 18 20 22 24 26 28 30</code></pre>
+<pre class="r"><code>with2(df, .env$x + .data$y)</code></pre>
+<pre><code>##  [1] 101 102 103 104 105 106 107 108 109 110</code></pre>
+<pre class="r"><code># does  not work with the base version
+with3(df, .data$x)</code></pre>
+<pre><code>## NULL</code></pre>
+</div>
+<div id="base-function-using-datamasks" class="section level2">
+<h2>Base Function Using Datamasks</h2>
+<div id="subset" class="section level3">
+<h3>subset</h3>
+<p>similar to <code>dplyr::filter</code></p>
+<pre class="r"><code>subset2 &lt;- function(df, expr) {
+  qu &lt;- enquo(expr)
+  bool &lt;- eval_tidy(qu, df)
+  browser
+  stopifnot(is.logical(bool))
+  df[bool,]
+}
+
+subset2(mtcars, cyl == 6)</code></pre>
+<pre><code>##                 mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+## Mazda RX4      21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag  21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+## Hornet 4 Drive 21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+## Valiant        18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+## Merc 280       19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
+## Merc 280C      17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
+## Ferrari Dino   19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6</code></pre>
+</div>
+<div id="transform" class="section level3">
+<h3>transform</h3>
+<p>similar to <code>dplyr::mutate</code></p>
+<pre class="r"><code>transform2 &lt;- function(df, ...) {
+  dots &lt;- enquos(...)
+  
+  for (i in seq_along(dots)) {
+    col &lt;- names(dots)[i]
+    df[[col]] &lt;- eval_tidy(dots[[i]], df)
+  }
+  
+  return(df)
+}
+
+df &lt;- data.frame(x = 1:10, y = 11: 10)
+
+transform2(df, z = x * y, z0 = z + 1)</code></pre>
+<pre><code>##     x  y   z  z0
+## 1   1 11  11  12
+## 2   2 10  20  21
+## 3   3 11  33  34
+## 4   4 10  40  41
+## 5   5 11  55  56
+## 6   6 10  60  61
+## 7   7 11  77  78
+## 8   8 10  80  81
+## 9   9 11  99 100
+## 10 10 10 100 101</code></pre>
+</div>
+<div id="select" class="section level3">
+<h3>select</h3>
+<p>rewrite of dplyr::select()</p>
+<pre class="r"><code>select2 &lt;- function(data, ...) {
+  dots &lt;- enquos(...)
+  vars &lt;- as.list(set_names(seq_along(data), names(data)))
+  cols &lt;- unlist(map(dots, eval_tidy, vars))
+
+  data[, cols, drop = FALSE]
+}
+
+df &lt;- data.frame(a = 1, b = 2, c = 3, d = 4, e = 5)
+
+select2(df, b:d, a)</code></pre>
+<pre><code>##   b c d a
+## 1 2 3 4 1</code></pre>
+</div>
+</div>
+<div id="programming-with-rlangdplyr" class="section level2">
+<h2>Programming with rlang/dplyr</h2>
+<div id="pass-expressions-onto-functions-using-expression" class="section level3">
+<h3>Pass expressions onto functions using expression</h3>
+<p>We cannot pass them directly. We need to quote and selectively unquote</p>
+<div id="we-can-use-quosures-and-bangs" class="section level4">
+<h4>We can use quosures and bangs</h4>
+<pre class="r"><code>sample_col &lt;- function(df, col, n = 5) {
+  qu_col &lt;- enquo(col)
+  head(select2(df, !! qu_col), n)
+}
+
+sample_col(mtcars, disp)</code></pre>
+<pre><code>##                   disp
+## Mazda RX4          160
+## Mazda RX4 Wag      160
+## Datsun 710         108
+## Hornet 4 Drive     258
+## Hornet Sportabout  360</code></pre>
+<pre class="r"><code>sample_cols &lt;- function(df, ..., n = 5) {
+  qu_cols &lt;- enquos(...)
+  head(select2(df, !!! qu_cols), n)
+}
+
+sample_cols(mtcars, disp, cyl)</code></pre>
+<pre><code>##                   disp cyl
+## Mazda RX4          160   6
+## Mazda RX4 Wag      160   6
+## Datsun 710         108   4
+## Hornet 4 Drive     258   6
+## Hornet Sportabout  360   8</code></pre>
+</div>
+<div id="or-expressions" class="section level4">
+<h4>Or expressions</h4>
+<pre class="r"><code>sample_col &lt;- function(df, col, n = 5) {
+  qu_col &lt;- enexpr(col)
+  head(select(df, !! qu_col), n)
+}
+
+sample_col(mtcars, disp)</code></pre>
+<pre><code>##                   disp
+## Mazda RX4          160
+## Mazda RX4 Wag      160
+## Datsun 710         108
+## Hornet 4 Drive     258
+## Hornet Sportabout  360</code></pre>
+<pre class="r"><code>sample_cols &lt;- function(df, ..., n = 5) {
+  qu_cols &lt;- enexprs(...)
+  head(select2(df, !!! qu_cols), n)
+}
+
+sample_cols(mtcars, disp, cyl)</code></pre>
+<pre><code>##                   disp cyl
+## Mazda RX4          160   6
+## Mazda RX4 Wag      160   6
+## Datsun 710         108   4
+## Hornet 4 Drive     258   6
+## Hornet Sportabout  360   8</code></pre>
+</div>
+<div id="or-curly-curl" class="section level4">
+<h4>Or Curly Curl</h4>
+<p>**new standard as of <code>rlang 0.4.0</code></p>
+<pre class="r"><code>sample_col &lt;- function(df, col, n = 5) {
+  head(select2(df, {{col}}), n)
+}
+
+sample_col(mtcars, disp)</code></pre>
+<pre><code>##                   disp
+## Mazda RX4          160
+## Mazda RX4 Wag      160
+## Datsun 710         108
+## Hornet 4 Drive     258
+## Hornet Sportabout  360</code></pre>
+<pre class="r"><code>sample_cols &lt;- function(df, ..., n = 5) {
+  head(select2(df, ...), n)
+}
+
+sample_cols(mtcars, disp, cyl)</code></pre>
+<pre><code>##                   disp cyl
+## Mazda RX4          160   6
+## Mazda RX4 Wag      160   6
+## Datsun 710         108   4
+## Hornet 4 Drive     258   6
+## Hornet Sportabout  360   8</code></pre>
+</div>
+</div>
+<div id="pass-strings-onto-functions-using-expression" class="section level3">
+<h3>Pass strings onto functions using expression</h3>
+<p>use <code>.data</code></p>
+</div>
+</div>
+<div id="applications" class="section level2">
+<h2>Applications</h2>
+<div id="fetching-model-training-data-from-global-environment" class="section level3">
+<h3>Fetching Model Training Data from Global Environment</h3>
+<p>save the call using match.call()</p>
+<pre class="r"><code>slope_model &lt;- function(data, form) {
+  m &lt;- lm(form, data)
+  structure(
+    list(
+      slope = m$coefficients[[2]],
+      intercept = m$coefficients[[1]],
+      call = match.call()
+    ),
+    class = &quot;slope_model&quot;
+  )
+}
+
+plot.slope_model &lt;- function(m) {
+  stopifnot(inherits(m, &quot;slope_model&quot;))
+  
+  data_expr &lt;- m$call[[&quot;data&quot;]]
+  stopifnot(exists(deparse(data_expr)))
+  cols &lt;- colnames(eval(data_expr))
+  
+  
+  form &lt;- m$call[[&quot;form&quot;]]
+  y_expr &lt;- rlang::f_lhs(form)
+  x_expr &lt;- rlang::f_rhs(form)
+  y_str &lt;- deparse(y_expr)
+  x_str &lt;- deparse(x_expr)
+  stopifnot(c(y_str, y_str) %in% cols)
+  
+  eval(data_expr) %&gt;%
+    select({{y_expr}}, {{x_expr}}) %&gt;%
+    ggplot(aes({{x_expr}}, {{y_expr}})) +
+      geom_point() +
+      geom_abline(slope = m$slope, intercept = m$intercept) +
+      theme_minimal()
+  
+}
+
+m &lt;- slope_model(mtcars, disp ~ hp)
+m</code></pre>
+<pre><code>## $slope
+## [1] 1.42977
+## 
+## $intercept
+## [1] 20.99248
+## 
+## $call
+## slope_model(data = mtcars, form = disp ~ hp)
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>pryr::object_size(m)</code></pre>
+<pre><code>## 1,520 B</code></pre>
+<pre class="r"><code>pryr::object_size({m$data &lt;- mtcars})</code></pre>
+<pre><code>## 7,208 B</code></pre>
+</div>
+<div id="correcting-calls-for-wrapped-modelling-functions" class="section level3">
+<h3>Correcting Calls for Wrapped Modelling Functions</h3>
+<p>when we write a wrapper the saved call cannot be used to reconstruct the actual call. And methods relying on it will not work</p>
+<pre class="r"><code>wr_slope &lt;- function(data, form) {
+  slope_model(data, form)
+}
+
+m &lt;- wr_slope(mtcars, disp ~ hp)
+m</code></pre>
+<pre><code>## $slope
+## [1] 1.42977
+## 
+## $intercept
+## [1] 20.99248
+## 
+## $call
+## slope_model(data = data, form = form)
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<pre><code>## Error: `x` must be a formula</code></pre>
+<p>we need to reconstruct a new call inside the wrapper and pass it to the modelling function.</p>
+<pre class="r"><code>wr_slope &lt;- function(data, form) {
+  data &lt;- enexpr(data)
+  form &lt;- enexpr(form)
+  
+  new_call &lt;- expr(slope_model(!!data, !!form))
+  eval(new_call)
+}
+
+m &lt;- wr_slope(mtcars, disp ~ hp)
+m</code></pre>
+<pre><code>## $slope
+## [1] 1.42977
+## 
+## $intercept
+## [1] 20.99248
+## 
+## $call
+## slope_model(data = mtcars, form = disp ~ hp)
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<p>attaching the call to the model object is risky because if the modeling function is used by <code>do.call</code> or <code>purr::map</code> we risk attaching the entire data to the call.</p>
+<pre class="r"><code>do.call(slope_model, list(mtcars, disp ~ hp))</code></pre>
+<pre><code>## $slope
+## [1] 1.42977
+## 
+## $intercept
+## [1] 20.99248
+## 
+## $call
+## (function(data, form) {
+##   m &lt;- lm(form, data)
+##   structure(
+##     list(
+##       slope = m$coefficients[[2]],
+##       intercept = m$coefficients[[1]],
+##       call = match.call()
+##     ),
+##     class = &quot;slope_model&quot;
+##   )
+## })(data = list(mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, 
+## 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 
+## 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26, 30.4, 15.8, 
+## 19.7, 15, 21.4), cyl = c(6, 6, 4, 6, 8, 6, 8, 4, 4, 6, 6, 8, 
+## 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 8, 4, 4, 4, 8, 6, 8, 4), 
+##     disp = c(160, 160, 108, 258, 360, 225, 360, 146.7, 140.8, 
+##     167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 440, 78.7, 75.7, 
+##     71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 95.1, 351, 145, 
+##     301, 121), hp = c(110, 110, 93, 110, 175, 105, 245, 62, 95, 
+##     123, 123, 180, 180, 180, 205, 215, 230, 66, 52, 65, 97, 150, 
+##     150, 245, 175, 66, 91, 113, 264, 175, 335, 109), drat = c(3.9, 
+##     3.9, 3.85, 3.08, 3.15, 2.76, 3.21, 3.69, 3.92, 3.92, 3.92, 
+##     3.07, 3.07, 3.07, 2.93, 3, 3.23, 4.08, 4.93, 4.22, 3.7, 2.76, 
+##     3.15, 3.73, 3.08, 4.08, 4.43, 3.77, 4.22, 3.62, 3.54, 4.11
+##     ), wt = c(2.62, 2.875, 2.32, 3.215, 3.44, 3.46, 3.57, 3.19, 
+##     3.15, 3.44, 3.44, 4.07, 3.73, 3.78, 5.25, 5.424, 5.345, 2.2, 
+##     1.615, 1.835, 2.465, 3.52, 3.435, 3.84, 3.845, 1.935, 2.14, 
+##     1.513, 3.17, 2.77, 3.57, 2.78), qsec = c(16.46, 17.02, 18.61, 
+##     19.44, 17.02, 20.22, 15.84, 20, 22.9, 18.3, 18.9, 17.4, 17.6, 
+##     18, 17.98, 17.82, 17.42, 19.47, 18.52, 19.9, 20.01, 16.87, 
+##     17.3, 15.41, 17.05, 18.9, 16.7, 16.9, 14.5, 15.5, 14.6, 18.6
+##     ), vs = c(0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 
+##     0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1), am = c(1, 
+##     1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 
+##     0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1), gear = c(4, 4, 4, 3, 
+##     3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 
+##     3, 3, 4, 5, 5, 5, 5, 5, 4), carb = c(4, 4, 1, 1, 2, 1, 4, 
+##     2, 2, 4, 4, 3, 3, 3, 4, 4, 4, 1, 2, 1, 1, 2, 2, 4, 2, 1, 
+##     2, 2, 4, 6, 8, 2)), form = disp ~ hp)
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>do.call(wr_slope, list(mtcars, disp ~ hp))</code></pre>
+<pre><code>## $slope
+## [1] 1.42977
+## 
+## $intercept
+## [1] 20.99248
+## 
+## $call
+## slope_model(data = list(mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 
+## 14.3, 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 
+## 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26, 30.4, 
+## 15.8, 19.7, 15, 21.4), cyl = c(6, 6, 4, 6, 8, 6, 8, 4, 4, 6, 
+## 6, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 8, 4, 4, 4, 8, 6, 8, 
+## 4), disp = c(160, 160, 108, 258, 360, 225, 360, 146.7, 140.8, 
+## 167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 440, 78.7, 75.7, 
+## 71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 95.1, 351, 145, 301, 
+## 121), hp = c(110, 110, 93, 110, 175, 105, 245, 62, 95, 123, 123, 
+## 180, 180, 180, 205, 215, 230, 66, 52, 65, 97, 150, 150, 245, 
+## 175, 66, 91, 113, 264, 175, 335, 109), drat = c(3.9, 3.9, 3.85, 
+## 3.08, 3.15, 2.76, 3.21, 3.69, 3.92, 3.92, 3.92, 3.07, 3.07, 3.07, 
+## 2.93, 3, 3.23, 4.08, 4.93, 4.22, 3.7, 2.76, 3.15, 3.73, 3.08, 
+## 4.08, 4.43, 3.77, 4.22, 3.62, 3.54, 4.11), wt = c(2.62, 2.875, 
+## 2.32, 3.215, 3.44, 3.46, 3.57, 3.19, 3.15, 3.44, 3.44, 4.07, 
+## 3.73, 3.78, 5.25, 5.424, 5.345, 2.2, 1.615, 1.835, 2.465, 3.52, 
+## 3.435, 3.84, 3.845, 1.935, 2.14, 1.513, 3.17, 2.77, 3.57, 2.78
+## ), qsec = c(16.46, 17.02, 18.61, 19.44, 17.02, 20.22, 15.84, 
+## 20, 22.9, 18.3, 18.9, 17.4, 17.6, 18, 17.98, 17.82, 17.42, 19.47, 
+## 18.52, 19.9, 20.01, 16.87, 17.3, 15.41, 17.05, 18.9, 16.7, 16.9, 
+## 14.5, 15.5, 14.6, 18.6), vs = c(0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 
+## 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 
+## 1), am = c(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+## 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1), gear = c(4, 4, 
+## 4, 3, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 
+## 3, 3, 4, 5, 5, 5, 5, 5, 4), carb = c(4, 4, 1, 1, 2, 1, 4, 2, 
+## 2, 4, 4, 3, 3, 3, 4, 4, 4, 1, 2, 1, 1, 2, 2, 4, 2, 1, 2, 2, 4, 
+## 6, 8, 2)), form = disp ~ hp)
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>do.call(lm, list(disp ~ hp, mtcars))</code></pre>
+<pre><code>## 
+## Call:
+## (function (formula, data, subset, weights, na.action, method = &quot;qr&quot;, 
+##     model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, 
+##     contrasts = NULL, offset, ...) 
+## {
+##     ret.x &lt;- x
+##     ret.y &lt;- y
+##     cl &lt;- match.call()
+##     mf &lt;- match.call(expand.dots = FALSE)
+##     m &lt;- match(c(&quot;formula&quot;, &quot;data&quot;, &quot;subset&quot;, &quot;weights&quot;, &quot;na.action&quot;, 
+##         &quot;offset&quot;), names(mf), 0L)
+##     mf &lt;- mf[c(1L, m)]
+##     mf$drop.unused.levels &lt;- TRUE
+##     mf[[1L]] &lt;- quote(stats::model.frame)
+##     mf &lt;- eval(mf, parent.frame())
+##     if (method == &quot;model.frame&quot;) 
+##         return(mf)
+##     else if (method != &quot;qr&quot;) 
+##         warning(gettextf(&quot;method = &#39;%s&#39; is not supported. Using &#39;qr&#39;&quot;, 
+##             method), domain = NA)
+##     mt &lt;- attr(mf, &quot;terms&quot;)
+##     y &lt;- model.response(mf, &quot;numeric&quot;)
+##     w &lt;- as.vector(model.weights(mf))
+##     if (!is.null(w) &amp;&amp; !is.numeric(w)) 
+##         stop(&quot;&#39;weights&#39; must be a numeric vector&quot;)
+##     offset &lt;- model.offset(mf)
+##     mlm &lt;- is.matrix(y)
+##     ny &lt;- if (mlm) 
+##         nrow(y)
+##     else length(y)
+##     if (!is.null(offset)) {
+##         if (!mlm) 
+##             offset &lt;- as.vector(offset)
+##         if (NROW(offset) != ny) 
+##             stop(gettextf(&quot;number of offsets is %d, should equal %d (number of observations)&quot;, 
+##                 NROW(offset), ny), domain = NA)
+##     }
+##     if (is.empty.model(mt)) {
+##         x &lt;- NULL
+##         z &lt;- list(coefficients = if (mlm) matrix(NA_real_, 0, 
+##             ncol(y)) else numeric(), residuals = y, fitted.values = 0 * 
+##             y, weights = w, rank = 0L, df.residual = if (!is.null(w)) sum(w != 
+##             0) else ny)
+##         if (!is.null(offset)) {
+##             z$fitted.values &lt;- offset
+##             z$residuals &lt;- y - offset
+##         }
+##     }
+##     else {
+##         x &lt;- model.matrix(mt, mf, contrasts)
+##         z &lt;- if (is.null(w)) 
+##             lm.fit(x, y, offset = offset, singular.ok = singular.ok, 
+##                 ...)
+##         else lm.wfit(x, y, w, offset = offset, singular.ok = singular.ok, 
+##             ...)
+##     }
+##     class(z) &lt;- c(if (mlm) &quot;mlm&quot;, &quot;lm&quot;)
+##     z$na.action &lt;- attr(mf, &quot;na.action&quot;)
+##     z$offset &lt;- offset
+##     z$contrasts &lt;- attr(x, &quot;contrasts&quot;)
+##     z$xlevels &lt;- .getXlevels(mt, mf)
+##     z$call &lt;- cl
+##     z$terms &lt;- mt
+##     if (model) 
+##         z$model &lt;- mf
+##     if (ret.x) 
+##         z$x &lt;- x
+##     if (ret.y) 
+##         z$y &lt;- y
+##     if (!qr) 
+##         z$qr &lt;- NULL
+##     z
+## })(formula = disp ~ hp, data = structure(list(mpg = c(21, 21, 
+## 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 
+## 15.2, 10.4, 10.4, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 
+## 19.2, 27.3, 26, 30.4, 15.8, 19.7, 15, 21.4), cyl = c(6, 6, 4, 
+## 6, 8, 6, 8, 4, 4, 6, 6, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 
+## 8, 4, 4, 4, 8, 6, 8, 4), disp = c(160, 160, 108, 258, 360, 225, 
+## 360, 146.7, 140.8, 167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 
+## 440, 78.7, 75.7, 71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 
+## 95.1, 351, 145, 301, 121), hp = c(110, 110, 93, 110, 175, 105, 
+## 245, 62, 95, 123, 123, 180, 180, 180, 205, 215, 230, 66, 52, 
+## 65, 97, 150, 150, 245, 175, 66, 91, 113, 264, 175, 335, 109), 
+##     drat = c(3.9, 3.9, 3.85, 3.08, 3.15, 2.76, 3.21, 3.69, 3.92, 
+##     3.92, 3.92, 3.07, 3.07, 3.07, 2.93, 3, 3.23, 4.08, 4.93, 
+##     4.22, 3.7, 2.76, 3.15, 3.73, 3.08, 4.08, 4.43, 3.77, 4.22, 
+##     3.62, 3.54, 4.11), wt = c(2.62, 2.875, 2.32, 3.215, 3.44, 
+##     3.46, 3.57, 3.19, 3.15, 3.44, 3.44, 4.07, 3.73, 3.78, 5.25, 
+##     5.424, 5.345, 2.2, 1.615, 1.835, 2.465, 3.52, 3.435, 3.84, 
+##     3.845, 1.935, 2.14, 1.513, 3.17, 2.77, 3.57, 2.78), qsec = c(16.46, 
+##     17.02, 18.61, 19.44, 17.02, 20.22, 15.84, 20, 22.9, 18.3, 
+##     18.9, 17.4, 17.6, 18, 17.98, 17.82, 17.42, 19.47, 18.52, 
+##     19.9, 20.01, 16.87, 17.3, 15.41, 17.05, 18.9, 16.7, 16.9, 
+##     14.5, 15.5, 14.6, 18.6), vs = c(0, 0, 1, 1, 0, 1, 0, 1, 1, 
+##     1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 
+##     0, 0, 0, 1), am = c(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+##     0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1), 
+##     gear = c(4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 3, 3, 
+##     3, 4, 4, 4, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5, 4), carb = c(4, 
+##     4, 1, 1, 2, 1, 4, 2, 2, 4, 4, 3, 3, 3, 4, 4, 4, 1, 2, 1, 
+##     1, 2, 2, 4, 2, 1, 2, 2, 4, 6, 8, 2)), row.names = c(&quot;Mazda RX4&quot;, 
+## &quot;Mazda RX4 Wag&quot;, &quot;Datsun 710&quot;, &quot;Hornet 4 Drive&quot;, &quot;Hornet Sportabout&quot;, 
+## &quot;Valiant&quot;, &quot;Duster 360&quot;, &quot;Merc 240D&quot;, &quot;Merc 230&quot;, &quot;Merc 280&quot;, 
+## &quot;Merc 280C&quot;, &quot;Merc 450SE&quot;, &quot;Merc 450SL&quot;, &quot;Merc 450SLC&quot;, &quot;Cadillac Fleetwood&quot;, 
+## &quot;Lincoln Continental&quot;, &quot;Chrysler Imperial&quot;, &quot;Fiat 128&quot;, &quot;Honda Civic&quot;, 
+## &quot;Toyota Corolla&quot;, &quot;Toyota Corona&quot;, &quot;Dodge Challenger&quot;, &quot;AMC Javelin&quot;, 
+## &quot;Camaro Z28&quot;, &quot;Pontiac Firebird&quot;, &quot;Fiat X1-9&quot;, &quot;Porsche 914-2&quot;, 
+## &quot;Lotus Europa&quot;, &quot;Ford Pantera L&quot;, &quot;Ferrari Dino&quot;, &quot;Maserati Bora&quot;, 
+## &quot;Volvo 142E&quot;), class = &quot;data.frame&quot;))
+## 
+## Coefficients:
+## (Intercept)           hp  
+##       20.99         1.43</code></pre>
+<p>This is why a size check for the saving the call is required in the <a href="https://tidymodels.github.io/model-implementation-principles/the-model-object.html">tidymodels convention guide</a></p>
+<pre class="r"><code>df_m &lt;- mtcars %&gt;%
+  group_by(cyl) %&gt;%
+  nest() %&gt;%
+  mutate(m = map(data, wr_slope, disp ~ hp))
+
+map(df_m$m, ~ .$call)</code></pre>
+<pre><code>## [[1]]
+## slope_model(data = list(mpg = c(21, 21, 21.4, 18.1, 19.2, 17.8, 
+## 19.7), disp = c(160, 160, 258, 225, 167.6, 167.6, 145), hp = c(110, 
+## 110, 110, 105, 123, 123, 175), drat = c(3.9, 3.9, 3.08, 2.76, 
+## 3.92, 3.92, 3.62), wt = c(2.62, 2.875, 3.215, 3.46, 3.44, 3.44, 
+## 2.77), qsec = c(16.46, 17.02, 19.44, 20.22, 18.3, 18.9, 15.5), 
+##     vs = c(0, 0, 1, 1, 1, 1, 0), am = c(1, 1, 0, 0, 0, 0, 1), 
+##     gear = c(4, 4, 3, 3, 4, 4, 5), carb = c(4, 4, 1, 1, 4, 4, 
+##     6)), form = disp ~ hp)
+## 
+## [[2]]
+## slope_model(data = list(mpg = c(22.8, 24.4, 22.8, 32.4, 30.4, 
+## 33.9, 21.5, 27.3, 26, 30.4, 21.4), disp = c(108, 146.7, 140.8, 
+## 78.7, 75.7, 71.1, 120.1, 79, 120.3, 95.1, 121), hp = c(93, 62, 
+## 95, 66, 52, 65, 97, 66, 91, 113, 109), drat = c(3.85, 3.69, 3.92, 
+## 4.08, 4.93, 4.22, 3.7, 4.08, 4.43, 3.77, 4.11), wt = c(2.32, 
+## 3.19, 3.15, 2.2, 1.615, 1.835, 2.465, 1.935, 2.14, 1.513, 2.78
+## ), qsec = c(18.61, 20, 22.9, 19.47, 18.52, 19.9, 20.01, 18.9, 
+## 16.7, 16.9, 18.6), vs = c(1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1), am = c(1, 
+## 0, 0, 1, 1, 1, 0, 1, 1, 1, 1), gear = c(4, 4, 4, 4, 4, 4, 3, 
+## 4, 5, 5, 4), carb = c(1, 2, 2, 1, 2, 1, 1, 1, 2, 2, 2)), form = disp ~ 
+##     hp)
+## 
+## [[3]]
+## slope_model(data = list(mpg = c(18.7, 14.3, 16.4, 17.3, 15.2, 
+## 10.4, 10.4, 14.7, 15.5, 15.2, 13.3, 19.2, 15.8, 15), disp = c(360, 
+## 360, 275.8, 275.8, 275.8, 472, 460, 440, 318, 304, 350, 400, 
+## 351, 301), hp = c(175, 245, 180, 180, 180, 205, 215, 230, 150, 
+## 150, 245, 175, 264, 335), drat = c(3.15, 3.21, 3.07, 3.07, 3.07, 
+## 2.93, 3, 3.23, 2.76, 3.15, 3.73, 3.08, 4.22, 3.54), wt = c(3.44, 
+## 3.57, 4.07, 3.73, 3.78, 5.25, 5.424, 5.345, 3.52, 3.435, 3.84, 
+## 3.845, 3.17, 3.57), qsec = c(17.02, 15.84, 17.4, 17.6, 18, 17.98, 
+## 17.82, 17.42, 16.87, 17.3, 15.41, 17.05, 14.5, 14.6), vs = c(0, 
+## 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), am = c(0, 0, 0, 0, 0, 
+## 0, 0, 0, 0, 0, 0, 0, 1, 1), gear = c(3, 3, 3, 3, 3, 3, 3, 3, 
+## 3, 3, 3, 3, 5, 5), carb = c(2, 4, 3, 3, 3, 4, 4, 4, 2, 2, 4, 
+## 2, 4, 8)), form = disp ~ hp)</code></pre>
+<pre class="r"><code>map(df_m$m, plot)</code></pre>
+<pre><code>## Error in exists(deparse(data_expr)): first argument has length &gt; 1</code></pre>
+<p>instead attach arguments individually</p>
+<pre class="r"><code>training_data &lt;- function(name, df) {
+  structure(
+    list(
+      name = stringr::str_trunc(name, width = 120)[[1]],
+      cols = colnames(df),
+      dim = dim(df)
+    ),
+    class = &quot;train_data&quot;
+  )
+}
+
+match_training_data &lt;- function(df, train_data) {
+  
+  stopifnot(is.data.frame(df))
+  
+  stopifnot(all(train_data$cols %in% colnames(df)))
+  
+  df &lt;- df[, train_data$cols]
+  
+  stopifnot(all(dim(df) == train_data$dim))
+  
+  return(TRUE)
+}
+
+slope_model2 &lt;- function(data, form) {
+  
+  y &lt;- deparse(rlang::f_lhs(form))
+  x &lt;- deparse(rlang::f_rhs(form))
+  data_name &lt;- deparse(rlang::enexpr(data))
+  
+  train_data &lt;- training_data(data_name, data[, c(x, y)])
+  
+  m &lt;- lm(form, data)
+  
+  
+  structure(
+    list(
+      slope = m$coefficients[[2]],
+      intercept = m$coefficients[[1]],
+      train_data = train_data,
+      x = x,
+      y = y
+    ),
+    class = &quot;slope_model&quot;
+  )
+}
+
+plot.slope_model &lt;- function(m, data = NULL) {
+  stopifnot(inherits(m, &quot;slope_model&quot;))
+  
+  if (is.null(data) &amp; exists(m$train_data$name)) {
+    df_train &lt;- eval(parse(text = m$train_data$name))
+    match_training_data(df_train, m$train_data)
+  } else if (! is.null(data)) {
+    df_train &lt;- data 
+    match_training_data(df_train, m$train_data)
+  } else {
+    stop(&quot;training data not found&quot;)
+  }
+  
+  ggplot(df_train, aes_string(m$x, m$y)) +
+      geom_point() +
+      geom_abline(slope = m$slope, intercept = m$intercept) +
+      theme_minimal()
+  
+}
+
+
+m &lt;- slope_model2(mtcars, disp ~ hp)
+str(m)</code></pre>
+<pre><code>## List of 5
+##  $ slope     : num 1.43
+##  $ intercept : num 21
+##  $ train_data:List of 3
+##   ..$ name: chr &quot;mtcars&quot;
+##   ..$ cols: chr [1:2] &quot;hp&quot; &quot;disp&quot;
+##   ..$ dim : int [1:2] 32 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;train_data&quot;
+##  $ x         : chr &quot;hp&quot;
+##  $ y         : chr &quot;disp&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p>check wrapper compatibility</p>
+<pre class="r"><code>wr_slope &lt;- function(data, form) {
+  slope_model2(data, form)
+}
+
+m &lt;- wr_slope(mtcars, disp ~ hp)
+str(m)</code></pre>
+<pre><code>## List of 5
+##  $ slope     : num 1.43
+##  $ intercept : num 21
+##  $ train_data:List of 3
+##   ..$ name: chr &quot;data&quot;
+##   ..$ cols: chr [1:2] &quot;hp&quot; &quot;disp&quot;
+##   ..$ dim : int [1:2] 32 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;train_data&quot;
+##  $ x         : chr &quot;hp&quot;
+##  $ y         : chr &quot;disp&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<pre><code>## Error in match_training_data(df_train, m$train_data): is.data.frame(df) is not TRUE</code></pre>
+<pre class="r"><code>plot(m, mtcars)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p>still need it</p>
+<pre class="r"><code>wr_slope2 &lt;- function(data, form) {
+  data &lt;- enexpr(data)
+  form &lt;- enexpr(form)
+  
+  new_call &lt;- expr(slope_model2(!!data, !!form))
+  eval(new_call)
+}
+
+m &lt;- wr_slope2(mtcars, disp ~ hp)
+str(m)</code></pre>
+<pre><code>## List of 5
+##  $ slope     : num 1.43
+##  $ intercept : num 21
+##  $ train_data:List of 3
+##   ..$ name: chr &quot;mtcars&quot;
+##   ..$ cols: chr [1:2] &quot;hp&quot; &quot;disp&quot;
+##   ..$ dim : int [1:2] 32 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;train_data&quot;
+##  $ x         : chr &quot;hp&quot;
+##  $ y         : chr &quot;disp&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p>do.call</p>
+<pre class="r"><code>m &lt;- do.call(slope_model2, list(mtcars, disp ~ hp))
+str(m)</code></pre>
+<pre><code>## List of 5
+##  $ slope     : num 1.43
+##  $ intercept : num 21
+##  $ train_data:List of 3
+##   ..$ name: chr &quot;structure(list(mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, &quot;
+##   ..$ cols: chr [1:2] &quot;hp&quot; &quot;disp&quot;
+##   ..$ dim : int [1:2] 32 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;train_data&quot;
+##  $ x         : chr &quot;hp&quot;
+##  $ y         : chr &quot;disp&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;slope_model&quot;</code></pre>
+<pre class="r"><code>plot(m)</code></pre>
+<pre><code>## Error in plot.slope_model(m): training data not found</code></pre>
+<pre class="r"><code>plot(m, mtcars)</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+</div>
+<div id="printing-r-code-for-ggplots-plots" class="section level3">
+<h3>Printing R Code for ggplots Plots</h3>
+<p>we want to display the r code necessary to render a plot</p>
+<pre class="r"><code>plot_vars &lt;- function(df, x, y, smooth = FALSE) {
+    df &lt;- enexpr(df)
+    x &lt;- enexpr(x)
+    y &lt;- enexpr(y)
+    
+    ex &lt;- expr(
+      ggplot(!!df, aes(!! x, !!y)) +
+        geom_point()
+    )
+    
+    if(smooth){
+      ex &lt;- expr(!! ex + geom_smooth())
+    }
+    
+    return(ex)
+}
+
+ex &lt;- plot_vars(mtcars, disp, hp)
+cat(deparse(ex))</code></pre>
+<pre><code>## ggplot(mtcars, aes(disp, hp)) + geom_point()</code></pre>
+<pre class="r"><code>eval(plot_vars(mtcars, disp, hp))</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<pre class="r"><code>ex_smooth &lt;- plot_vars(mtcars, disp, hp, smooth = TRUE)
+
+cat(deparse(ex_smooth))</code></pre>
+<pre><code>## ggplot(mtcars, aes(disp, hp)) + geom_point() + geom_smooth()</code></pre>
+<pre class="r"><code>eval(ex_smooth)</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/post/2021-10-13-advancedr-part2_files/figure-html/unnamed-chunk-38-2.png" width="672" /></p>
+</div>
+</div>
+</div>
