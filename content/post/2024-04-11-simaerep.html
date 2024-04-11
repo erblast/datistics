@@ -1,0 +1,191 @@
+---
+title: simaerep release 0.5.0
+author: Björn Koneswarakantha
+date: '2024-04-11'
+slug: simaerep-v0.5.0
+categories:
+  - R
+tags:
+  - R
+  - bootstrap
+  - clinical studies
+summary: Detect Under-Reporting of Adverse Events in Clinical Trials with simaerep 0.5.0
+thumbnailImagePosition : left
+thumbnailImage: simaerep_logo_square.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+
+
+<p><br></br>
+<br></br></p>
+<p>Simulate adverse event reporting in clinical trials with the goal of detecting under-reporting sites.</p>
+<p>Monitoring of Adverse Event (AE) reporting in clinical trials is important for patient safety. We use bootstrap-based simulation to assign an AE under-reporting probability to each site in a clinical trial. The method is inspired by the ‘infer’ R package and Allen Downey’s blog article: <a href="http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html">“There is only one test!”</a>.</p>
+{{% image classes="center" src="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail-width="360px" thumbnail-height="360px" target="https://openpharma.github.io/simaerep/" %}}
+<p><br></br>
+<br></br></p>
+<div id="adverse-events" class="section level1">
+<h1>Adverse Events</h1>
+<p>An adverse event (AE) is any untoward medical occurrence in a patient or participating in a clincial trial. These events are not necessarily drug related. It could anything from
+a headache to a sporting accident to a life-threatening pneunomia. It is important though for the safety of the patients that these events are being reported in a timely manner
+from the clinical trial site to the sponsor of the trial so that the safety profile of the drug can be updated if necessary and appropriate actions can be taken.</p>
+</div>
+<div id="key-risk-indicators" class="section level1">
+<h1>Key Risk Indicators</h1>
+<p>Statistical monitoring of clinical trial sites typical employs several key risk indicators which are operational metrics derived from activities at the clinical trial sites. The ratio
+of AEs is typically one of them, the ratio of issues occurring when treating and examininig patients according to the study protocol might be another one.</p>
+</div>
+<div id="release-0.5.0" class="section level1">
+<h1>Release 0.5.0</h1>
+<p>{simaerep} was originally developed to detect sites that are under-reporting Adverse Events (AE) in clinical trials using a nonparametric bootstrap algorithm. With the release of
+the most current version v0.5.0 {simaerep} can also be used to detect over-reporting. With this update the algorithm can be used to detect under and over-reporting for all
+patient-related clinical events at site-level. From a quality perspective under-reporting is of a greater interest than over-reporting of AE. When it comes to other events such
+as site and subject issues, protocol deviations and data queries over- or high-reporting can be of the same importance as under-reporting. As high reporting can be indicative of
+site problems when executing the study protocol, low- or under-reporting can be indicative of failure of reporting such issues. A detailed guideline on how to obtain both over
+and under-reporting probabilities has been added to the package <a href="https://openpharma.github.io/simaerep/articles/over.html">documentation</a>.</p>
+</div>
+<div id="comparison-to-other-kri-flagging-methods" class="section level1">
+<h1>Comparison to other KRI flagging methods</h1>
+<p>The open-source landscape for R packages for clinical study quality monitoring and assurance has lately been extended with the release of the {gsm} R package which provides streamlined
+reporting for monitoring of key risk indicators that directly connects to various standardized clinical data formats. It also implements a funnel plot outlier flagging method which holds
+various advantages over percentile-based flagging methods. Nevertheless <a href="https://openpharma.github.io/simaerep/articles/gsm_perf.html">we could show</a> that the algorithm used by simarep can
+flag under-reporting sites more reliably mostly because event
+rates are not constant over-time. This shows that the redistribution/restratification of patients to sites can be used to get more reliable flags than flagging methods that make assumptions
+about the underlying process distributions.</p>
+</div>
+<div id="demo" class="section level1">
+<h1>Demo</h1>
+<pre class="r"><code>suppressPackageStartupMessages(library(simaerep))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(knitr))
+
+set.seed(1)
+
+df_visit &lt;- simaerep::sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id &lt;- &quot;A&quot;
+
+df_visit %&gt;%
+  select(study_id, site_number, patnum, visit, n_ae) %&gt;%
+  head(10) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">study_id</th>
+<th align="left">site_number</th>
+<th align="left">patnum</th>
+<th align="right">visit</th>
+<th align="right">n_ae</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">2</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">4</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">5</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">6</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">7</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">8</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">9</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">10</td>
+<td align="right">3</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>aerep &lt;- simaerep::simaerep(df_visit)
+
+plot(aerep, study = &quot;A&quot;)</code></pre>
+<p><img src="/post/2024-04-11-simaerep_files/figure-html/unnamed-chunk-2-1.png" width="960" /></p>
+</div>
+<div id="impala" class="section level1">
+<h1>IMPALA</h1>
+<p><code>simaerep</code> has been published as workproduct of the Inter-Company Quality Analytics (<a href="https://impala-consortium.org/">IMPALA</a>) consortium. IMPALA aims to engage with Health Authorities inspectors on
+defining guiding principles for the use of advanced analytics to complement, enhance and accelerate current QA practices. <code>simaerep</code> has initially been developed at Roche but is currently evaluated by
+other companies across the industry to complement their quality assurance activities (<a href="https://impala-consortium.org/clinical-safety-reporting-work-product-stream/">see testimonials</a>).</p>
+<p><a href="https://impala-consortium.org/"><img src="https://impala-consortium.org/wp-content/uploads/IMPALA-logo-x2.png" alt="IMPALA logo" /></a></p>
+</div>
+<div id="ressources" class="section level1">
+<h1>Ressources</h1>
+<ul>
+<li><a href="https://github.com/openpharma/simaerep/">github</a></li>
+<li><a href="https://openpharma.github.io/simaerep/index.html">website</a></li>
+</ul>
+</div>
+<div id="publications" class="section level1">
+<h1>Publications</h1>
+<p>Koneswarakantha, B., Adyanthaya, R., Emerson, J. et al. An Open-Source R Package for Detection of Adverse Events Under-Reporting in Clinical Trials: Implementation and Validation by the IMPALA
+(Inter coMPany quALity Analytics) Consortium. Ther Innov Regul Sci (2024). <a href="https://doi.org/10.1007/s43441-024-00631-8" class="uri">https://doi.org/10.1007/s43441-024-00631-8</a></p>
+<p>Koneswarakantha, B., Barmaz, Y., Ménard, T. et al. <em>Follow-up on the Use of Advanced Analytics for Clinical Quality Assurance: Bootstrap Resampling to Enhance Detection of Adverse Event Under-Reporting.</em> Drug
+Saf (2020).<br />
+<a href="https://doi.org/10.1007/s40264-020-01011-5" class="uri">https://doi.org/10.1007/s40264-020-01011-5</a></p>
+</div>
