@@ -1,0 +1,165 @@
+---
+title: simaerep release 0.6.0
+author: Björn Koneswarakantha
+date: '2024-09-30'
+slug: simaerep-v0.6.0
+categories:
+  - R
+tags:
+  - R
+  - bootstrap
+  - clinical studies
+summary: Detect Under- and Over- Reporting of Clinical Events in Clinical Trials with simaerep 0.6.0
+thumbnailImagePosition : left
+thumbnailImage: simaerep_logo_square.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+<br></br>
+<br></br>
+
+Simulate patient-related events in clinical trials with the goal of detecting over and under-reporting sites.
+
+Monitoring reporting rates of patient-related events such as adverse events (AE) in clinical trials is important for patient safety. We use bootstrap-based simulation to assign over- and under-reporting probabilities to each site in a clinical trial. The method is inspired by the ‘infer’ R package and Allen Downey’s blog article: [“There is only one test!”](http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html).
+
+
+
+```{r short_logo, echo = FALSE}
+blogdown::shortcode("image"
+                    , classes = 'center'
+                    , src = 'https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png'
+                    , thumbnail = 'https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png'
+                    , `thumbnail-width` = '360px'
+                    , `thumbnail-height` = '360px'
+                    , target = 'https://openpharma.github.io/simaerep/'
+                    )
+
+```
+
+<br></br>
+<br></br>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = F)
+
+```
+
+
+# Key Risk Indicators
+
+Statistical monitoring of clinical trial sites typical employs several key risk indicators which are operational metrics derived from activities at the clinical trial sites. The ratio
+of AEs is typically one of them, the ratio of issues occurring when treating and examininig patients according to the study protocol might be another one.
+
+# Release 0.6.0
+
+## Updated Algorithm
+
+The default {simaerep} default algorithm picks for each site a specific evaluation point called visit_med75 based
+on the individual progression of the majority of the patients at a given site. Based on this site-level metric patients from the study pool would be sampled. With the most current release `v0.6.0` an alternative algorithm which identifies matches on patient-level for bootstrapping has been added. This algorithm has been coded with `dbplyr` compatible table operations and can be executed within a database-backend. More details about the so called **inframe** method can be found in the [documentation](https://openpharma.github.io/simaerep/articles/inframe.html).
+
+## Increased Statistical Performance
+
+The latest statistical [performance benchmark]() shows that the **inframe** method with disabled visit_med75 increases the overall statistical performance of {simaerep}. We can further show that the previously implemented multiplicity correction actually decreases performance of {simaerep}. This observation was already previously made during the validataion of {siamerep} by one of the IMPALA member companies. `simaerep()` has received a new parameter `mult_corr` to conveniently disable the multiplicity correction.
+
+
+## Demo 
+
+### New Recommendation
+
+Recommended Threshold: `aerep$dfeval$prob_low_prob_ur: 0.99`
+
+```{r fig.width=10}
+
+suppressPackageStartupMessages(library(simaerep))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(knitr))
+
+set.seed(1)
+
+df_visit <- simaerep::sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  frac_site_with_ur = 0.05, # fraction of sites under-reporting
+  ur_rate = 0.4, # rate of under-reporting
+  ae_per_visit_mean = 0.5 # mean AE per patient visit
+)
+
+df_visit$study_id <- "A"
+
+df_visit %>%
+  select(study_id, site_number, patnum, visit, n_ae) %>%
+  head(10) %>%
+  knitr::kable()
+
+aerep <- simaerep::simaerep(
+  df_visit,
+  inframe = TRUE,
+  visit_med75 = FALSE,
+  mult_corr = FALSE
+  )
+
+
+plot(aerep, study = "A")
+
+```
+
+### In Database Calculation
+
+We demo in database calculations with `duckdb`.
+
+We need to provide a in database table that has as many rows as the desired replications in our simulation, instead of providing an integer for the `r` parameter.
+
+```{r}
+con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
+df_r <- tibble(rep = seq(1, 1000))
+
+dplyr::copy_to(con, df_visit, "visit")
+dplyr::copy_to(con, df_r, "r")
+
+tbl_visit <- tbl(con, "visit")
+tbl_r <- tbl(con, "r")
+
+
+aerep <- simaerep(
+  tbl_visit,
+  r = tbl_r,
+  inframe = TRUE,
+  visit_med75 = FALSE,
+  mult_corr = FALSE
+)
+
+plot(aerep, df_visit = tbl_visit)
+
+DBI::dbDisconnect(con)
+```
+
+# Upcoming Breaking Changes
+
+In the upcoming release the default settings of `siamerep` will be changed to the new recommendations and we will remove the AE wording from the package and change input and output column names.
+
+# IMPALA
+
+`simaerep` has been published as workproduct of the Inter-Company Quality Analytics ([IMPALA](https://impala-consortium.org/)) consortium. IMPALA aims to engage with Health Authorities inspectors on 
+defining guiding principles for the use of advanced analytics to complement, enhance and accelerate current QA practices. `simaerep` has initially been developed at Roche but is currently evaluated by 
+other companies across the industry to complement their quality assurance activities ([see testimonials](https://impala-consortium.org/clinical-safety-reporting-work-product-stream/)).
+
+[![IMPALA logo](https://impala-consortium.org/wp-content/uploads/IMPALA-logo-x2.png)](https://impala-consortium.org/)
+
+# Ressources
+
+- [github](https://github.com/openpharma/simaerep/)
+- [website](https://openpharma.github.io/simaerep/index.html)
+
+# Publications
+
+Koneswarakantha, B., Adyanthaya, R., Emerson, J. et al. An Open-Source R Package for Detection of Adverse Events Under-Reporting in Clinical Trials: Implementation and Validation by the IMPALA 
+(Inter coMPany quALity Analytics) Consortium. Ther Innov Regul Sci (2024). https://doi.org/10.1007/s43441-024-00631-8
+
+
+Koneswarakantha, B., Barmaz, Y., Ménard, T. et al. *Follow-up on the Use of Advanced Analytics for Clinical Quality Assurance: Bootstrap Resampling to Enhance Detection of Adverse Event Under-Reporting.* Drug
+Saf (2020).  
+<https://doi.org/10.1007/s40264-020-01011-5>
