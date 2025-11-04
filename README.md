@@ -7,5 +7,5 @@ use [hugo 0.53](https://github.com/gohugoio/hugo/releases/tag/v0.53)
 
 
 ```
-blogdown:::build_rmds("content/post/2024-09-30-simaerep.Rmd")
+blogdown:::build_rmds("content/post/2025-11-04-simaerep.Rmd")
 ```

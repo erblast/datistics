@@ -1,0 +1,327 @@
+---
+title: simaerep release 1.0.0
+author: Björn Koneswarakantha
+date: '2025-11-04'
+slug: simaerep-v1.0.0
+categories:
+  - R
+tags:
+  - R
+  - bootstrap
+  - clinical studies
+summary: Detect Under- and Over- Reporting of Clinical Events in Clinical Trials with simaerep 1.0.0
+thumbnailImagePosition : left
+thumbnailImage: simaerep_logo_square.png
+editor_options: 
+  chunk_output_type: console
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+
+
+<p><br></br>
+<br></br></p>
+<p>Simulate patient-related events in clinical trials with the goal of detecting over and under-reporting sites.</p>
+<p>Monitoring reporting rates of patient-related events such as adverse events (AE) in clinical trials is important for patient safety. We use bootstrap-based simulation to assign over- and under-reporting probabilities to each site in a clinical trial. The method is inspired by the ‘infer’ R package and Allen Downey’s blog article: <a href="http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html">“There is only one test!”</a>.</p>
+{{% image classes="center" src="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail="https://github.com/openpharma/simaerep/raw/master/man/figures/logo.png" thumbnail-width="360px" thumbnail-height="360px" target="https://openpharma.github.io/simaerep/" %}}
+<p><br></br>
+<br></br></p>
+<div id="key-risk-indicators" class="section level1">
+<h1>Key Risk Indicators</h1>
+<p>Statistical monitoring of clinical trial sites typical employs several key risk indicators which are operational metrics derived from activities at the clinical trial sites. The ratio
+of AEs is typically one of them, the ratio of issues occurring when treating and examininig patients according to the study protocol might be another one.</p>
+</div>
+<div id="release-v1.0.0" class="section level1">
+<h1>Release v1.0.0</h1>
+<div id="announcement" class="section level2">
+<h2>Announcement</h2>
+<p>We are happy to announce the release of {simaerep} v1.0.0 and {gsm.simarep} v0.2.0 our open source R packages designed to detect clinical trial sites that are under- or over- reporting patient-level clinical events. We have condensed our experience and user feedback from the past 5 years to design a more professional user experience with default settings that reflect our latest recommendations. We have also adapted the algorithm to support the detection of over-reporting of low-incidence terminal events such as patient discontinuations. {gsm.simaerep} provides important data preprocessing functions and a standardized approach to integrate {simaerep} into an end-to-end analysis and reporting pipeline using the good statistical monitoring {gsm} framework.</p>
+<ul>
+<li><a href="https://github.com/openpharma/simaerep/">https://github.com/openpharma/simaerep/</a></li>
+<li><a href="https://github.com/IMPALA-Consortium/gsm.simaerep">https://github.com/IMPALA-Consortium/gsm.simaerep</a></li>
+</ul>
+</div>
+<div id="release-highlights" class="section level2">
+<h2>Release Highlights</h2>
+<ul>
+<li>New user interface for <code>simaerep()</code> function with defaults reflecting the latest recommendations</li>
+<li>Better output structure, over- and under-reporting probability combined into one score</li>
+<li>Support for low-incidence terminal events (e.g., patient discontinuations)</li>
+</ul>
+<p><a href="https://github.com/openpharma/simaerep/blob/master/NEWS.md">Detailed Releas Notes</a></p>
+</div>
+<div id="demo" class="section level2">
+<h2>Demo</h2>
+<div id="simaerep" class="section level3">
+<h3>{simaerep}</h3>
+<pre class="r"><code>suppressPackageStartupMessages(library(simaerep))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(knitr))
+
+set.seed(1)
+
+df_visit &lt;- sim_test_data_study(
+  n_pat = 1000, # number of patients in study
+  n_sites = 100, # number of sites in study
+  ratio_out = 0.02, # ratio of sites with outlier
+  factor_event_rate = -0.5, # rate of under-reporting
+  # non-constant event rates based on gamma distribution
+  event_rates = (dgamma(seq(1, 20, 0.5), shape = 5, rate = 2) * 5) + 0.1,
+  max_visit = 20,
+  max_visit_sd = 10,
+  study_id = &quot;A&quot;
+)
+
+df_visit %&gt;%
+  select(study_id, site_id, patient_id, visit, n_event) %&gt;%
+  head(25) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">study_id</th>
+<th align="left">site_id</th>
+<th align="left">patient_id</th>
+<th align="right">visit</th>
+<th align="right">n_event</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">2</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">3</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">4</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">5</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">6</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">7</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">8</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">9</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">10</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">11</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">12</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000001</td>
+<td align="right">13</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">1</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">2</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">3</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">4</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">5</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">6</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">7</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">8</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">9</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">10</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">11</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">S0001</td>
+<td align="left">P000002</td>
+<td align="right">12</td>
+<td align="right">9</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>evrep &lt;- simaerep(df_visit, mult_corr = TRUE)
+
+plot(evrep, study = &quot;A&quot;)</code></pre>
+<p><img src="/post/2025-11-04-simaerep_files/figure-html/unnamed-chunk-2-1.png" width="960" /></p>
+</div>
+<div id="gsm.simaerep" class="section level3">
+<h3>{gsm.simaerep}</h3>
+<pre class="r"><code>library(gsm.simaerep)
+library(gsm.kri)
+
+dfInput &lt;- Input_CumCount(
+  dfSubjects = clindata::rawplus_dm,
+  dfNumerator = clindata::rawplus_ae,
+  dfDenominator = clindata::rawplus_visdt %&gt;% dplyr::mutate(visit_dt = lubridate::ymd(visit_dt)),
+  strSubjectCol = &quot;subjid&quot;,
+  strGroupCol = &quot;siteid&quot;,
+  strGroupLevel = &quot;Site&quot;,
+  strNumeratorDateCol = &quot;aest_dt&quot;,
+  strDenominatorDateCol = &quot;visit_dt&quot;
+)
+
+dfAnalyzed &lt;- Analyze_Simaerep(dfInput)
+
+dfFlagged &lt;- Flag_Simaerep(dfAnalyzed, vThreshold = c(-0.99, -0.95, 0.95, 0.99))</code></pre>
+<pre><code>## ℹ Sorted dfFlagged using custom Flag order: 2.Sorted dfFlagged using custom Flag order: -2.Sorted dfFlagged using custom Flag order: 1.Sorted dfFlagged using custom Flag order: -1.Sorted dfFlagged using custom Flag order: 0.</code></pre>
+<pre class="r"><code>#&gt; ℹ Sorted dfFlagged using custom Flag order: 2.Sorted dfFlagged using custom Flag order: -2.Sorted dfFlagged using custom Flag order: 1.Sorted dfFlagged using custom Flag order: -1.Sorted dfFlagged using custom Flag order: 0.
+
+gsm.kri::Visualize_Scatter(
+  dfFlagged,
+  dfBounds = NULL,
+  strGroupLabel = &quot;GroupLevel&quot;,
+  strUnit = &quot;Visits&quot;
+)</code></pre>
+<p><img src="/post/2025-11-04-simaerep_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="impala" class="section level1">
+<h1>IMPALA</h1>
+<p><code>simaerep</code> has been published as workproduct of the Inter-Company Quality Analytics (<a href="https://impala-consortium.org/">IMPALA</a>) consortium. IMPALA aims to engage with Health Authorities inspectors on
+defining guiding principles for the use of advanced analytics to complement, enhance and accelerate current QA practices. <code>simaerep</code> has initially been developed at Roche but is currently evaluated by
+other companies across the industry to complement their quality assurance activities (<a href="https://impala-consortium.org/clinical-safety-reporting-work-product-stream/">see testimonials</a>).</p>
+<p><a href="https://impala-consortium.org/"><img src="https://impala-consortium.org/wp-content/uploads/IMPALA-logo-x2.png" alt="IMPALA logo" /></a></p>
+</div>
+<div id="ressources" class="section level1">
+<h1>Ressources</h1>
+<ul>
+<li><a href="https://github.com/openpharma/simaerep/">github</a></li>
+<li><a href="https://openpharma.github.io/simaerep/index.html">website</a></li>
+</ul>
+</div>
+<div id="publications" class="section level1">
+<h1>Publications</h1>
+<p>Koneswarakantha, B., Adyanthaya, R., Emerson, J. et al. An Open-Source R Package for Detection of Adverse Events Under-Reporting in Clinical Trials: Implementation and Validation by the IMPALA
+(Inter coMPany quALity Analytics) Consortium. Ther Innov Regul Sci (2024). <a href="https://doi.org/10.1007/s43441-024-00631-8" class="uri">https://doi.org/10.1007/s43441-024-00631-8</a></p>
+<p>Koneswarakantha, B., Barmaz, Y., Ménard, T. et al. <em>Follow-up on the Use of Advanced Analytics for Clinical Quality Assurance: Bootstrap Resampling to Enhance Detection of Adverse Event Under-Reporting.</em> Drug
+Saf (2020).<br />
+<a href="https://doi.org/10.1007/s40264-020-01011-5" class="uri">https://doi.org/10.1007/s40264-020-01011-5</a></p>
+</div>
